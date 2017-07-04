@@ -1,0 +1,19 @@
+stacks: [CHANGE_ME]
+regions: [eu-west-1]
+
+deployments:
+  kindle-gen:
+    type: aws-lambda
+    parameters:
+      bucket: CHANGE_ME-dist
+      functionNames: [kindle-gen-]
+      fileName: kindle-gen.jar
+      prefixStack: false
+    dependencies: [kindle-gen-cfn]
+  kindle-gen-cfn:
+    type: cloud-formation
+    app: kindle-gen
+    parameters:
+      prependStackToCloudFormationStackName: false
+      cloudFormationStackName: kindle-gen
+      templatePath: cfn.yaml
