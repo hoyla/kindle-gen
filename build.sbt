@@ -15,15 +15,21 @@ scalacOptions ++= Seq(
   "-Ywarn-dead-code"
 )
 
+/* deps for aws lambda */
 libraryDependencies ++= Seq(
   "com.amazonaws" % "aws-lambda-java-core" % "1.1.0"
 )
 
+/* deps required to use junit test and test watch */
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 libraryDependencies += "junit" % "junit" % "4.10" % "test"
 libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test"
 
+/* wrapper around jodatime */
+libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "2.16.0"
+
+/* deps for Riff-Raff Guardian deployment tool */
 enablePlugins(RiffRaffArtifact)
 
 assemblyJarName := s"${name.value}.jar"

@@ -4,6 +4,7 @@ import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import com.amazonaws.services.lambda.runtime.Context
+import com.github.nscala_time.time.Imports._
 
 @RunWith(classOf[JUnitRunner])
 class ArticleSuite extends FunSuite {
@@ -24,6 +25,15 @@ class ArticleSuite extends FunSuite {
     |</docdata>
     |<pubdata type="print" date.publication="20170724" />  
     |</head>
+    |<body>
+    |<body.head>
+    |<hedline><hl1>my title</hl1></hedline>
+    |<byline>my name</byline>
+    |<abstract>article abstract</abstract>
+    |</body.head>
+    |<body.content>content</body.content>
+    |<body.end />
+    |</body>
     |</nitf>""".stripMargin
 
     val article = Article(
@@ -31,12 +41,15 @@ class ArticleSuite extends FunSuite {
       status = "usable",
       idString = "section/date/title",
       urgency = 3,
-      issueDate = 20170724,
-      releaseDate = 20170724,
-      pubDate = 20170724
+      issueDate = new DateTime("2017-07-24"),
+      releaseDate = new DateTime("2017-07-24"),
+      pubDate = new DateTime("2017-07-24"),
+      byline = "my name",
+      articleAbstract = "article abstract",
+      content = "content"
+
     )
     assert(article.toNitf === expectedOutput)
   }
 
 }
-
