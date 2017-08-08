@@ -5,6 +5,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import com.amazonaws.services.lambda.runtime.Context
 import com.github.nscala_time.time.Imports._
+import com.gu.contentapi.client.model.v1.CapiDateTime
+import com.gu.contentapi.client.utils._
 
 @RunWith(classOf[JUnitRunner])
 class ArticleSuite extends FunSuite {
@@ -18,12 +20,12 @@ class ArticleSuite extends FunSuite {
     |<title>my title</title>
     |<docdata management-status="usable">
     |<doc-id id-string="section/date/title" />
-    |<urgency ed-urg="3" />
+    |<urgency ed-urg="2" />
     |<date.issue norm="20170724" />
     |<date.release norm="20170724" />
     |<doc.copyright holder="guardian.co.uk" />
     |</docdata>
-    |<pubdata type="print" date.publication="20170724" />  
+    |<pubdata type="print" date.publication="20170724" />
     |</head>
     |<body>
     |<body.head>
@@ -38,12 +40,10 @@ class ArticleSuite extends FunSuite {
 
     val article = Article(
       title = "my title",
-      status = "usable",
-      idString = "section/date/title",
-      urgency = 3,
-      issueDate = new DateTime("2017-07-24"),
-      releaseDate = new DateTime("2017-07-24"),
-      pubDate = new DateTime("2017-07-24"),
+      docId = "section/date/title",
+      issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+      releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+      pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
       byline = "my name",
       articleAbstract = "article abstract",
       content = "content"
@@ -52,4 +52,5 @@ class ArticleSuite extends FunSuite {
     assert(article.toNitf === expectedOutput)
   }
 
+  private def formatter = DateTimeFormat.forPattern("yyyyMMdd")
 }

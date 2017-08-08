@@ -6,14 +6,11 @@ import org.joda.time.format.ISODateTimeFormat
 
 case class Article(
     title: String,
-    //    status: String, TODO: is status required?
-    //    idString: String, TODO: how is this generated and used?
-    //    urgency: Int, // TODO: Use an enum if required - fingerpost uses "2"
-    issueDate: CapiDateTime, // appears to be pub date in fingerpost, which is
+    docId: String,
+    issueDate: CapiDateTime,
     // newspaperEditionDate in ContentFields
-    releaseDate: CapiDateTime, // appears to be pub date reformatted? see ln409 of
-    // fingerpost goa_kindle.pl file
-    pubDate: CapiDateTime, // appears to be pub date
+    releaseDate: CapiDateTime,
+    pubDate: CapiDateTime,
     byline: String,
     articleAbstract: String, // standfirst is used
     content: String
@@ -28,7 +25,7 @@ case class Article(
        |<head>
        |<title>$title</title>
        |<docdata management-status="usable">
-       |<doc-id id-string="999_title" />
+       |<doc-id id-string="$docId" />
        |<urgency ed-urg="2" />
        |<date.issue norm="$formattedIssueDate" />
        |<date.release norm="$formattedReleaseDate" />
