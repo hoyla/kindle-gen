@@ -65,13 +65,14 @@ object TestIt {
 object Querier {
 
   class PrintSentContentClient(override val apiKey: String) extends GuardianContentClient(apiKey) {
-    // here I override the val for targetUrl from "http://content.guardianapis.com"
+    // This overrides the val for targetUrl from "http://content.guardianapis.com"
     // the `preview.` is required in order to access the print-sent api.
     override val targetUrl = "https://preview.content.guardianapis.com/content/print-sent"
-    // TODO: Find out if I will need capi Auth or the trailing "&user-tier=internal" that is used in the kindle-previewer
+    // TODO: Find out if capi Auth or the trailing "&user-tier=internal" that is used in the kindle-previewer is required
 
   }
   def readApiKey = {
+    // local file `~/.gu/kindle-gen.conf` must exist with first line a valid API key for CAPI.
     val localUserHome = scala.util.Properties.userHome
     val configSource = Source.fromFile(s"$localUserHome/.gu/kindle-gen.conf")
     val key = configSource.getLines.mkString
@@ -79,52 +80,46 @@ object Querier {
     key
   }
 
-  def printSentResponse = {
-    val capiKey = readApiKey //TODO: keys
+  def printSentResponse: Seq[com.gu.contentapi.client.model.v1.Content] = {
+    val capiKey = readApiKey
     val capiClient = new PrintSentContentClient(capiKey)
     val pageNum = 1
     val query = SearchQuery()
       .pageSize(1)
       .showFields("all")
+    // TODO: Add error handling with Try for failed request.
+    // TODO: Currently gets one result only; separate out sections and map over multiple pageSizes/ pages
+    // TODO: Query requires use-date and exact date of publication
     val response = Await.result(capiClient.getResponse(query), 5.seconds)
-    def title = response.results.map { content =>
-      content.fields.flatMap(x => x.headline).getOrElse("")
-    }
-    val body = response.results.map { content =>
-      content.fields.flatMap(x => x.body).getOrElse("")
-    }
-    val dateTime = response.results.map { content =>
-      content.fields.flatMap(x => x.newspaperEditionDate).get
-    }
-    val contentFields = response.results.map { content =>
-      content.fields
-    }
-    println(dateTime)
-    contentFields
+    response.results
   }
 
-  def resultToArticle(response: Seq[Option[com.gu.contentapi.client.model.v1.ContentFields]]): Article = {
+  def resultToArticle(response: Seq[com.gu.contentapi.client.model.v1.Content]): Article = {
+
+    val contentFields = response.map(_.fields)
+
     Article(
-      title = response.map { fields =>
-        fields.flatMap(x => x.headline).getOrElse("")
+      title = response.map { content =>
+        content.fields.flatMap(x => x.headline).getOrElse("")
       }.head.toString(),
-      issueDate = response.map { f =>
+      docId = response.map(_.id).head,
+      issueDate = contentFields.map { f =>
         f.flatMap(x => x.newspaperEditionDate).get
       }.head,
-      releaseDate = response.map { f =>
+      releaseDate = contentFields.map { f =>
         f.flatMap(x => x.newspaperEditionDate).get
       }.head,
-      pubDate = response.map { f =>
+      pubDate = contentFields.map { f =>
         f.flatMap(x => x.newspaperEditionDate).get
       }.head,
-      byline = response.map { f =>
+      byline = contentFields.map { f =>
         f.flatMap(x => x.byline).getOrElse("")
       }.head.toString(),
-      articleAbstract = response.map { f =>
+      articleAbstract = contentFields.map { f =>
         f.flatMap(x => x.standfirst).getOrElse("")
       }.head.toString(),
-      content = response.map { f =>
-        f.flatMap(x => x.body).getOrElse("") // TODO: Should this x.body (with html tags) or x.bodyText?
+      content = contentFields.map { f =>
+        f.flatMap(x => x.body).getOrElse("") // Note `body` used here which includes html tags. (`bodyText` strips tags)
       }.head.toString()
     )
   }
