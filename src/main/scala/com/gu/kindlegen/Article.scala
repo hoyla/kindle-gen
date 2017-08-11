@@ -1,8 +1,10 @@
 package com.gu.kindlegen
 
-import com.github.nscala_time.time.Imports._
+//import com.github.nscala_time.time.Imports._
 import com.gu.contentapi.client.model.v1._
 import org.joda.time.format.ISODateTimeFormat
+import org.joda.time.DateTime
+import org.joda.time.format.DateTimeFormat
 
 case class Article(
     title: String,

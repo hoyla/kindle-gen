@@ -13,6 +13,12 @@ import scala.concurrent.duration._
 import scala.util.{ Failure, Success, Try }
 import Article._
 
+import scala.io.BufferedSource
+//import com.github.nscala_time.time.Imports._
+import org.joda.time.format.ISODateTimeFormat
+import org.joda.time.DateTime
+import org.joda.time.format._
+
 import scala.io.Source
 
 /**
@@ -71,22 +77,39 @@ object Querier {
     // TODO: Find out if capi Auth or the trailing "&user-tier=internal" that is used in the kindle-previewer is required
 
   }
+
   def readApiKey = {
     // local file `~/.gu/kindle-gen.conf` must exist with first line a valid API key for CAPI.
-    val localUserHome = scala.util.Properties.userHome
-    val configSource = Source.fromFile(s"$localUserHome/.gu/kindle-gen.conf")
-    val key = configSource.getLines.mkString
+    val localUserHome: String = scala.util.Properties.userHome
+    val configSource: BufferedSource = Source.fromFile(s"$localUserHome/.gu/kindle-gen.conf")
+    val key: String = configSource.getLines.mkString
     configSource.close
     key
   }
 
-  def printSentResponse: Seq[com.gu.contentapi.client.model.v1.Content] = {
+  def getPrintSentResponse: Seq[com.gu.contentapi.client.model.v1.Content] = {
+    def formatter = DateTimeFormat.forPattern("yyyy-MM-dd")
+    //    def editionDateTime: DateTime = DateTime.now
+    def editionDateTime: DateTime = formatter.parseDateTime("2017-05-19") // to have a date I know the results for
+    def editionDateString: String = formatter.print(editionDateTime)
+    def editionDateStart: DateTime = DateTime.parse(editionDateString).withMillisOfDay(0).withMillisOfSecond(0)
+    def editionDateEnd: DateTime = DateTime.parse(editionDateString).withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59).withMillisOfSecond(999)
+
     val capiKey = readApiKey
     val capiClient = new PrintSentContentClient(capiKey)
     val pageNum = 1
     val query = SearchQuery()
-      .pageSize(1)
+      .pageSize(10)
       .showFields("all")
+      .orderBy("newest")
+      //      .pageSize(fetchPageSize) // This is meaningless as not defined in previewer?
+      .fromDate(editionDateStart)
+      .toDate(editionDateEnd)
+      .useDate("newspaper-edition")
+      //      .page(pageNum)
+      .showFields("headline,newspaper-edition-date,byline,standfirst,body") // TODO: what fields are required? main? content?
+      .showTags("newspaper-book-section")
+      .showElements("image")
     // TODO: Add error handling with Try for failed request.
     // TODO: Currently gets one result only; separate out sections and map over multiple pageSizes/ pages
     // TODO: Query requires use-date and exact date of publication
@@ -94,34 +117,23 @@ object Querier {
     response.results
   }
 
-  def resultToArticle(response: Seq[com.gu.contentapi.client.model.v1.Content]): Article = {
-
-    val contentFields = response.map(_.fields)
-
-    Article(
-      title = response.map { content =>
-        content.fields.flatMap(x => x.headline).getOrElse("")
-      }.head.toString(),
-      docId = response.map(_.id).head,
-      issueDate = contentFields.map { f =>
-        f.flatMap(x => x.newspaperEditionDate).get
-      }.head,
-      releaseDate = contentFields.map { f =>
-        f.flatMap(x => x.newspaperEditionDate).get
-      }.head,
-      pubDate = contentFields.map { f =>
-        f.flatMap(x => x.newspaperEditionDate).get
-      }.head,
-      byline = contentFields.map { f =>
-        f.flatMap(x => x.byline).getOrElse("")
-      }.head.toString(),
-      articleAbstract = contentFields.map { f =>
-        f.flatMap(x => x.standfirst).getOrElse("")
-      }.head.toString(),
-      content = contentFields.map { f =>
-        f.flatMap(x => x.body).getOrElse("") // Note `body` used here which includes html tags. (`bodyText` strips tags)
-      }.head.toString()
-    )
+  def resultToArticles(response: Seq[com.gu.contentapi.client.model.v1.Content]): Seq[Article] = {
+    response.flatMap(responseContent =>
+      responseContent.fields.map(fields =>
+        makeArticle(fields, responseContent)))
   }
+
+  private def makeArticle(fields: com.gu.contentapi.client.model.v1.ContentFields, responseContent: com.gu.contentapi.client.model.v1.Content): Article =
+    Article(
+      title = fields.headline.getOrElse("").toString(),
+      docId = responseContent.id,
+      issueDate = fields.newspaperEditionDate.get,
+      releaseDate = fields.newspaperEditionDate.get,
+      pubDate = fields.newspaperEditionDate.get,
+      byline = fields.byline.getOrElse(""),
+      articleAbstract = fields.standfirst.getOrElse(""),
+      content = fields.body.getOrElse("")
+    // Note `body` used here which includes html tags. (`bodyText` strips tags)
+    )
 }
 
