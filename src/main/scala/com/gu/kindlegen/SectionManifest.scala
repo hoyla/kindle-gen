@@ -28,6 +28,8 @@ case class SectionManifest(
 ) {
   val formattedPublicationDate = formatter.print(isoFormatter.parseDateTime(capiIsoDateTimeToString(publicationDate)))
   val formattedBuildDate = dtFormatter.print(buildDate)
+  // TODO: filter for unique sections
+  // TODO: Sort by pagenum to order
   val sectionsString = sections.map(_.toSectionString).mkString("")
   def toManifestContentsPage: String = {
     println(sections)
