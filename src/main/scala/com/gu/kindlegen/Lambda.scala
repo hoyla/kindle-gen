@@ -1,24 +1,18 @@
 package com.gu.kindlegen
 
-import java.io.File
-
 import com.amazonaws.services.lambda.runtime.Context
 import com.gu.contentapi.client._
 import com.gu.contentapi.client.model._
-import com.gu.contentapi.client.model.v1._
+import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import scala.util.{ Failure, Success, Try }
-import Article._
 
 import scala.io.BufferedSource
-//import com.github.nscala_time.time.Imports._
-import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.DateTime
 import org.joda.time.format._
-
 import scala.io.Source
 
 /**
@@ -89,10 +83,13 @@ object Querier {
 
   def getPrintSentResponse: Seq[com.gu.contentapi.client.model.v1.Content] = {
     def formatter = DateTimeFormat.forPattern("yyyy-MM-dd")
+
     //    def editionDateTime: DateTime = DateTime.now
     def editionDateTime: DateTime = formatter.parseDateTime("2017-05-19") // to have a date I know the results for
     def editionDateString: String = formatter.print(editionDateTime)
+
     def editionDateStart: DateTime = DateTime.parse(editionDateString).withMillisOfDay(0).withMillisOfSecond(0)
+
     def editionDateEnd: DateTime = DateTime.parse(editionDateString).withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59).withMillisOfSecond(999)
 
     val capiKey = readApiKey
@@ -107,8 +104,8 @@ object Querier {
       .toDate(editionDateEnd)
       .useDate("newspaper-edition")
       //      .page(pageNum)
-      .showFields("headline,newspaper-edition-date,byline,standfirst,body") // TODO: what fields are required? main? content?
-      .showTags("newspaper-book-section")
+      .showFields("newspaper-page-number, headline,newspaper-edition-date,byline,standfirst,body") // TODO: what fields are required? main? content?
+      .showTags("newspaper-book-section, newspaper-book")
       .showElements("image")
     // TODO: Add error handling with Try for failed request.
     // TODO: Currently gets one result only; separate out sections and map over multiple pageSizes/ pages
@@ -125,6 +122,11 @@ object Querier {
 
   private def makeArticle(fields: com.gu.contentapi.client.model.v1.ContentFields, responseContent: com.gu.contentapi.client.model.v1.Content): Article =
     Article(
+      newspaperBookSection = responseContent.tags.find(_.`type` == NewspaperBookSection).get.id, // FIXME: NB this will throw exception if this tag is missing!
+
+      //      newspaperBookSection = "main/section/int",
+      sectionName = responseContent.tags.find(_.`type` == NewspaperBookSection).get.webTitle, // FIXME: NB this will throw exception if this tag is missing!
+      //      sectionName = "News",
       title = fields.headline.getOrElse("").toString(),
       docId = responseContent.id,
       issueDate = fields.newspaperEditionDate.get,
@@ -135,5 +137,22 @@ object Querier {
       content = fields.body.getOrElse("")
     // Note `body` used here which includes html tags. (`bodyText` strips tags)
     )
+
+  // Pass in Querier.resultToArticles(getPrintSentResponse)
+  def toSectionHeading(articles: Seq[Article]): Seq[SectionHeading] = {
+    articles.map(x =>
+      SectionHeading(
+        title = x.sectionName,
+        titleLink = x.newspaperBookSection + ".xml"
+      ))
+  }
+  // Pass in Querier.resultToArticles(getPrintSentResponse)
+  def toManifest(articles: Seq[Article], buildDate: DateTime = DateTime.now): SectionManifest = {
+    SectionManifest(
+      publicationDate = articles.head.pubDate,
+      buildDate = buildDate,
+      sections = Querier.toSectionHeading(articles)
+    )
+  }
 }
 
