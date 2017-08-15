@@ -35,6 +35,7 @@ class LambdaSuite extends FunSuite {
     val article = Article(
       newspaperBookSection = "theguardian/mainsection/international",
       sectionName = "International",
+      newspaperPageNumber = 0,
       title = "my title",
       docId = "section/date/title",
       issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,

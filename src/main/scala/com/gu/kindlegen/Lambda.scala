@@ -123,10 +123,8 @@ object Querier {
   private def makeArticle(fields: com.gu.contentapi.client.model.v1.ContentFields, responseContent: com.gu.contentapi.client.model.v1.Content): Article =
     Article(
       newspaperBookSection = responseContent.tags.find(_.`type` == NewspaperBookSection).get.id, // FIXME: NB this will throw exception if this tag is missing!
-
-      //      newspaperBookSection = "main/section/int",
       sectionName = responseContent.tags.find(_.`type` == NewspaperBookSection).get.webTitle, // FIXME: NB this will throw exception if this tag is missing!
-      //      sectionName = "News",
+      newspaperPageNumber = fields.newspaperPageNumber.getOrElse(0),
       title = fields.headline.getOrElse("").toString(),
       docId = responseContent.id,
       issueDate = fields.newspaperEditionDate.get,
