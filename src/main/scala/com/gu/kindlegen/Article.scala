@@ -7,6 +7,8 @@ import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 
 case class Article(
+    newspaperBookSection: String,
+    sectionName: String,
     title: String,
     docId: String,
     issueDate: CapiDateTime,

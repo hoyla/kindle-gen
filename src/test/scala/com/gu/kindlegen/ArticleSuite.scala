@@ -39,6 +39,8 @@ class ArticleSuite extends FunSuite {
     |</nitf>""".stripMargin
 
     val article = Article(
+      newspaperBookSection = "theguardian/mainsection/international",
+      sectionName = "International",
       title = "my title",
       docId = "section/date/title",
       issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
