@@ -32,8 +32,6 @@ case class SectionManifest(
   // TODO: Sort by pagenum to order
   val sectionsString = sections.map(_.toSectionString).mkString("")
   def toManifestContentsPage: String = {
-    println(sections)
-    println(sectionsString)
     s"""
        |<?xml version="1.0" encoding="UTF-8" ?>
        |<rss version="2.0">
