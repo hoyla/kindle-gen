@@ -104,9 +104,11 @@ object Querier {
       .toDate(editionDateEnd)
       .useDate("newspaper-edition")
       //      .page(pageNum)
-      .showFields("newspaper-page-number, headline,newspaper-edition-date,byline,standfirst,body") // TODO: what fields are required? main? content?
+      //      .showFields("newspaper-page-number")
+      // , headline,newspaper-edition-date,byline,standfirst,body")
+      // TODO: what fields are required? main? content?
       .showTags("newspaper-book-section, newspaper-book")
-      .showElements("image")
+    //.showElements("image")
     // TODO: Add error handling with Try for failed request.
     // TODO: Currently gets one result only; separate out sections and map over multiple pageSizes/ pages
     // TODO: Query requires use-date and exact date of publication
@@ -114,10 +116,10 @@ object Querier {
     response.results
   }
 
-  def resultToArticles(response: Seq[com.gu.contentapi.client.model.v1.Content]): Seq[Article] = {
+  def resultToArticles(response: Seq[com.gu.contentapi.client.model.v1.Content]): List[Article] = {
     response.flatMap(responseContent =>
       responseContent.fields.map(fields =>
-        makeArticle(fields, responseContent)))
+        makeArticle(fields, responseContent))).toList.sortBy(_.newspaperPageNumber)
   }
 
   private def makeArticle(fields: com.gu.contentapi.client.model.v1.ContentFields, responseContent: com.gu.contentapi.client.model.v1.Content): Article =
@@ -136,7 +138,54 @@ object Querier {
     // Note `body` used here which includes html tags. (`bodyText` strips tags)
     )
 
-  // Pass in Querier.resultToArticles(getPrintSentResponse)
+  def toBookSectionPageList(articles: List[Article]): List[BookSectionPage] = {
+    if (articles.isEmpty) { return List() }
+    val initial = (List[BookSectionPage](), List[Article]())
+    val sortedchunks4 = articles.foldLeft(initial) { (acc, elem) =>
+      acc match {
+        case (Nil, Nil) => {
+          (List(), List(elem))
+        }
+        case (Nil, y) => {
+          if (y.headOption.map(_.newspaperPageNumber).contains(elem.newspaperPageNumber)) {
+            (List(), (elem :: y))
+          } else {
+            val bsp = BookSectionPage(
+              bookSectionId = y.head.sectionName,
+              pageNum = y.head.newspaperPageNumber,
+              articles = y
+            )
+            (List(bsp), List(elem))
+          }
+        }
+        case (x :: xs, Nil) => {
+          ((x :: xs), List(elem))
+        }
+        case ((x :: xs), y) => {
+          if (y.headOption.map(_.newspaperPageNumber).contains(elem.newspaperPageNumber)) {
+            ((x :: xs), (elem :: y))
+          } else {
+            val bsp = BookSectionPage(
+              bookSectionId = y.head.sectionName,
+              pageNum = y.head.newspaperPageNumber,
+              articles = y
+            )
+            (bsp :: (x :: xs), elem :: Nil)
+          }
+        }
+      }
+    }
+    val lastPageArticles = sortedchunks4._2
+    val lastBookSectionPage = BookSectionPage(
+      bookSectionId = lastPageArticles.head.sectionName,
+      pageNum = lastPageArticles.head.newspaperPageNumber,
+      articles = lastPageArticles
+    )
+    val r = (lastBookSectionPage :: sortedchunks4._1).reverse
+      .map(x => Tuple2(x.articles.length, List(x.articles.map(_.newspaperPageNumber))))
+    println(r)
+    (lastBookSectionPage :: sortedchunks4._1).reverse
+  }
   def toSectionHeading(articles: Seq[Article]): Seq[SectionHeading] = {
     articles.map(x =>
       SectionHeading(

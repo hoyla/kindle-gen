@@ -55,5 +55,362 @@ class LambdaSuite extends FunSuite {
     ))
   }
   private def formatter = DateTimeFormat.forPattern("yyyyMMdd")
+
+  val test_article_list = {
+    List(
+      Article(
+        newspaperBookSection = "theguardian/mainsection/international",
+        sectionName = "International",
+        newspaperPageNumber = 1,
+        title = "my title",
+        docId = "section/date/title",
+        issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        byline = "my name",
+        articleAbstract = "article abstract",
+        content = "content"
+      ),
+      Article(
+        newspaperBookSection = "theguardian/mainsection/international",
+        sectionName = "International",
+        newspaperPageNumber = 1,
+        title = "my title",
+        docId = "section/date/title",
+        issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        byline = "my name",
+        articleAbstract = "article abstract",
+        content = "content"
+      ),
+      Article(
+        newspaperBookSection = "theguardian/mainsection/international",
+        sectionName = "International",
+        newspaperPageNumber = 2,
+        title = "my title",
+        docId = "section/date/title",
+        issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        byline = "my name",
+        articleAbstract = "article abstract",
+        content = "content"
+      ),
+      Article(
+        newspaperBookSection = "theguardian/mainsection/international",
+        sectionName = "International",
+        newspaperPageNumber = 2,
+        title = "my title",
+        docId = "section/date/title",
+        issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        byline = "my name",
+        articleAbstract = "article abstract",
+        content = "content"
+      ),
+      Article(
+        newspaperBookSection = "theguardian/mainsection/international",
+        sectionName = "International",
+        newspaperPageNumber = 4,
+        title = "my title",
+        docId = "section/date/title",
+        issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        byline = "my name",
+        articleAbstract = "article abstract",
+        content = "content"
+      ),
+      Article(
+        newspaperBookSection = "theguardian/mainsection/international",
+        sectionName = "International",
+        newspaperPageNumber = 5,
+        title = "my title",
+        docId = "section/date/title",
+        issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        byline = "my name",
+        articleAbstract = "article abstract",
+        content = "content"
+      ),
+      Article(
+        newspaperBookSection = "theguardian/mainsection/international",
+        sectionName = "International",
+        newspaperPageNumber = 5,
+        title = "my title",
+        docId = "section/date/title",
+        issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        byline = "my name",
+        articleAbstract = "article abstract",
+        content = "content"
+      )
+    )
+  }
+
+  val expectedOutBSP = List(
+    BookSectionPage(
+      bookSectionId = "International",
+      pageNum = 1,
+      articles =
+        List(
+          Article(
+            newspaperBookSection = "theguardian/mainsection/international",
+            sectionName = "International",
+            newspaperPageNumber = 1,
+            title = "my title",
+            docId = "section/date/title",
+            issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            byline = "my name",
+            articleAbstract = "article abstract",
+            content = "content"
+          ),
+          Article(
+            newspaperBookSection = "theguardian/mainsection/international",
+            sectionName = "International",
+            newspaperPageNumber = 1,
+            title = "my title",
+            docId = "section/date/title",
+            issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            byline = "my name",
+            articleAbstract = "article abstract",
+            content = "content"
+          )
+        )
+    ),
+    BookSectionPage(
+      bookSectionId = "International",
+      pageNum = 2,
+      articles =
+        List(
+          Article(
+            newspaperBookSection = "theguardian/mainsection/international",
+            sectionName = "International",
+            newspaperPageNumber = 2,
+            title = "my title",
+            docId = "section/date/title",
+            issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            byline = "my name",
+            articleAbstract = "article abstract",
+            content = "content"
+          ),
+          Article(
+            newspaperBookSection = "theguardian/mainsection/international",
+            sectionName = "International",
+            newspaperPageNumber = 2,
+            title = "my title",
+            docId = "section/date/title",
+            issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            byline = "my name",
+            articleAbstract = "article abstract",
+            content = "content"
+          )
+        )
+    ),
+    BookSectionPage(
+      bookSectionId = "International",
+      pageNum = 4,
+      articles =
+        List(
+          Article(
+            newspaperBookSection = "theguardian/mainsection/international",
+            sectionName = "International",
+            newspaperPageNumber = 4,
+            title = "my title",
+            docId = "section/date/title",
+            issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            byline = "my name",
+            articleAbstract = "article abstract",
+            content = "content"
+          )
+        )
+    ),
+    BookSectionPage(
+      bookSectionId = "International",
+      pageNum = 5,
+      articles =
+        List(
+          Article(
+            newspaperBookSection = "theguardian/mainsection/international",
+            sectionName = "International",
+            newspaperPageNumber = 5,
+            title = "my title",
+            docId = "section/date/title",
+            issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            byline = "my name",
+            articleAbstract = "article abstract",
+            content = "content"
+          ),
+          Article(
+            newspaperBookSection = "theguardian/mainsection/international",
+            sectionName = "International",
+            newspaperPageNumber = 5,
+            title = "my title",
+            docId = "section/date/title",
+            issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            byline = "my name",
+            articleAbstract = "article abstract",
+            content = "content"
+          )
+        )
+    )
+  )
+  val expectedOutBSP1 = List(
+    BookSectionPage(
+      bookSectionId = "International",
+      pageNum = 1,
+      articles =
+        List(
+          Article(
+            newspaperBookSection = "theguardian/mainsection/international",
+            sectionName = "International",
+            newspaperPageNumber = 1,
+            title = "my title",
+            docId = "section/date/title",
+            issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+            byline = "my name",
+            articleAbstract = "article abstract",
+            content = "content"
+          )
+        )
+    )
+  )
+
+  val expectedOut = List(
+    List(
+      Article(
+        newspaperBookSection = "theguardian/mainsection/international",
+        sectionName = "International",
+        newspaperPageNumber = 1,
+        title = "my title",
+        docId = "section/date/title",
+        issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        byline = "my name",
+        articleAbstract = "article abstract",
+        content = "content"
+      ),
+      Article(
+        newspaperBookSection = "theguardian/mainsection/international",
+        sectionName = "International",
+        newspaperPageNumber = 1,
+        title = "my title",
+        docId = "section/date/title",
+        issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        byline = "my name",
+        articleAbstract = "article abstract",
+        content = "content"
+      )
+    ),
+    List(
+      Article(
+        newspaperBookSection = "theguardian/mainsection/international",
+        sectionName = "International",
+        newspaperPageNumber = 2,
+        title = "my title",
+        docId = "section/date/title",
+        issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        byline = "my name",
+        articleAbstract = "article abstract",
+        content = "content"
+      ),
+      Article(
+        newspaperBookSection = "theguardian/mainsection/international",
+        sectionName = "International",
+        newspaperPageNumber = 2,
+        title = "my title",
+        docId = "section/date/title",
+        issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        byline = "my name",
+        articleAbstract = "article abstract",
+        content = "content"
+      )
+    ),
+    List(
+      Article(
+        newspaperBookSection = "theguardian/mainsection/international",
+        sectionName = "International",
+        newspaperPageNumber = 4,
+        title = "my title",
+        docId = "section/date/title",
+        issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        byline = "my name",
+        articleAbstract = "article abstract",
+        content = "content"
+      )
+    ),
+    List(
+      Article(
+        newspaperBookSection = "theguardian/mainsection/international",
+        sectionName = "International",
+        newspaperPageNumber = 5,
+        title = "my title",
+        docId = "section/date/title",
+        issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        byline = "my name",
+        articleAbstract = "article abstract",
+        content = "content"
+      ),
+      Article(
+        newspaperBookSection = "theguardian/mainsection/international",
+        sectionName = "International",
+        newspaperPageNumber = 5,
+        title = "my title",
+        docId = "section/date/title",
+        issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+        byline = "my name",
+        articleAbstract = "article abstract",
+        content = "content"
+      )
+    )
+  )
+
+  val sortedArticles = test_article_list.sortBy(_.newspaperPageNumber)
+
+  test(".toBookSectionPageList") {
+    assert(Querier.toBookSectionPageList(sortedArticles) === expectedOutBSP)
+  }
+
+  test(".toBookSectionPageList with empty list") {
+    assert(Querier.toBookSectionPageList(List()) === List())
+  }
+
+  test(".toBookSectionPageList with one item in list") {
+    assert(Querier.toBookSectionPageList(List(sortedArticles.head)) === expectedOutBSP1)
+  }
+
 }
 
