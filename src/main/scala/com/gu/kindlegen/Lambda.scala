@@ -151,7 +151,7 @@ object Querier {
             (List(), (elem :: y))
           } else {
             val bsp = BookSectionPage(
-              bookSectionId = y.head.sectionName,
+              bookSectionId = y.head.newspaperBookSection,
               pageNum = y.head.newspaperPageNumber,
               articles = y
             )
@@ -166,7 +166,7 @@ object Querier {
             ((x :: xs), (elem :: y))
           } else {
             val bsp = BookSectionPage(
-              bookSectionId = y.head.sectionName,
+              bookSectionId = y.head.newspaperBookSection,
               pageNum = y.head.newspaperPageNumber,
               articles = y
             )
@@ -177,15 +177,65 @@ object Querier {
     }
     val lastPageArticles = sortedchunks4._2
     val lastBookSectionPage = BookSectionPage(
-      bookSectionId = lastPageArticles.head.sectionName,
+      bookSectionId = lastPageArticles.head.newspaperBookSection,
       pageNum = lastPageArticles.head.newspaperPageNumber,
       articles = lastPageArticles
     )
     val r = (lastBookSectionPage :: sortedchunks4._1).reverse
       .map(x => Tuple2(x.articles.length, List(x.articles.map(_.newspaperPageNumber))))
-    println(r)
+    //    println(r)
     (lastBookSectionPage :: sortedchunks4._1).reverse
   }
+
+  def toBookSectionList(bookSectionPages: List[BookSectionPage]): List[BookSection] = {
+    if (bookSectionPages.isEmpty) { return List() }
+    val initial: (List[BookSection], List[BookSectionPage]) = (List(), List())
+    val chunkedPages = bookSectionPages.foldLeft(initial) { (acc, elem) =>
+      acc match {
+        case (Nil, Nil) => {
+          (List(), List(elem))
+        }
+        case (Nil, y) => {
+          if (y.head.bookSectionId == elem.bookSectionId) {
+            (List(), elem :: y)
+          } else {
+            val bs = BookSection(
+              bookSectionId = y.head.bookSectionId,
+              bookSectionTitle = y.head.articles.head.sectionName,
+              pages = y.reverse
+            )
+            (List(bs), elem :: Nil)
+          }
+        }
+        case (x :: xs, Nil) => {
+          ((x :: xs), List(elem))
+        }
+        case (x :: xs, y) => {
+          if (y.head.bookSectionId == elem.bookSectionId) {
+            (List(), elem :: y)
+          } else {
+            val bs = BookSection(
+              bookSectionId = y.head.bookSectionId,
+              bookSectionTitle = y.head.articles.head.sectionName,
+              pages = y.reverse
+            )
+            (List(bs), elem :: Nil)
+          }
+        }
+      }
+    }
+    val lastBookSectionPages = chunkedPages._2
+    val lastBookSection = BookSection(
+      bookSectionId = lastBookSectionPages.head.bookSectionId,
+      bookSectionTitle = lastBookSectionPages.head.articles.head.sectionName,
+      pages = lastBookSectionPages.reverse
+    )
+    val r = (lastBookSection :: chunkedPages._1).reverse
+      .map(x => Tuple2(x.pages.length, List(x.pages.map(_.bookSectionId))))
+    println(r)
+    (lastBookSection :: chunkedPages._1).reverse
+  }
+
   def toSectionHeading(articles: Seq[Article]): Seq[SectionHeading] = {
     articles.map(x =>
       SectionHeading(
