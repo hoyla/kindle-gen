@@ -64,22 +64,21 @@ object TestIt {
 
 object Querier {
 
-  class PrintSentContentClient(override val apiKey: String) extends GuardianContentClient(apiKey) {
-    // This overrides the val for targetUrl from "http://content.guardianapis.com"
-    // the `preview.` is required in order to access the print-sent api.
-    override val targetUrl = "https://preview.content.guardianapis.com/content/print-sent"
-    // TODO: Find out if capi Auth or the trailing "&user-tier=internal" that is used in the kindle-previewer is required
-
-  }
-
-  def readApiKey = {
-    // local file `~/.gu/kindle-gen.conf` must exist with first line a valid API key for CAPI.
+  def readConfig(lineNum: Int): String = {
+    // local file `~/.gu/kindle-gen.conf` must exist with first line a valid API key for CAPI. Second line targetUrl
     val localUserHome: String = scala.util.Properties.userHome
     val configSource: BufferedSource = Source.fromFile(s"$localUserHome/.gu/kindle-gen.conf")
-    val key: String = configSource.getLines.mkString
-    configSource.close
-    key
+    val arr = configSource.getLines.toArray
+    arr(lineNum)
   }
+
+  class PrintSentContentClient(override val apiKey: String) extends GuardianContentClient(apiKey) {
+
+    // TODO: Why is it not possible to read this from the conf file like the api key?
+    override val targetUrl: String = "https://preview.content.guardianapis.com/content/print-sent"
+  }
+
+  val readApiKey: String = readConfig(0)
 
   def getPrintSentResponse: Seq[com.gu.contentapi.client.model.v1.Content] = {
     def formatter = DateTimeFormat.forPattern("yyyy-MM-dd")
