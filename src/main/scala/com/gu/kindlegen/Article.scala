@@ -1,6 +1,7 @@
 package com.gu.kindlegen
 
 //import com.github.nscala_time.time.Imports._
+import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
 import com.gu.contentapi.client.model.v1._
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.DateTime
@@ -55,5 +56,20 @@ case class Article(
   // formatter for use with parseDateTime or print to convert a DateTime: Long to DateTime: DateTime
   private def formatter = DateTimeFormat.forPattern("yyyyMMdd")
   private def capiIsoDateTimeToString(dt: CapiDateTime): String = dt.iso8601
+}
 
+object Article {
+  def apply(content: Content) = new Article(
+    newspaperBookSection = content.tags.find(_.`type` == NewspaperBookSection).get.id, // FIXME: NB this will throw exception if this tag is missing!
+    sectionName = content.tags.find(_.`type` == NewspaperBookSection).get.webTitle, // FIXME: NB this will throw exception if this tag is missing!
+    newspaperPageNumber = content.fields.flatMap(_.newspaperPageNumber).getOrElse(0),
+    title = content.fields.flatMap(_.headline).getOrElse("").toString,
+    docId = content.id,
+    issueDate = content.fields.flatMap(_.newspaperEditionDate).get,
+    releaseDate = content.fields.flatMap(_.newspaperEditionDate).get,
+    pubDate = content.fields.flatMap(_.newspaperEditionDate).get,
+    byline = content.fields.flatMap(_.byline).getOrElse(""),
+    articleAbstract = content.fields.flatMap(_.standfirst).getOrElse(""),
+    content = content.fields.flatMap(_.body).getOrElse("")
+  )
 }

@@ -116,24 +116,8 @@ object Querier {
   def resultToArticles(response: Seq[com.gu.contentapi.client.model.v1.Content]): Seq[Article] = {
     response.flatMap(responseContent =>
       responseContent.fields.map(fields =>
-        makeArticle(fields, responseContent)))
+        Article(responseContent)))
   }
-
-  private def makeArticle(fields: com.gu.contentapi.client.model.v1.ContentFields, responseContent: com.gu.contentapi.client.model.v1.Content): Article =
-    Article(
-      newspaperBookSection = responseContent.tags.find(_.`type` == NewspaperBookSection).get.id, // FIXME: NB this will throw exception if this tag is missing!
-      sectionName = responseContent.tags.find(_.`type` == NewspaperBookSection).get.webTitle, // FIXME: NB this will throw exception if this tag is missing!
-      newspaperPageNumber = fields.newspaperPageNumber.getOrElse(0),
-      title = fields.headline.getOrElse("").toString(),
-      docId = responseContent.id,
-      issueDate = fields.newspaperEditionDate.get,
-      releaseDate = fields.newspaperEditionDate.get,
-      pubDate = fields.newspaperEditionDate.get,
-      byline = fields.byline.getOrElse(""),
-      articleAbstract = fields.standfirst.getOrElse(""),
-      content = fields.body.getOrElse("")
-    // Note `body` used here which includes html tags. (`bodyText` strips tags)
-    )
 
   // Pass in Querier.resultToArticles(getPrintSentResponse)
   def toSectionHeading(articles: Seq[Article]): Seq[SectionHeading] = {
