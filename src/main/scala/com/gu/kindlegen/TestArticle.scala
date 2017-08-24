@@ -8,9 +8,29 @@ import com.gu.contentapi.client.model.v1.Content
 import com.gu.contentapi.client.model.v1.ContentFields
 import com.gu.contentapi.client.utils.CapiModelEnrichment
 
-/**
- * Created by alice_dee on 23/08/2017.
- */
+/*
+*
+ * This class is to be used as a factory for creating article content in unit tests.
+ * The case class TestArticle contains all the fields we actually want from an article as parameters
+ * The toContent method provides Nil or None for all the (*many*) fields that the Content Type requires
+ * Therefore we can pass a few parameters to TestArticle and easily create a piece of Content:
+ * For example:
+ *
+ * scala> val ta = TestArticle("","",1,"","",CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,"","","")
+ * ta: com.gu.kindlegen.TestArticle = TestArticle(,,1,,,CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00),,,)
+ *
+ * scala> ta.toContent
+ * res0: com.gu.contentapi.client.model.v1.Content = Content(,Article,None,None,None,,,,Some(ContentFields(Some(),Some(),None,Some(),None,Some(),Some(1),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,Some(CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00)),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),List(Tag(,NewspaperBookSection,None,None,,,,List(),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),Some(List()),List(),None,None,None,None,None,None,None,None,None,false)
+ *
+ * More useful however is that we can use `copy` (because TestArticle is a case class) to change just one of the parameters that we are interested in testing:
+ *
+ * scala> val ta2 = ta.copy(testArticleTitle = "new title")
+ * res1: com.gu.kindlegen.TestArticle = TestArticle(,,1,new title,,CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00),,,)
+ *
+ * scala> ta2.toContent
+ * res2: com.gu.contentapi.client.model.v1.Content = Content(,Article,None,None,None,,,,Some(ContentFields(Some(new title),Some(),None,Some(),None,Some(),Some(1),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,Some(CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00)),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),List(Tag(,NewspaperBookSection,None,None,,,,List(),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),Some(List()),List(),None,None,None,None,None,None,None,None,None,false)
+ *
+*/
 case class TestArticle(
     testArticleNewspaperBookSection: String,
     testArticleSectionName: String,
@@ -18,9 +38,6 @@ case class TestArticle(
     testArticleTitle: String,
     testArticleId: String,
     testArticleIssueDate: CapiDateTime,
-    // newspaperEditionDate in ContentFields
-    //  releaseDate: CapiDateTime,
-    //  pubDate: CapiDateTime,
     testArticleByline: String,
     testArticleAbstract: String, // standfirst is used
     testArticleContent: String
