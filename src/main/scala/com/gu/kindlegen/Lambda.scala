@@ -104,7 +104,7 @@ object Querier {
       .showFields("newspaper-page-number, headline,newspaper-edition-date,byline,standfirst,body")
       // TODO: what fields are required? main? content? Is tag `newspaper-book` required
       .showTags("newspaper-book-section, newspaper-book")
-      .showElements("image")
+    //.showElements("image")
     // TODO: Add error handling with Try for failed request.
     // TODO: Currently gets one result only; separate out sections and map over multiple pageSizes/ pages
     // TODO: Query requires use-date and exact date of publication
@@ -117,7 +117,104 @@ object Querier {
       Article(responseContent))
   }
 
-  // Pass in Querier.resultToArticles(getPrintSentResponse)
+  def toBookSectionPageList(articles: List[Article]): List[BookSectionPage] = {
+    if (articles.isEmpty) { return List() }
+    val initial = (List[BookSectionPage](), List[Article]())
+    val sortedchunks4 = articles.foldLeft(initial) { (acc, elem) =>
+      acc match {
+        case (Nil, Nil) => {
+          (List(), List(elem))
+        }
+        case (Nil, y) => {
+          if (y.headOption.map(_.newspaperPageNumber).contains(elem.newspaperPageNumber)) {
+            (List(), (elem :: y))
+          } else {
+            val bsp = BookSectionPage(
+              bookSectionId = y.head.newspaperBookSection,
+              pageNum = y.head.newspaperPageNumber,
+              articles = y
+            )
+            (List(bsp), List(elem))
+          }
+        }
+        case (x :: xs, Nil) => {
+          ((x :: xs), List(elem))
+        }
+        case ((x :: xs), y) => {
+          if (y.headOption.map(_.newspaperPageNumber).contains(elem.newspaperPageNumber)) {
+            ((x :: xs), (elem :: y))
+          } else {
+            val bsp = BookSectionPage(
+              bookSectionId = y.head.newspaperBookSection,
+              pageNum = y.head.newspaperPageNumber,
+              articles = y
+            )
+            (bsp :: (x :: xs), elem :: Nil)
+          }
+        }
+      }
+    }
+    val lastPageArticles = sortedchunks4._2
+    val lastBookSectionPage = BookSectionPage(
+      bookSectionId = lastPageArticles.head.newspaperBookSection,
+      pageNum = lastPageArticles.head.newspaperPageNumber,
+      articles = lastPageArticles
+    )
+    val r = (lastBookSectionPage :: sortedchunks4._1).reverse
+      .map(x => Tuple2(x.articles.length, List(x.articles.map(_.newspaperPageNumber))))
+    //    println(r)
+    (lastBookSectionPage :: sortedchunks4._1).reverse
+  }
+
+  def toBookSectionList(bookSectionPages: List[BookSectionPage]): List[BookSection] = {
+    if (bookSectionPages.isEmpty) { return List() }
+    val initial: (List[BookSection], List[BookSectionPage]) = (List(), List())
+    val chunkedPages = bookSectionPages.foldLeft(initial) { (acc, elem) =>
+      acc match {
+        case (Nil, Nil) => {
+          (List(), List(elem))
+        }
+        case (Nil, y) => {
+          if (y.head.bookSectionId == elem.bookSectionId) {
+            (List(), elem :: y)
+          } else {
+            val bs = BookSection(
+              bookSectionId = y.head.bookSectionId,
+              bookSectionTitle = y.head.articles.head.sectionName,
+              pages = y.reverse
+            )
+            (List(bs), elem :: Nil)
+          }
+        }
+        case (x :: xs, Nil) => {
+          ((x :: xs), List(elem))
+        }
+        case (x :: xs, y) => {
+          if (y.head.bookSectionId == elem.bookSectionId) {
+            (List(), elem :: y)
+          } else {
+            val bs = BookSection(
+              bookSectionId = y.head.bookSectionId,
+              bookSectionTitle = y.head.articles.head.sectionName,
+              pages = y.reverse
+            )
+            (List(bs), elem :: Nil)
+          }
+        }
+      }
+    }
+    val lastBookSectionPages = chunkedPages._2
+    val lastBookSection = BookSection(
+      bookSectionId = lastBookSectionPages.head.bookSectionId,
+      bookSectionTitle = lastBookSectionPages.head.articles.head.sectionName,
+      pages = lastBookSectionPages.reverse
+    )
+    val r = (lastBookSection :: chunkedPages._1).reverse
+      .map(x => Tuple2(x.pages.length, List(x.pages.map(_.bookSectionId))))
+    println(r)
+    (lastBookSection :: chunkedPages._1).reverse
+  }
+
   def toSectionHeading(articles: Seq[Article]): Seq[SectionHeading] = {
     articles.map(x =>
       SectionHeading(
