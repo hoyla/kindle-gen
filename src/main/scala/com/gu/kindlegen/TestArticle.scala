@@ -10,8 +10,8 @@ import com.gu.contentapi.client.utils.CapiModelEnrichment
 
 /*
 *
- * This class is to be used as a factory for creating article content in unit tests.
- * The case class TestArticle contains all the fields we actually want from an article as parameters
+ * This class is to be used as a method for creating article content of type Content for use in tests (ie unit tests that don't hit the API).
+ * The case class TestArticle contains all the fields we actually want/use from an article as parameters (and its easy to add some)
  * The toContent method provides Nil or None for all the (*many*) fields that the Content Type requires
  * Therefore we can pass a few parameters to TestArticle and easily create a piece of Content:
  * For example:
@@ -38,6 +38,7 @@ case class TestArticle(
     testArticleTitle: String,
     testArticleId: String,
     testArticleIssueDate: CapiDateTime,
+    // TODO: for clarity add pub-and release- dates or remove from other Article methods
     testArticleByline: String,
     testArticleAbstract: String, // standfirst is used
     testArticleContent: String

@@ -74,8 +74,7 @@ object Querier {
 
   class PrintSentContentClient(override val apiKey: String) extends GuardianContentClient(apiKey) {
 
-    // TODO: Why is it not possible to read this from the conf file like the api key?
-    override val targetUrl: String = "https://preview.content.guardianapis.com/content/print-sent"
+    override val targetUrl: String = readConfig(1)
   }
 
   val readApiKey: String = readConfig(0)
@@ -98,12 +97,12 @@ object Querier {
       .pageSize(10)
       .showFields("all")
       .orderBy("newest")
-      //      .pageSize(fetchPageSize) // This is meaningless as not defined in previewer?
       .fromDate(editionDateStart)
       .toDate(editionDateEnd)
       .useDate("newspaper-edition")
       //      .page(pageNum)
-      .showFields("newspaper-page-number, headline,newspaper-edition-date,byline,standfirst,body") // TODO: what fields are required? main? content?
+      .showFields("newspaper-page-number, headline,newspaper-edition-date,byline,standfirst,body")
+      // TODO: what fields are required? main? content? Is tag `newspaper-book` required
       .showTags("newspaper-book-section, newspaper-book")
       .showElements("image")
     // TODO: Add error handling with Try for failed request.
@@ -114,9 +113,8 @@ object Querier {
   }
 
   def resultToArticles(response: Seq[com.gu.contentapi.client.model.v1.Content]): Seq[Article] = {
-    response.flatMap(responseContent =>
-      responseContent.fields.map(fields =>
-        Article(responseContent)))
+    response.map(responseContent =>
+      Article(responseContent))
   }
 
   // Pass in Querier.resultToArticles(getPrintSentResponse)
@@ -127,6 +125,7 @@ object Querier {
         titleLink = x.newspaperBookSection + ".xml"
       ))
   }
+
   // Pass in Querier.resultToArticles(getPrintSentResponse)
   def toManifest(articles: Seq[Article], buildDate: DateTime = DateTime.now): SectionManifest = {
     SectionManifest(
