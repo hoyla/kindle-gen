@@ -3,9 +3,6 @@ import com.gu.contentapi.client.model.v1.CapiDateTime
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.format.DateTimeFormat
 
-/**
- * Created by alice_dee on 24/08/2017.
- */
 case class ArticleNITF(fileContents: String)
 
 object ArticleNITF {

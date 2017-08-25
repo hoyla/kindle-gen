@@ -11,27 +11,27 @@ import com.gu.contentapi.client.utils.CapiModelEnrichment
 /*
 *
  * This class is to be used as a method for creating article content of type Content for use in tests (ie unit tests that don't hit the API).
- * The case class TestArticle contains all the fields we actually want/use from an article as parameters (and its easy to add some)
+ * The case class TestContent contains all the fields we actually want/use from an article as parameters (and its easy to add some)
  * The toContent method provides Nil or None for all the (*many*) fields that the Content Type requires
- * Therefore we can pass a few parameters to TestArticle and easily create a piece of Content:
+ * Therefore we can pass a few parameters to TestContent and easily create a piece of Content:
  * For example:
  *
- * scala> val ta = TestArticle("","",1,"","",CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,"","","")
- * ta: com.gu.kindlegen.TestArticle = TestArticle(,,1,,,CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00),,,)
+ * scala> val ta = TestContent("","",1,"","",CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,"","","")
+ * ta: com.gu.kindlegen.TestContent = TestContent(,,1,,,CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00),,,)
  *
  * scala> ta.toContent
  * res0: com.gu.contentapi.client.model.v1.Content = Content(,Article,None,None,None,,,,Some(ContentFields(Some(),Some(),None,Some(),None,Some(),Some(1),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,Some(CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00)),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),List(Tag(,NewspaperBookSection,None,None,,,,List(),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),Some(List()),List(),None,None,None,None,None,None,None,None,None,false)
  *
- * More useful however is that we can use `copy` (because TestArticle is a case class) to change just one of the parameters that we are interested in testing:
+ * More useful however is that we can use `copy` (because TestContent is a case class) to change just one of the parameters that we are interested in testing:
  *
  * scala> val ta2 = ta.copy(testArticleTitle = "new title")
- * res1: com.gu.kindlegen.TestArticle = TestArticle(,,1,new title,,CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00),,,)
+ * res1: com.gu.kindlegen.TestContent = TestContent(,,1,new title,,CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00),,,)
  *
  * scala> ta2.toContent
  * res2: com.gu.contentapi.client.model.v1.Content = Content(,Article,None,None,None,,,,Some(ContentFields(Some(new title),Some(),None,Some(),None,Some(),Some(1),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,Some(CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00)),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),List(Tag(,NewspaperBookSection,None,None,,,,List(),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),Some(List()),List(),None,None,None,None,None,None,None,None,None,false)
  *
 */
-case class TestArticle(
+case class TestContent(
     testArticleNewspaperBookSection: String,
     testArticleSectionName: String,
     testArticlePageNumber: Int,

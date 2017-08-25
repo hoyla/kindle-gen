@@ -4,10 +4,6 @@ import com.gu.contentapi.client.model.v1.CapiDateTime
 import org.joda.time.DateTime
 import org.joda.time.format.{ DateTimeFormat, ISODateTimeFormat }
 
-/**
- * Created by alice_dee on 11/08/2017.
- */
-
 case class SectionHeading(
     title: String,
     titleLink: String

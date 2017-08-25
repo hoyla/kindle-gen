@@ -17,13 +17,13 @@ class TestArticleSuite extends FunSuite {
 
   private def formatter = DateTimeFormat.forPattern("yyyyMMdd")
 
-  test("TestArticle.toContent") {
-    val ta = TestArticle("", "", 1, "", "", CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime, "", "", "")
+  test("TestContent.toContent") {
+    val ta = TestContent("", "", 1, "", "", CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime, "", "", "")
     assert(ta.toContent.id === "")
   }
 
-  test("TestArticle as factory") {
-    val ta = TestArticle("", "", 1, "", "", CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime, "", "", "")
+  test("TestContent as factory") {
+    val ta = TestContent("", "", 1, "", "", CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime, "", "", "")
     assert(ta.toContent.fields.flatMap(_.headline) === Some(""))
     val ta2 = ta.copy(testArticleTitle = "new title")
     assert(ta2.toContent.fields.get.headline === Some("new title"))

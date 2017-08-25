@@ -13,7 +13,7 @@ class ArticleSuite extends FunSuite {
   private def formatter = DateTimeFormat.forPattern("yyyyMMdd")
 
   test("apply method with content as parameter") {
-    val ta = TestArticle("", "", 2, "", "", CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime, "", "", "")
+    val ta = TestContent("", "", 2, "", "", CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime, "", "", "")
     val content = ta.toContent
     val a = Article(content: Content)
     assert(a.newspaperPageNumber === 2)
