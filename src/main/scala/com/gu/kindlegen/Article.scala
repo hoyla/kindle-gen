@@ -23,7 +23,7 @@ case class Article(
 )
 
 object Article {
-  def apply(content: Content) = new Article(
+  def apply(content: Content): Article = new Article(
     newspaperBookSection = content.tags.find(_.`type` == NewspaperBookSection).get.id, // FIXME: NB this will throw exception if this tag is missing!
     sectionName = content.tags.find(_.`type` == NewspaperBookSection).get.webTitle, // FIXME: NB this will throw exception if this tag is missing!
     newspaperPageNumber = content.fields.flatMap(_.newspaperPageNumber).getOrElse(0),

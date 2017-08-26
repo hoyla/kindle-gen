@@ -13,7 +13,7 @@ import com.github.nscala_time.time.Imports._
 import com.gu.contentapi.client.utils._
 
 @RunWith(classOf[JUnitRunner])
-class TestArticleSuite extends FunSuite {
+class TestContentSuite extends FunSuite {
 
   private def formatter = DateTimeFormat.forPattern("yyyyMMdd")
 
