@@ -759,18 +759,6 @@ class LambdaSuite extends FunSuite {
     )
   }
 
-  test(".toBookSectionPageList") {
-    assert(Querier.toBookSectionPageList(sortedArticles) === expectedOutBSP)
-  }
-
-  test(".toBookSectionPageList with empty list") {
-    assert(Querier.toBookSectionPageList(List()) === List())
-  }
-
-  test(".toBookSectionPageList with one item in list") {
-    assert(Querier.toBookSectionPageList(List(sortedArticles.head)) === expectedOutBSP1)
-  }
-
   test(".toBookSectionList") {
     assert(Querier.toBookSectionList(expectedOutBSP) === expectedOutBS)
   }

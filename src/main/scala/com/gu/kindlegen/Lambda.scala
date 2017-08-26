@@ -117,55 +117,6 @@ object Querier {
       Article(responseContent))
   }
 
-  def toBookSectionPageList(articles: List[Article]): List[BookSectionPage] = {
-    if (articles.isEmpty) { return List() }
-    val initial = (List[BookSectionPage](), List[Article]())
-    val sortedchunks4 = articles.foldLeft(initial) { (acc, elem) =>
-      acc match {
-        case (Nil, Nil) => {
-          (List(), List(elem))
-        }
-        case (Nil, y) => {
-          if (y.headOption.map(_.newspaperPageNumber).contains(elem.newspaperPageNumber)) {
-            (List(), (elem :: y))
-          } else {
-            val bsp = BookSectionPage(
-              bookSectionId = y.head.newspaperBookSection,
-              pageNum = y.head.newspaperPageNumber,
-              articles = y
-            )
-            (List(bsp), List(elem))
-          }
-        }
-        case (x :: xs, Nil) => {
-          ((x :: xs), List(elem))
-        }
-        case ((x :: xs), y) => {
-          if (y.headOption.map(_.newspaperPageNumber).contains(elem.newspaperPageNumber)) {
-            ((x :: xs), (elem :: y))
-          } else {
-            val bsp = BookSectionPage(
-              bookSectionId = y.head.newspaperBookSection,
-              pageNum = y.head.newspaperPageNumber,
-              articles = y
-            )
-            (bsp :: (x :: xs), elem :: Nil)
-          }
-        }
-      }
-    }
-    val lastPageArticles = sortedchunks4._2
-    val lastBookSectionPage = BookSectionPage(
-      bookSectionId = lastPageArticles.head.newspaperBookSection,
-      pageNum = lastPageArticles.head.newspaperPageNumber,
-      articles = lastPageArticles
-    )
-    val r = (lastBookSectionPage :: sortedchunks4._1).reverse
-      .map(x => Tuple2(x.articles.length, List(x.articles.map(_.newspaperPageNumber))))
-    //    println(r)
-    (lastBookSectionPage :: sortedchunks4._1).reverse
-  }
-
   def toBookSectionList(bookSectionPages: List[BookSectionPage]): List[BookSection] = {
     if (bookSectionPages.isEmpty) { return List() }
     val initial: (List[BookSection], List[BookSectionPage]) = (List(), List())
