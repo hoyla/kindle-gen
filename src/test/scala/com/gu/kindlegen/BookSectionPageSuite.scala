@@ -10,10 +10,12 @@ import com.gu.contentapi.client.utils._
 @RunWith(classOf[JUnitRunner])
 class BookSectionPageSuite extends FunSuite {
 
-  private def formatter = DateTimeFormat.forPattern("yyyyMMdd")
+  def formatter = DateTimeFormat.forPattern("yyyyMMdd")
+  val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
+  val ta = Article(TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "").toContent)
 
-  val ta = Article(TestContent("", "", 1, "", "", CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime, "", "", "").toContent)
-  val articles = List(1, 1, 2, 2, 3).map(n => ta.copy(newspaperPageNumber = n))
+  val articles: List[Article] = List(1, 1, 2, 2, 3).map(n => ta.copy(newspaperPageNumber = n))
+
   val chunkedArticles = BookSectionPage.chunkByPageNum(articles)
   //  val BSPs = BookSectionPage.chunksToBSP(articles)
 

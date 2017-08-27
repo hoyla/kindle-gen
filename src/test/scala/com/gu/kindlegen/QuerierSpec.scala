@@ -13,26 +13,15 @@ class QuerierSpec extends FlatSpec {
     assert(Querier.readApiKey !== "test")
   }
 
-  ".toManifest" should "convert article to manifest contents page" in {
-    val issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
-    val article = Article(
-      newspaperBookSection = "theguardian/mainsection/international",
-      sectionName = "International",
-      0, "my title", "", issueDate, issueDate, issueDate, "my name", "article abstract", "content"
-    )
-    val articles = List(article)
-    val time = DateTime.now()
-
-    assert(Querier.toManifest(articles, time) === SectionManifest(
-      publicationDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
-      buildDate = time,
-      sections = List(SectionHeading("International", "theguardian/mainsection/international.xml"))
-    ))
-  }
-
   // TODO: Find a way to test printSentResponse, extract the edition dates etc
-  // TODO: Find a way to test resultToArticle
+  def formatter = DateTimeFormat.forPattern("yyyyMMdd")
+  val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
+  val testcontent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "").toContent
+  val capiResponse = List(testcontent)
 
-  private def formatter = DateTimeFormat.forPattern("yyyyMMdd")
+  ".responseToArticles" should "convert a capi response (Seq[Content) to a Seq[Article]" in {
+    val toArticles = Querier.responseToArticles(capiResponse)
+    assert(toArticles.head.newspaperPageNumber === 3)
+  }
 
 }

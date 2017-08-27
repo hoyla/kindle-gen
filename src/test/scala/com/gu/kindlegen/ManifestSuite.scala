@@ -3,14 +3,43 @@ package com.gu.kindlegen
 import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import com.amazonaws.services.lambda.runtime.Context
-import com.github.nscala_time.time.Imports._
-import com.gu.contentapi.client.model.v1.CapiDateTime
 import com.gu.contentapi.client.utils._
+import com.github.nscala_time.time.Imports._
+import org.scalatest.FlatSpec
 
+class SectionManifestSpec extends FlatSpec {
+
+  def formatter = DateTimeFormat.forPattern("yyyyMMdd")
+  val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
+  val ta = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "")
+  val article = Article(
+    newspaperBookSection = "theguardian/mainsection/international",
+    sectionName = "International",
+    0, "my title", "", capiDate, capiDate, capiDate, "my name", "article abstract", "content"
+  )
+  val articles = List(article)
+  val time = DateTime.now()
+
+  "SectionManifest.apply" should "convert a sequence of articles to a section Manifest (Contents page)" in {
+
+    assert(SectionManifest(articles, time) === SectionManifest(
+      publicationDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+      buildDate = time,
+      sections = List(SectionHeading("International", "theguardian/mainsection/international.xml"))
+    ))
+  }
+
+  it should "use default datetime `now` if buildDate not passed" in {
+    val time2 = DateTime.now()
+    val sectionManifest = SectionManifest(articles)
+    assert(sectionManifest.sections === List(SectionHeading("International", "theguardian/mainsection/international.xml")))
+  }
+
+}
 @RunWith(classOf[JUnitRunner])
 class SectionManifestSuite extends FunSuite {
-  import SectionManifest._
+  def formatter = DateTimeFormat.forPattern("yyyyMMdd")
+  def dtFormatter = DateTimeFormat.forPattern("yyyyMMddHHmmss")
 
   test("SectionManifest.toManifestContentsPage") {
     val time = dtFormatter.parseDateTime("20170519011102")
@@ -44,7 +73,5 @@ class SectionManifestSuite extends FunSuite {
       """.stripMargin
     assert(manifest.toManifestContentsPage === expectedOutput)
   }
-  private def formatter = DateTimeFormat.forPattern("yyyyMMdd")
-  private def dtFormatter = DateTimeFormat.forPattern("yyyyMMddHHmmss")
 
 }

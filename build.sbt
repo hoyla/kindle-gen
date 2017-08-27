@@ -16,7 +16,7 @@ scalacOptions ++= Seq(
 )
 
 /* deps for aws lambda */
-libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.1.0"
+//libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.1.0"
 
 /*deps for CAPI client*/
 libraryDependencies += "com.gu" %% "content-api-client" % "11.22"

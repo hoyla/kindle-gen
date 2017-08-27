@@ -36,6 +36,8 @@ case class TestContent(
     testArticleTitle: String,
     testArticleId: String,
     testArticleIssueDate: CapiDateTime,
+    testArticleReleaseDate: CapiDateTime,
+    testArticlePubDate: CapiDateTime,
     // TODO: for clarity add pub-and release- dates or remove from other Article methods
     testArticleByline: String,
     testArticleAbstract: String, // standfirst is used

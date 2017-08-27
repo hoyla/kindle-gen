@@ -63,26 +63,10 @@ object Querier {
     response.results
   }
 
-  def resultToArticles(response: Seq[com.gu.contentapi.client.model.v1.Content]): Seq[Article] = {
+  def responseToArticles(response: Seq[com.gu.contentapi.client.model.v1.Content]): Seq[Article] = {
     response.map(responseContent =>
       Article(responseContent))
   }
 
-  def toSectionHeading(articles: Seq[Article]): Seq[SectionHeading] = {
-    articles.map(x =>
-      SectionHeading(
-        title = x.sectionName,
-        titleLink = x.newspaperBookSection + ".xml"
-      ))
-  }
-
-  // Pass in Querier.resultToArticles(getPrintSentResponse)
-  def toManifest(articles: Seq[Article], buildDate: DateTime = DateTime.now): SectionManifest = {
-    SectionManifest(
-      publicationDate = articles.head.pubDate,
-      buildDate = buildDate,
-      sections = Querier.toSectionHeading(articles)
-    )
-  }
 }
 

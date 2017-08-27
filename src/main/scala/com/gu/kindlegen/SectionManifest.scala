@@ -49,3 +49,22 @@ case class SectionManifest(
   // TODO: in the NITF outputs the section manifest content page has a `Z` appended to the date. This is probably a mistake in the fingerpost script but worth checking
   private def dtFormatter = DateTimeFormat.forPattern("yyyyMMddHHmmss")
 }
+
+object SectionManifest {
+  def apply(articles: Seq[Article], buildDate: DateTime = DateTime.now): SectionManifest = {
+    new SectionManifest(
+      publicationDate = articles.head.issueDate,
+      buildDate = buildDate,
+      sections = toSectionHeading(articles)
+    )
+  }
+
+  // TODO: Write test
+  def toSectionHeading(articles: Seq[Article]): Seq[SectionHeading] = {
+    articles.map(x =>
+      SectionHeading(
+        title = x.sectionName,
+        titleLink = x.newspaperBookSection + ".xml"
+      ))
+  }
+}

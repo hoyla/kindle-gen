@@ -16,14 +16,14 @@ import com.gu.contentapi.client.utils._
 class TestContentSuite extends FunSuite {
 
   private def formatter = DateTimeFormat.forPattern("yyyyMMdd")
+  val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
+  val ta = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "")
 
   test("TestContent.toContent") {
-    val ta = TestContent("", "", 1, "", "", CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime, "", "", "")
     assert(ta.toContent.id === "")
   }
 
   test("TestContent as factory") {
-    val ta = TestContent("", "", 1, "", "", CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime, "", "", "")
     assert(ta.toContent.fields.flatMap(_.headline) === Some(""))
     val ta2 = ta.copy(testArticleTitle = "new title")
     assert(ta2.toContent.fields.get.headline === Some("new title"))
