@@ -117,55 +117,6 @@ object Querier {
       Article(responseContent))
   }
 
-  def toBookSectionList(bookSectionPages: List[BookSectionPage]): List[BookSection] = {
-    if (bookSectionPages.isEmpty) { return List() }
-    val initial: (List[BookSection], List[BookSectionPage]) = (List(), List())
-    val chunkedPages = bookSectionPages.foldLeft(initial) { (acc, elem) =>
-      acc match {
-        case (Nil, Nil) => {
-          (List(), List(elem))
-        }
-        case (Nil, y) => {
-          if (y.head.bookSectionId == elem.bookSectionId) {
-            (List(), elem :: y)
-          } else {
-            val bs = BookSection(
-              bookSectionId = y.head.bookSectionId,
-              bookSectionTitle = y.head.articles.head.sectionName,
-              pages = y.reverse
-            )
-            (List(bs), elem :: Nil)
-          }
-        }
-        case (x :: xs, Nil) => {
-          ((x :: xs), List(elem))
-        }
-        case (x :: xs, y) => {
-          if (y.head.bookSectionId == elem.bookSectionId) {
-            (List(), elem :: y)
-          } else {
-            val bs = BookSection(
-              bookSectionId = y.head.bookSectionId,
-              bookSectionTitle = y.head.articles.head.sectionName,
-              pages = y.reverse
-            )
-            (List(bs), elem :: Nil)
-          }
-        }
-      }
-    }
-    val lastBookSectionPages = chunkedPages._2
-    val lastBookSection = BookSection(
-      bookSectionId = lastBookSectionPages.head.bookSectionId,
-      bookSectionTitle = lastBookSectionPages.head.articles.head.sectionName,
-      pages = lastBookSectionPages.reverse
-    )
-    val r = (lastBookSection :: chunkedPages._1).reverse
-      .map(x => Tuple2(x.pages.length, List(x.pages.map(_.bookSectionId))))
-    println(r)
-    (lastBookSection :: chunkedPages._1).reverse
-  }
-
   def toSectionHeading(articles: Seq[Article]): Seq[SectionHeading] = {
     articles.map(x =>
       SectionHeading(
