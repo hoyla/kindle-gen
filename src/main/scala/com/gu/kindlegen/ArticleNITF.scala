@@ -13,11 +13,11 @@ object ArticleNITF {
      |<docdata management-status="usable">
      |<doc-id id-string="${article.docId}" />
      |<urgency ed-urg="2" />
-     |<date.issue norm="${formatter.print(isoFormatter.parseDateTime(capiIsoDateTimeToString(article.issueDate)))}" />
-     |<date.release norm="${formatter.print(isoFormatter.parseDateTime(capiIsoDateTimeToString(article.releaseDate)))}" />
+     |<date.issue norm="${isoDateConverter(article.issueDate)}" />
+     |<date.release norm="${isoDateConverter(article.releaseDate)}" />
      |<doc.copyright holder="guardian.co.uk" />
      |</docdata>
-     |<pubdata type="print" date.publication="${formatter.print(isoFormatter.parseDateTime(capiIsoDateTimeToString(article.releaseDate)))}" />
+     |<pubdata type="print" date.publication="${isoDateConverter(article.pubDate)}" />
      |</head>
      |<body>
      |<body.head>

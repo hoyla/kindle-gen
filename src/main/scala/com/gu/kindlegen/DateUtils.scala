@@ -8,7 +8,7 @@ class DateUtils {
 }
 
 object DateUtils {
-  // formatter for use with parseDateTime or print to convert a DateTime: Long to DateTime: DateTime
+  // formatter for use with print to convert a DateTime: Long to DateTime String?
   def formatter = DateTimeFormat.forPattern("yyyyMMdd")
   def dtFormatter = DateTimeFormat.forPattern("yyyyMMddHHmmss")
 
@@ -16,6 +16,8 @@ object DateUtils {
   def isoFormatter = ISODateTimeFormat.dateTime()
   def capiIsoDateTimeToString(dt: CapiDateTime): String = dt.iso8601
   def formatterWithDashes = DateTimeFormat.forPattern("yyyy-MM-dd")
+
+  def isoDateConverter(capiDate: CapiDateTime): String = formatter.print(isoFormatter.parseDateTime(capiIsoDateTimeToString(capiDate)))
 
   // TODO: change this to DateTime.now or function that takes a passed in date.
   def editionDateTime: DateTime = formatterWithDashes.parseDateTime("2017-05-19") // to have a date I know the results for
