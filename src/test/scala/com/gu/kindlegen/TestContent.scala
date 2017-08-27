@@ -1,13 +1,11 @@
 package com.gu.kindlegen
 
-import com.gu.contentapi.client.model.v1.CapiDateTime
-import com.gu.contentapi.client.model.v1._
-import com.gu.contentapi.client.model.v1.ContentType
 import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
-import com.gu.contentapi.client.model.v1.Content
-import com.gu.contentapi.client.model.v1.ContentFields
-import com.gu.contentapi.client.utils.CapiModelEnrichment
+import com.gu.contentapi.client.model.v1._
 
+/**
+ * Created by alice_dee on 27/08/2017.
+ */
 /*
 *
  * This class is to be used as a method for creating article content of type Content for use in tests (ie unit tests that don't hit the API).
