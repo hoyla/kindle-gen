@@ -16,17 +16,11 @@ scalacOptions ++= Seq(
 )
 
 /* deps for aws lambda */
-libraryDependencies ++= Seq(
-  "com.amazonaws" % "aws-lambda-java-core" % "1.1.0",
-  "com.gu" %% "content-api-client" % "11.22",
-  "org.typelevel" %% "cats" % "0.9.0",
+libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.1.0"
 
+/*deps for CAPI client*/
+libraryDependencies += "com.gu" %% "content-api-client" % "11.22"
 
-  "org.scalactic" %% "scalactic" % "3.0.1",
-  "org.scalatest" %% "scalatest" % "3.0.1" % "test",
-  "junit" % "junit" % "4.10" % "test",
-  "com.novocode" % "junit-interface" % "0.11" % "test"
-)
 
 /* deps required to use junit test and test watch */
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1"
@@ -46,4 +40,5 @@ riffRaffUploadArtifactBucket := Option("riffraff-artifact")
 riffRaffUploadManifestBucket := Option("riffraff-builds")
 riffRaffArtifactResources += (file("cfn.yaml"), s"${name.value}-cfn/cfn.yaml")
 
+/* for auto import in console */
 initialCommands in console := "import com.gu.kindlegen._"
