@@ -2,7 +2,7 @@ package com.gu.kindlegen
 
 import com.gu.contentapi.client.model.v1.CapiDateTime
 import org.joda.time.DateTime
-import org.joda.time.format.{ DateTimeFormat, ISODateTimeFormat }
+import DateUtils._
 
 case class SectionHeading(
     title: String,
@@ -40,14 +40,7 @@ case class SectionManifest(
        |</rss>
       """.stripMargin
   }
-  // formatter for use with parseDateTime to convert an isoDateTime: String to isoDateTime: DateTime
-  private def isoFormatter = ISODateTimeFormat.dateTime()
-  // formatter for use with parseDateTime or print to convert a DateTime: Long to DateTime: DateTime
-  private def formatter = DateTimeFormat.forPattern("yyyyMMdd")
-  private def capiIsoDateTimeToString(dt: CapiDateTime): String = dt.iso8601
-  // formatter for use with parseDateTime or print to convert a DateTime: Long to DateTime: DateTime
   // TODO: in the NITF outputs the section manifest content page has a `Z` appended to the date. This is probably a mistake in the fingerpost script but worth checking
-  private def dtFormatter = DateTimeFormat.forPattern("yyyyMMddHHmmss")
 }
 
 object SectionManifest {

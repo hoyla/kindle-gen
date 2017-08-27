@@ -1,15 +1,13 @@
 package com.gu.kindlegen
 
-import org.joda.time.format.DateTimeFormat
 import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import com.gu.contentapi.client.utils._
+import DateUtils._
 
 @RunWith(classOf[JUnitRunner])
 class ArticleNITFSuite extends FunSuite {
-
-  private def formatter = DateTimeFormat.forPattern("yyyyMMdd")
 
   test("ArticleNITF apply") {
     val article = Article(

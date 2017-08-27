@@ -1,10 +1,8 @@
 package com.gu.kindlegen
 
 import com.gu.contentapi.client.utils.CapiModelEnrichment
-import org.joda.time.DateTime
-import org.joda.time.format.DateTimeFormat
-
 import org.scalatest.FlatSpec
+import DateUtils._
 
 class QuerierSpec extends FlatSpec {
 
@@ -14,7 +12,6 @@ class QuerierSpec extends FlatSpec {
   }
 
   // TODO: Find a way to test printSentResponse, extract the edition dates etc
-  def formatter = DateTimeFormat.forPattern("yyyyMMdd")
   val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
   val testcontent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "").toContent
   val capiResponse = List(testcontent)

@@ -1,7 +1,5 @@
 package com.gu.kindlegen
-import com.gu.contentapi.client.model.v1.CapiDateTime
-import org.joda.time.format.ISODateTimeFormat
-import org.joda.time.format.DateTimeFormat
+import DateUtils._
 
 case class ArticleNITF(fileContents: String)
 
@@ -32,9 +30,4 @@ object ArticleNITF {
      |</body>
      |</nitf>""".stripMargin
   )
-  // formatter for use with parseDateTime to convert an isoDateTime: String to isoDateTime: DateTime
-  private def isoFormatter = ISODateTimeFormat.dateTime()
-  // formatter for use with parseDateTime or print to convert a DateTime: Long to DateTime: DateTime
-  private def formatter = DateTimeFormat.forPattern("yyyyMMdd")
-  private def capiIsoDateTimeToString(dt: CapiDateTime): String = dt.iso8601
 }

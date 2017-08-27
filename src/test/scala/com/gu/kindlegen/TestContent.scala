@@ -3,11 +3,7 @@ package com.gu.kindlegen
 import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
 import com.gu.contentapi.client.model.v1._
 
-/**
- * Created by alice_dee on 27/08/2017.
- */
 /*
-*
  * This class is to be used as a method for creating article content of type Content for use in tests (ie unit tests that don't hit the API).
  * The case class TestContent contains all the fields we actually want/use from an article as parameters (and its easy to add some)
  * The toContent method provides Nil or None for all the (*many*) fields that the Content Type requires

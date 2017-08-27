@@ -2,13 +2,11 @@ package com.gu.kindlegen
 
 import com.gu.contentapi.client._
 import com.gu.contentapi.client.model._
-import org.joda.time.DateTime
-import org.joda.time.format._
-
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.io.{ BufferedSource, Source }
+import DateUtils._
 
 class Querier {
 }
@@ -31,15 +29,8 @@ object Querier {
   val readApiKey: String = readConfig(0)
 
   def getPrintSentResponse: Seq[com.gu.contentapi.client.model.v1.Content] = {
-    def formatter = DateTimeFormat.forPattern("yyyy-MM-dd")
 
     //    def editionDateTime: DateTime = DateTime.now
-    def editionDateTime: DateTime = formatter.parseDateTime("2017-05-19") // to have a date I know the results for
-    def editionDateString: String = formatter.print(editionDateTime)
-
-    def editionDateStart: DateTime = DateTime.parse(editionDateString).withMillisOfDay(0).withMillisOfSecond(0)
-
-    def editionDateEnd: DateTime = DateTime.parse(editionDateString).withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59).withMillisOfSecond(999)
 
     val capiKey = readApiKey
     val capiClient = new PrintSentContentClient(capiKey)

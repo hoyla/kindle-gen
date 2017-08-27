@@ -4,12 +4,12 @@ import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import com.gu.contentapi.client.utils._
-import com.github.nscala_time.time.Imports._
 import org.scalatest.FlatSpec
+import DateUtils._
+import org.joda.time.DateTime
 
 class SectionManifestSpec extends FlatSpec {
 
-  def formatter = DateTimeFormat.forPattern("yyyyMMdd")
   val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
   val ta = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "")
   val article = Article(
@@ -38,8 +38,6 @@ class SectionManifestSpec extends FlatSpec {
 }
 @RunWith(classOf[JUnitRunner])
 class SectionManifestSuite extends FunSuite {
-  def formatter = DateTimeFormat.forPattern("yyyyMMdd")
-  def dtFormatter = DateTimeFormat.forPattern("yyyyMMddHHmmss")
 
   test("SectionManifest.toManifestContentsPage") {
     val time = dtFormatter.parseDateTime("20170519011102")
