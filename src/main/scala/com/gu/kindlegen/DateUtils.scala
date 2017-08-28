@@ -8,14 +8,15 @@ class DateUtils {
 }
 
 object DateUtils {
-  // formatter for use with print to convert a DateTime: Long to DateTime String?
+  // formatter for use with print to convert a DateTime: Long to DateTime String
   def formatter = DateTimeFormat.forPattern("yyyyMMdd")
   def dtFormatter = DateTimeFormat.forPattern("yyyyMMddHHmmss")
 
   // formatter for use with parseDateTime to convert an isoDateTime: String to isoDateTime: DateTime
   def isoFormatter = ISODateTimeFormat.dateTime()
-  def capiIsoDateTimeToString(dt: CapiDateTime): String = dt.iso8601
   def formatterWithDashes = DateTimeFormat.forPattern("yyyy-MM-dd")
+
+  def capiIsoDateTimeToString(capidatetime: CapiDateTime): String = capidatetime.iso8601
 
   def isoDateConverter(capiDate: CapiDateTime): String = formatter.print(isoFormatter.parseDateTime(capiIsoDateTimeToString(capiDate)))
 
