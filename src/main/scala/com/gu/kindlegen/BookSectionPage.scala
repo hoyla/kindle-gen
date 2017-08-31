@@ -12,17 +12,13 @@ case class BookSectionPage(bookSectionId: String, pageNum: Int, articles: List[A
 //
 object BookSectionPage {
   def chunkByPageNum(articles: List[Article]): List[List[Article]] = {
-    val tsil = articles.foldLeft(List.empty[List[Article]]) {
-      // case where the pagenum of the first article in the first list is the same as current enum article pagenum.
-      case ((head :: tail), article) if head.map(_.newspaperPageNumber).head == article.newspaperPageNumber => {
-        (article :: head) :: tail
-      }
-      // case where pagenums do not match (ie the same pattern as above but not caught by the above case if statement) This pattern will also catch the empty initial list
-      case (listDifferentPage, article) =>
-        List(article) :: listDifferentPage
-    }
-    tsil.reverse
+    //    this isn't ordered. Also doesn't consider empty list?
+    //    articles.groupBy(_.newspaperPageNumber).values.toList
+
+    ListUtil.chunkBy(articles, getNewspaperPageNumber)
   }
+
+  private def getNewspaperPageNumber(article: Article): Int = article.newspaperPageNumber
 
   def chunksToBSP(chunks: List[List[Article]]): List[BookSectionPage] = {
     chunks.map(lst => {

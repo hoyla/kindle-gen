@@ -19,7 +19,7 @@ class BookSectionPageSuite extends FunSuite {
   val chunkedArticles = BookSectionPage.chunkByPageNum(articles)
   //  val BSPs = BookSectionPage.chunksToBSP(articles)
 
-  test("BookSectionPage.chunk sorts article into lists of lists by pagenum") {
+  test("BookSectionPage.chunkByPageNum sorts article into lists of lists by pagenum") {
     assert(BookSectionPage.chunkByPageNum(articles).map(_.map(_.newspaperPageNumber)) === List(List(1, 1), List(2, 2), List(3)))
   }
 
