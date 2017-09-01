@@ -12,9 +12,6 @@ case class BookSectionPage(bookSectionId: String, pageNum: Int, articles: List[A
 //
 object BookSectionPage {
   def chunkByPageNum(articles: List[Article]): List[List[Article]] = {
-    //    this isn't ordered. Also doesn't consider empty list?
-    //    articles.groupBy(_.newspaperPageNumber).values.toList
-
     ListUtil.chunkBy(articles, getNewspaperPageNumber)
   }
 
