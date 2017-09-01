@@ -1,15 +1,9 @@
 package com.gu.kindlegen
 
-import org.scalatest.FunSuite
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import com.github.nscala_time.time.Imports._
-import com.gu.contentapi.client.model.v1.Content
-import com.gu.contentapi.client.utils._
+import org.scalatest.FlatSpec
 
-@RunWith(classOf[JUnitRunner])
-class BookSectionSuite extends FunSuite {
-  test("chunkBookSectionPages") {
+class BookSectionSuite extends FlatSpec {
+  ".chunkBookSectionPages" should "return list of list of BookSectionPages grouped by bookSectionId" in {
     val bookSectionPages = List(
       BookSectionPage("a", 1, List()),
       BookSectionPage("a", 1, List()),
@@ -34,7 +28,7 @@ class BookSectionSuite extends FunSuite {
     assert(result === expected)
   }
 
-  test("chunkBookSectionPages with empty list") {
+  it should "return empty list when given an empty list" in {
     assert(BookSection.chunkBookSectionPages(Nil) === List())
   }
 }
