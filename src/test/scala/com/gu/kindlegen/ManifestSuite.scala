@@ -5,40 +5,39 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import com.gu.contentapi.client.utils._
 import org.scalatest.FlatSpec
+import DateUtils._
+import org.joda.time.DateTime
 
 class SectionManifestSpec extends FlatSpec {
 
-  import org.scalatest.FlatSpec
-  import DateUtils._
-  import org.joda.time.DateTime
+  val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
+  val ta = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None)
+  val tac = ta.toContent
+  val taca = Article(tac)
+  val article = Article(
+    newspaperBookSection = "theguardian/mainsection/international",
+    sectionName = "International",
+    0, "my title", "", capiDate, capiDate, capiDate, "my name", "article abstract", "content", Some("image.URL")
+  )
+  val articles = List(article)
+  val time = DateTime.now()
 
-  class SectionManifestSpec extends FlatSpec {
+  "SectionManifest.apply" should "convert a sequence of articles to a section Manifest (Contents page)" in {
 
-    val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
-    val ta = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "")
-    val article = Article(
-      newspaperBookSection = "theguardian/mainsection/international",
-      sectionName = "International",
-      0, "my title", "", capiDate, capiDate, capiDate, "my name", "article abstract", "content"
-    )
-    val articles = List(article)
-    val time = DateTime.now()
+    assert(SectionManifest(articles, time) === SectionManifest(
+      publicationDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+      buildDate = time,
+      sections = List(SectionHeading("International", "theguardian/mainsection/international.xml"))
+    ))
+  }
 
-    "SectionManifest.apply" should "convert a sequence of articles to a section Manifest (Contents page)" in {
+  it should "use default datetime `now` if buildDate not passed" in {
+    // FIXME: This test sometimes fails if, say, GC happens and causes a delay between evaluation of the test and the variable (DateTime.now)!!
+    //    val time2 = DateTime.now()
+    val sectionManifest = SectionManifest(articles)
+    assert(sectionManifest.sections === List(SectionHeading("International", "theguardian/mainsection/international.xml")))
 
-      assert(SectionManifest(articles, time) === SectionManifest(
-        publicationDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
-        buildDate = time,
-        sections = List(SectionHeading("International", "theguardian/mainsection/international.xml"))
-      ))
-    }
-
-    it should "use default datetime `now` if buildDate not passed" in {
-      val time2 = DateTime.now()
-      val sectionManifest = SectionManifest(articles)
-      assert(sectionManifest.sections === List(SectionHeading("International", "theguardian/mainsection/international.xml")))
-    }
-
+    //  case (l, m, n) => taca.copy(newspaperBookSection = m, sectionName = l, newspaperPageNumber = n )
   }
 
   @RunWith(classOf[JUnitRunner])
@@ -56,23 +55,23 @@ class SectionManifestSpec extends FlatSpec {
       )
       val expectedOutput =
         s"""
-        |<?xml version="1.0" encoding="UTF-8" ?>
-        |<rss version="2.0">
-        |<channel>
-        |<title>The Guardian / The Observer</title>
-        |<link>http://www.guardian.co.uk/</link>
-        |<pubDate>20170724</pubDate>
-        |<lastBuildDate>20170519011102</lastBuildDate>
-        |<item>
-        | <title>title1</title>
-        | <link>link1</link>
-        |</item>
-        |<item>
-        | <title>title2</title>
-        | <link>link2</link>
-        |</item>
-        |</channel>
-        |</rss>
+         |<?xml version="1.0" encoding="UTF-8" ?>
+         |<rss version="2.0">
+         |<channel>
+         |<title>The Guardian / The Observer</title>
+         |<link>http://www.guardian.co.uk/</link>
+         |<pubDate>20170724</pubDate>
+         |<lastBuildDate>20170519011102</lastBuildDate>
+         |<item>
+         | <title>title1</title>
+         | <link>link1</link>
+         |</item>
+         |<item>
+         | <title>title2</title>
+         | <link>link2</link>
+         |</item>
+         |</channel>
+         |</rss>
       """.stripMargin
       assert(manifest.
         toManifestContentsPage === expectedOutput)

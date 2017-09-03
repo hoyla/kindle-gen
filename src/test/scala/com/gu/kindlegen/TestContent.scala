@@ -1,6 +1,9 @@
 package com.gu.kindlegen
 
 import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
+import com.gu.contentapi.client.model.v1.ElementType.Image
+import com.gu.contentapi.client.model.v1.Asset
+import com.gu.contentapi.client.model.v1.AssetType.Image
 import com.gu.contentapi.client.model.v1._
 
 /*
@@ -37,7 +40,8 @@ case class TestContent(
     // TODO: for clarity add pub-and release- dates or remove from other Article methods
     testArticleByline: String,
     testArticleAbstract: String, // standfirst is used
-    testArticleContent: String
+    testArticleContent: String,
+    testArticleImageUrl: Option[String]
 ) {
   def toContent: Content = Content(
     references = Nil,
@@ -134,7 +138,24 @@ case class TestContent(
     isHosted = false,
     webTitle = "",
     sectionId = None,
-    elements = Option(Nil),
+    elements = Option(Seq(element)),
     isExpired = None
   )
+
+  def element: Element = Element(
+    `type` = ElementType.Image,
+    relation = "main",
+    assets = Seq(asset),
+    id = "",
+    galleryIndex = None
+  )
+
+  def asset: Asset = Asset(
+    `type` = AssetType.Image,
+    typeData = Option(AssetFields(
+      width = Some(500),
+      secureFile = testArticleImageUrl
+    ))
+  )
 }
+

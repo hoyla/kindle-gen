@@ -21,6 +21,7 @@ object DateUtils {
 
   // TODO: change this to DateTime.now or function that takes a passed in date.
   def editionDateTime: DateTime = formatterWithDashes.parseDateTime("2017-05-19") // to have a date I know the results for
+  //  def editionDateTime: DateTime = DateTime.now()
 
   def editionDateString: String = formatterWithDashes.print(editionDateTime)
   def editionDateStart: DateTime = DateTime.parse(editionDateString).withMillisOfDay(0).withMillisOfSecond(0)

@@ -21,8 +21,10 @@ class ArticleNITFSuite extends FunSuite {
       pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
       byline = "my name",
       articleAbstract = "article abstract",
-      content = "content"
+      content = "content",
+      imageUrl = None
     )
+
     val expectedOutput =
       """
         |<?xml version="1.0" encoding="UTF-8"?>

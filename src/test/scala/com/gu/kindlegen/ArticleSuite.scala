@@ -11,7 +11,7 @@ import DateUtils._
 class ArticleSuite extends FunSuite {
 
   val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
-  val ta = TestContent("", "", 2, "", "", capiDate, capiDate, capiDate, "", "", "")
+  val ta = TestContent("", "", 2, "", "", capiDate, capiDate, capiDate, "", "", "", None)
 
   test("apply method with content as parameter") {
     val content = ta.toContent

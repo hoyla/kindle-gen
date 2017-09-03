@@ -13,7 +13,7 @@ class QuerierSpec extends FlatSpec {
 
   // TODO: Find a way to test printSentResponse, extract the edition dates etc
   val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
-  val testcontent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "").toContent
+  val testcontent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "", None).toContent
   val capiResponse = List(testcontent)
 
   ".responseToArticles" should "convert a capi response (Seq[Content) to a Seq[Article]" in {
