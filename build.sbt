@@ -26,6 +26,9 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 libraryDependencies += "junit" % "junit" % "4.10" % "test"
 libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test"
 
+/*deps for simple client*/
+libraryDependencies += "com.typesafe.play" %% "play-ws" % "2.4.3"
+
 /* deps for Riff-Raff Guardian deployment tool */
 enablePlugins(RiffRaffArtifact)
 

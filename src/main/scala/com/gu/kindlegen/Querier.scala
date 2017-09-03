@@ -9,6 +9,8 @@ import scala.concurrent.duration._
 import scala.io.{ BufferedSource, Source }
 import org.joda.time.DateTime
 import DateUtils._
+import play.api.libs.ws.ning.NingWSClient
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class Querier {
 }
@@ -65,5 +67,56 @@ object Querier {
       Article(responseContent))
   }
 
-}
+  /*  def getArticleImage(article: Article) = {
+    val wsClient = NingWSClient()
+    if (article.imageUrl.isEmpty) {
+      sys.error("no suitable image found for this article")
+    }
+    wsClient
+      .url(article.imageUrl.get)
+      .get()
+      .map { wsResponse =>
+        if (!(200 to 299).contains(wsResponse.status)) {
+          sys.error(s"Received unexpected status ${wsResponse.status} : ${wsResponse.body}")
+        }
+        println(s"OK, received ${wsResponse.body}")
+        println(s"The response header Content-Length was ${wsResponse.header("Content-Length")}")
+      }
+    wsClient.close
+  }*/
+  //  @throws(classOf[java.io.IOException])
+  //  @throws(classOf[java.net.SocketTimeoutException])
+  //  def get(
+  //    url: String,
+  //    connectTimeout: Int = 5000,
+  //    readTimeout: Int = 5000,
+  //    requestMethod: String = "GET"
+  //  ) =
+  //    {
+  //      import java.net.{ URL, HttpURLConnection }
+  //      val connection = (new URL(url)).openConnection.asInstanceOf[HttpURLConnection]
+  //      connection.setConnectTimeout(connectTimeout)
+  //      connection.setReadTimeout(readTimeout)
+  //      connection.setRequestMethod(requestMethod)
+  //      val inputStream = connection.getInputStream
+  //      val content = io.Source.fromInputStream(inputStream).mkString
+  //      if (inputStream != null) inputStream.close
+  //      content
+  //    }
+  //
+  //  def getArticleImage(article: Article) = {
+  //    try {
+  //      val content = get(article.imageUrl.get)
+  //      println(content)
+  //    } catch {
+  //      case ioe: java.io.IOException => println("ohno IO exception") // TODO: handle
+  //      case ste: java.net.SocketTimeoutException => println("ohno socket timeout") // TODO: handle this
+  //    }
+  //  }
 
+  def getArticleImage(article: Article) = {
+    import javax.imageio.ImageIO
+    import java.net.URL
+    ImageIO.read(new URL(article.imageUrl.get))
+  }
+}

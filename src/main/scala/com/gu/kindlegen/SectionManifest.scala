@@ -32,7 +32,7 @@ case class SectionManifest(
 
 object SectionManifest {
   def apply(articles: Seq[Article], buildDate: DateTime = DateTime.now): SectionManifest = {
-    new SectionManifest(
+    SectionManifest(
       publicationDate = articles.head.issueDate,
       buildDate = buildDate,
       sections = toSectionHeading(articles)
@@ -66,7 +66,7 @@ case class SectionHeading(
 }
 
 object SectionHeading {
-  def apply(article: Article) = new SectionHeading(
+  def apply(article: Article): SectionHeading = SectionHeading(
     title = article.sectionName,
     titleLink = article.newspaperBookSection
   )
