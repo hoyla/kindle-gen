@@ -32,16 +32,6 @@ object Querier {
 
   def getPrintSentResponse: Seq[com.gu.contentapi.client.model.v1.Content] = {
 
-    //    def editionDateTime: DateTime = DateTime.now
-    def editionDateTime: DateTime = formatter.parseDateTime("2017-05-19") // to have a date I know the results for
-    def editionDateString: String = formatter.print(editionDateTime)
-
-    def editionDateStart: DateTime = DateTime.parse(editionDateString).withMillisOfDay(0).withMillisOfSecond(0)
-
-    def editionDateEnd: DateTime = DateTime.parse(editionDateString).withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59).withMillisOfSecond(999)
-
-    //    def editionDateTime: DateTime = DateTime.now
-
     val capiKey = readApiKey
     val capiClient = new PrintSentContentClient(capiKey)
     val pageNum = 1
