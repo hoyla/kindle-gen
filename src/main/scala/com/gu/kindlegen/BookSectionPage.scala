@@ -9,8 +9,8 @@ case class BookSectionPage(bookSectionId: String, pageNum: Int, articles: List[A
 // TODO: allow edge case where a page can have more than one book section on it.
 // TODO: Ask DB if the order INSIDE the pages matters (ie order of the articles) and if so how I recreate this.
 
-//
 object BookSectionPage {
+
   def chunkByPageNum(articles: List[Article]): List[List[Article]] = {
     ListUtil.chunkBy(articles, getNewspaperPageNumber)
   }
