@@ -27,7 +27,7 @@ case class SectionManifest(
        |</rss>
       """.stripMargin
   }
-  // TODO: in the NITF outputs the section manifest content page has a `Z` appended to the date. This is probably a mistake in the fingerpost script but worth checking
+  // TODO: in the NITF outputs the section manifest content page has a `Z` appended to the date. This is probably a mistake in the fingerpost script but worth checking ASK DB
 }
 
 object SectionManifest {

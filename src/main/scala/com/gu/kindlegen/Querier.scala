@@ -2,14 +2,18 @@ package com.gu.kindlegen
 import java.awt.image.BufferedImage
 import java.io._
 import javax.imageio.ImageIO
+
 import com.gu.contentapi.client._
 import com.gu.contentapi.client.model._
+import com.gu.contentapi.client.model.v1.Content
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.io.{ BufferedSource, Source }
 import scala.concurrent.ExecutionContext.Implicits.global
 import scalaj.http._
 import DateUtils._
+import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
 
 class Querier {
 }
@@ -31,7 +35,7 @@ object Querier {
 
   val readApiKey: String = readConfig(0)
 
-  def getPrintSentResponse: Seq[com.gu.contentapi.client.model.v1.Content] = {
+  def getPrintSentResponse: Seq[Content] = {
 
     val capiKey = readApiKey
     val capiClient = new PrintSentContentClient(capiKey)
@@ -58,7 +62,16 @@ object Querier {
   // TODO: handle the possibility of there being no content in the getPrintSentResponse method above
   /*  TODO: 1. this should possibly be a map with the associated article id/number so that they can be paired up later
 */
-  def responseToArticles(response: Seq[com.gu.contentapi.client.model.v1.Content]): Seq[Article] = {
+  /* TODO:
+      - sort content by page number, and then booksection
+      because a page CAN have more than one booksection on it.
+      - for each with index, create article and put index into article as
+      identifier
+      - add identifier to article as field ( the docId is a string - can I use the internalPageCode? Is it unique? Ask DB)
+      -
+  */
+
+  def responseToArticles(response: Seq[Content]): Seq[Article] = {
     response.map(responseContent =>
       Article(responseContent))
   }
@@ -68,9 +81,13 @@ object Querier {
     articles.view.zipWithIndex.toList
   }
 
+  def sortContentByPageAndSection(response: Seq[Content]): Seq[Content] = {
+    response.sortBy(content => (content.fields.flatMap(_.newspaperPageNumber), content.tags.find(_.`type` == NewspaperBookSection).get.id))
+  }
+
   // TODO: To many IO methods make up this one - try to reduce to one untestable method with the rest being pure
   // TODO: Test: Will this catch exception if filename exists?
-  def fetchAndWriteImages(articlesIDs: List[ (Article, Int) ]): Unit = {
+  def fetchAndWriteImages(articlesIDs: List[(Article, Int)]): Unit = {
     articlesIDs.foreach {
       case (article, i) => {
         val urlOption = article.imageUrl

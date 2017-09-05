@@ -35,7 +35,7 @@ object Article {
     imageUrl
   }
   // keep this as an option otherwise later you will try to download form an empty string
-
+  // TODO: get rid of the gets
   def apply(content: Content): Article = new Article(
     newspaperBookSection = content.tags.find(_.`type` == NewspaperBookSection).get.id,
     sectionName = content.tags.find(_.`type` == NewspaperBookSection).get.webTitle,
