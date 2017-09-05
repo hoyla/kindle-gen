@@ -1,16 +1,15 @@
 package com.gu.kindlegen
-
+import java.awt.image.BufferedImage
+import java.io._
+import javax.imageio.ImageIO
 import com.gu.contentapi.client._
 import com.gu.contentapi.client.model._
-
 import scala.concurrent.Await
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.io.{ BufferedSource, Source }
-import org.joda.time.DateTime
-import DateUtils._
-import play.api.libs.ws.ning.NingWSClient
 import scala.concurrent.ExecutionContext.Implicits.global
+import scalaj.http._
+import DateUtils._
 
 class Querier {
 }
@@ -38,7 +37,7 @@ object Querier {
     val capiClient = new PrintSentContentClient(capiKey)
     val pageNum = 1
     val query = SearchQuery()
-      .pageSize(10)
+      .pageSize(5)
       .showFields("all")
       .orderBy("newest")
       .fromDate(editionDateStart)
@@ -55,68 +54,81 @@ object Querier {
     val response = Await.result(capiClient.getResponse(query), 5.seconds)
     response.results
   }
-  // TODO: with show-elements=image in the request get an elemnet sublist of images including a sublist of assets which have type = image and a typedata sublist including width - only want the width 500 image
-  // The Kindle NITF spec is for max image size https://images-na.ssl-images-amazon.com/images/G/01/kindle-publication/feedGuide-new/KPPUserGuide._V181169266_.html#AddingImages
-  // max size is 960 x 720 corresps with our 500 width best
-  // in the typedata there is a link called secureFile and this is where I want to retrieve the image from (or maybe just the topsection `file`
-  // as well as the fingerpost file, kindleprevier also gets these files in an async way - how?
-  // best plan is probably to add all the functionality in terms of section and class and do the async download later
 
+  // TODO: handle the possibility of there being no content in the getPrintSentResponse method above
+  /*  TODO: 1. this should possibly be a map with the associated article id/number so that they can be paired up later
+*/
   def responseToArticles(response: Seq[com.gu.contentapi.client.model.v1.Content]): Seq[Article] = {
     response.map(responseContent =>
       Article(responseContent))
   }
+  // Probably best to merge these functions OR
+  // put the article index/id into the article class so you dont have to pass around a tuple.
+  def articlesWithFileIdentifier(articles: Seq[Article]): List[(Article, Int)] = {
+    articles.view.zipWithIndex.toList
+  }
 
-  /*  def getArticleImage(article: Article) = {
-    val wsClient = NingWSClient()
-    if (article.imageUrl.isEmpty) {
-      sys.error("no suitable image found for this article")
-    }
-    wsClient
-      .url(article.imageUrl.get)
-      .get()
-      .map { wsResponse =>
-        if (!(200 to 299).contains(wsResponse.status)) {
-          sys.error(s"Received unexpected status ${wsResponse.status} : ${wsResponse.body}")
-        }
-        println(s"OK, received ${wsResponse.body}")
-        println(s"The response header Content-Length was ${wsResponse.header("Content-Length")}")
+  // TODO: To many IO methods make up this one - try to reduce to one untestable method with the rest being pure
+  // TODO: Test: Will this catch exception if filename exists?
+  def fetchAndWriteImages(articlesIDs: List[ (Article, Int) ]): Unit = {
+    articlesIDs.foreach {
+      case (article, i) => {
+        val urlOption = article.imageUrl
+        val dataOption = urlOption.flatMap(getImageData)
+        val bufferedOption = imageBytesToBuffered(dataOption)
+        writeImageToFile((bufferedOption, i))
       }
-    wsClient.close
-  }*/
-  //  @throws(classOf[java.io.IOException])
-  //  @throws(classOf[java.net.SocketTimeoutException])
-  //  def get(
-  //    url: String,
-  //    connectTimeout: Int = 5000,
-  //    readTimeout: Int = 5000,
-  //    requestMethod: String = "GET"
-  //  ) =
-  //    {
-  //      import java.net.{ URL, HttpURLConnection }
-  //      val connection = (new URL(url)).openConnection.asInstanceOf[HttpURLConnection]
-  //      connection.setConnectTimeout(connectTimeout)
-  //      connection.setReadTimeout(readTimeout)
-  //      connection.setRequestMethod(requestMethod)
-  //      val inputStream = connection.getInputStream
-  //      val content = io.Source.fromInputStream(inputStream).mkString
-  //      if (inputStream != null) inputStream.close
-  //      content
-  //    }
-  //
-  //  def getArticleImage(article: Article) = {
-  //    try {
-  //      val content = get(article.imageUrl.get)
-  //      println(content)
-  //    } catch {
-  //      case ioe: java.io.IOException => println("ohno IO exception") // TODO: handle
-  //      case ste: java.net.SocketTimeoutException => println("ohno socket timeout") // TODO: handle this
-  //    }
-  //  }
+    }
+  }
 
-  def getArticleImage(article: Article) = {
-    import javax.imageio.ImageIO
-    import java.net.URL
-    ImageIO.read(new URL(article.imageUrl.get))
+  // TODO: Should this be a Map or list of KV pairs (tuples)?
+  // FIXME: this is slow... why?
+  def imageUrlsWithIDs(articlesIDs: List[(Article, Int)]): List[(Option[String], Int)] = {
+    articlesIDs.map {
+      case (article, i) => (article.imageUrl, i)
+    }
+  }
+
+  // look up try monad instead of try catch
+  // This might fail so an option is returned
+  def getImageData(url: String): Option[Array[Byte]] =
+    try {
+      val response: HttpRequest = Http(url)
+      Some(response.asBytes.body)
+    } catch {
+      case e: Exception => None
+    }
+
+  // dont need this method or the write to file. Can send the byte array to the ftp server
+  // Remove IO read and writes methods, and store bytearray in memory. Then use the Amazon ftp server api to create the files on their server - cuts down on processing time as read and write are resource-heavy ops.
+  // would be a good idea to model the File structure
+  def imageBytesToBuffered(imageData: Option[Array[Byte]]): Option[BufferedImage] = {
+    try {
+      val inputStreamBytes: InputStream = new ByteArrayInputStream(imageData.get)
+      val bufferedImageOut: BufferedImage = ImageIO.read(inputStreamBytes)
+      Some(bufferedImageOut)
+    } catch {
+      case e: Exception => None
+    }
+  }
+
+  // TODO: write unit test for sad path
+  // TODO: will require an integration test
+  // This should just take a byte array and a filename and write the bytearray to the filename
+  // shouldnt have the word image in
+  // can go in a different object
+  // But I don't need to create these files yet - but it might be a good idea to model it with an ftp file
+  // class which has a file structure and file names and a file path and a place for the data etc
+  // Can delete this method now I know it works and I get an image.
+  def writeImageToFile(imageWithId: (Option[BufferedImage], Int)): Unit = {
+    try {
+      val image = imageWithId._1.get
+      val id = imageWithId._2
+      // TODO: Folder/path to write file required
+      ImageIO.write(image, "jpg", new File(s"image${id}_500.jpg"))
+      println(s"writing image file for article $id")
+    } catch {
+      case e: Exception => println(s"No suitable image found for article${imageWithId._2}")
+    }
   }
 }
