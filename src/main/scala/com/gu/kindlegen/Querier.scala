@@ -60,55 +60,29 @@ object Querier {
   }
 
   // TODO: handle the possibility of there being no content in the getPrintSentResponse method above
-  /*  TODO: 1. this should possibly be a map with the associated article id/number so that they can be paired up later
-*/
-  /* TODO:
-      - sort content by page number, and then booksection
-      because a page CAN have more than one booksection on it.
-      - for each with index, create article and put index into article as
-      identifier
-      - add identifier to article as field ( the docId is a string - can I use the internalPageCode? Is it unique? Ask DB)
-      -
-  */
-
   def responseToArticles(response: Seq[Content]): Seq[Article] = {
     val sortedContent = Querier.sortContentByPageAndSection(response)
     val contentWithIndex = sortedContent.view.zipWithIndex.toList
     contentWithIndex.map(Article.apply)
   }
-  // Probably best to merge these functions OR
-  // put the article index/id into the article class so you dont have to pass around a tuple.
-  //  def articlesWithFileIdentifier(articles: Seq[Article]): List[(Article, Int)] = {
-  //    articles.view.zipWithIndex.toList
-  //  }
 
   def sortContentByPageAndSection(response: Seq[Content]): Seq[Content] = {
     response.sortBy(content => (content.fields.flatMap(_.newspaperPageNumber), content.tags.find(_.`type` == NewspaperBookSection).get.id))
   }
 
-  // TODO: To many IO methods make up this one - try to reduce to one untestable method with the rest being pure
-  // TODO: Test: Will this catch exception if filename exists?
-  def fetchAndWriteImages(articlesIDs: List[(Article, Int)]): Unit = {
-    articlesIDs.foreach {
-      case (article, i) => {
-        val urlOption = article.imageUrl
-        val dataOption = urlOption.flatMap(getImageData)
-        val bufferedOption = imageBytesToBuffered(dataOption)
-        writeImageToFile((bufferedOption, i))
-      }
+  // TODO: wrap Futures around image request
+  def fetchImageData(articles: List[Article]): Unit = {
+    articles.map {
+      article =>
+        {
+          val urlOption = article.imageUrl
+          urlOption.flatMap(getImageData)
+        }
     }
   }
 
-  // TODO: Should this be a Map or list of KV pairs (tuples)?
-  // FIXME: this is slow... why?
-  def imageUrlsWithIDs(articlesIDs: List[(Article, Int)]): List[(Option[String], Int)] = {
-    articlesIDs.map {
-      case (article, i) => (article.imageUrl, i)
-    }
-  }
-
-  // look up try monad instead of try catch
-  // This might fail so an option is returned
+  // TODO: look up try monad instead of try catch
+  // TODO: the e Exception thing isn't correct - look up
   def getImageData(url: String): Option[Array[Byte]] =
     try {
       val response: HttpRequest = Http(url)
@@ -116,37 +90,4 @@ object Querier {
     } catch {
       case e: Exception => None
     }
-
-  // dont need this method or the write to file. Can send the byte array to the ftp server
-  // Remove IO read and writes methods, and store bytearray in memory. Then use the Amazon ftp server api to create the files on their server - cuts down on processing time as read and write are resource-heavy ops.
-  // would be a good idea to model the File structure
-  def imageBytesToBuffered(imageData: Option[Array[Byte]]): Option[BufferedImage] = {
-    try {
-      val inputStreamBytes: InputStream = new ByteArrayInputStream(imageData.get)
-      val bufferedImageOut: BufferedImage = ImageIO.read(inputStreamBytes)
-      Some(bufferedImageOut)
-    } catch {
-      case e: Exception => None
-    }
-  }
-
-  // TODO: write unit test for sad path
-  // TODO: will require an integration test
-  // This should just take a byte array and a filename and write the bytearray to the filename
-  // shouldnt have the word image in
-  // can go in a different object
-  // But I don't need to create these files yet - but it might be a good idea to model it with an ftp file
-  // class which has a file structure and file names and a file path and a place for the data etc
-  // Can delete this method now I know it works and I get an image.
-  def writeImageToFile(imageWithId: (Option[BufferedImage], Int)): Unit = {
-    try {
-      val image = imageWithId._1.get
-      val id = imageWithId._2
-      // TODO: Folder/path to write file required
-      ImageIO.write(image, "jpg", new File(s"image${id}_500.jpg"))
-      println(s"writing image file for article $id")
-    } catch {
-      case e: Exception => println(s"No suitable image found for article${imageWithId._2}")
-    }
-  }
 }
