@@ -20,7 +20,7 @@ class SectionManifestSpec extends FlatSpec {
   //    0, "my title", "", capiDate, capiDate, capiDate, "my name", "article abstract", "content", Some("image.URL")
   //  )
   //  val articles = List(article)
-  val ta = Article(TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None).toContent)
+  val ta = Article((TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0).toContent, 0))
 
   val articles = {
     Seq(
@@ -103,12 +103,14 @@ class SectionManifestSpec extends FlatSpec {
 
   ".toSectionString" should "add `.xml` and change slash to underscore in titleLink" in {
     val sectionHeading = SectionHeading(articles.head)
-    val expectedOutput =
+
+    val expectedOutput = {
       """<item>
         | <title>International</title>
         | <link>theguardian_mainsection_international.xml</link>
         |</item>
         |""".stripMargin
+    }
     assert(sectionHeading.toSectionString === expectedOutput)
   }
 }

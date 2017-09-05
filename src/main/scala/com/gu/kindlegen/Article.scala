@@ -18,7 +18,8 @@ case class Article(
   byline: String,
   articleAbstract: String,
   content: String,
-  imageUrl: Option[String]
+  imageUrl: Option[String],
+  fileId: Int
 )
 
 object Article {
@@ -36,17 +37,22 @@ object Article {
   }
   // keep this as an option otherwise later you will try to download form an empty string
   // TODO: get rid of the gets
-  def apply(content: Content): Article = new Article(
-    newspaperBookSection = content.tags.find(_.`type` == NewspaperBookSection).get.id,
-    sectionName = content.tags.find(_.`type` == NewspaperBookSection).get.webTitle,
-    newspaperPageNumber = content.fields.flatMap(_.newspaperPageNumber).getOrElse(0),
-    title = content.fields.flatMap(_.headline).getOrElse("").toString,
-    docId = content.id,
-    issueDate = content.fields.flatMap(_.newspaperEditionDate).get,
-    releaseDate = content.fields.flatMap(_.newspaperEditionDate).get,
-    pubDate = content.fields.flatMap(_.newspaperEditionDate).get,
-    byline = content.fields.flatMap(_.byline).getOrElse(""), articleAbstract = content.fields.flatMap(_.standfirst).getOrElse(""),
-    content = content.fields.flatMap(_.body).getOrElse(""),
-    imageUrl = getImageUrl(content: Content)
-  )
+  def apply(contentWithIndex: (Content, Int)): Article = {
+    val content = contentWithIndex._1
+    val index = contentWithIndex._2
+    Article(
+      newspaperBookSection = content.tags.find(_.`type` == NewspaperBookSection).get.id,
+      sectionName = content.tags.find(_.`type` == NewspaperBookSection).get.webTitle,
+      newspaperPageNumber = content.fields.flatMap(_.newspaperPageNumber).getOrElse(0),
+      title = content.fields.flatMap(_.headline).getOrElse("").toString,
+      docId = content.id,
+      issueDate = content.fields.flatMap(_.newspaperEditionDate).get,
+      releaseDate = content.fields.flatMap(_.newspaperEditionDate).get,
+      pubDate = content.fields.flatMap(_.newspaperEditionDate).get,
+      byline = content.fields.flatMap(_.byline).getOrElse(""), articleAbstract = content.fields.flatMap(_.standfirst).getOrElse(""),
+      content = content.fields.flatMap(_.body).getOrElse(""),
+      imageUrl = getImageUrl(content: Content),
+      fileId = index
+    )
+  }
 }

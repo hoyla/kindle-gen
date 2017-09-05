@@ -10,7 +10,7 @@ import DateUtils._
 class TestContentSuite extends FunSuite {
 
   val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
-  val ta = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None)
+  val ta = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0)
 
   test("TestContent.toContent") {
     assert(ta.toContent.id === "")

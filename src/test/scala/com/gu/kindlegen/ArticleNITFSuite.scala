@@ -22,7 +22,8 @@ class ArticleNITFSuite extends FunSuite {
       byline = "my name",
       articleAbstract = "article abstract",
       content = "content",
-      imageUrl = None
+      imageUrl = None,
+      fileId = 0
     )
 
     val expectedOutput =

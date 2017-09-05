@@ -37,11 +37,11 @@ case class TestContent(
     testArticleIssueDate: CapiDateTime,
     testArticleReleaseDate: CapiDateTime,
     testArticlePubDate: CapiDateTime,
-    // TODO: for clarity add pub-and release- dates or remove from other Article methods
     testArticleByline: String,
     testArticleAbstract: String, // standfirst is used
     testArticleContent: String,
-    testArticleImageUrl: Option[String]
+    testArticleImageUrl: Option[String],
+    testArticleFileID: Int
 ) {
   def toContent: Content = Content(
     references = Nil,

@@ -72,14 +72,15 @@ object Querier {
   */
 
   def responseToArticles(response: Seq[Content]): Seq[Article] = {
-    response.map(responseContent =>
-      Article(responseContent))
+    val sortedContent = Querier.sortContentByPageAndSection(response)
+    val contentWithIndex = sortedContent.view.zipWithIndex.toList
+    contentWithIndex.map(Article.apply)
   }
   // Probably best to merge these functions OR
   // put the article index/id into the article class so you dont have to pass around a tuple.
-  def articlesWithFileIdentifier(articles: Seq[Article]): List[(Article, Int)] = {
-    articles.view.zipWithIndex.toList
-  }
+  //  def articlesWithFileIdentifier(articles: Seq[Article]): List[(Article, Int)] = {
+  //    articles.view.zipWithIndex.toList
+  //  }
 
   def sortContentByPageAndSection(response: Seq[Content]): Seq[Content] = {
     response.sortBy(content => (content.fields.flatMap(_.newspaperPageNumber), content.tags.find(_.`type` == NewspaperBookSection).get.id))
