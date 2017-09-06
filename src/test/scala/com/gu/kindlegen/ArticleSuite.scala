@@ -1,7 +1,6 @@
 package com.gu.kindlegen
 
 import org.scalatest.FlatSpec
-import com.gu.contentapi.client.model.v1.Content
 import com.gu.contentapi.client.utils._
 import DateUtils._
 

@@ -1,8 +1,5 @@
 package com.gu.kindlegen
 
-import org.scalatest.FunSuite
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import com.gu.contentapi.client.utils._
 import org.scalatest.FlatSpec
 import DateUtils._
@@ -11,15 +8,6 @@ import org.joda.time.DateTime
 class SectionManifestSpec extends FlatSpec {
 
   val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
-  //  val ta = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None)
-  //  val tac = ta.toContent
-  //  val taca = Article(tac)
-  //  val article = Article(
-  //    newspaperBookSection = "theguardian/mainsection/international",
-  //    sectionName = "International",
-  //    0, "my title", "", capiDate, capiDate, capiDate, "my name", "article abstract", "content", Some("image.URL")
-  //  )
-  //  val articles = List(article)
   val ta = Article((TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0).toContent, 0))
 
   val articles = {

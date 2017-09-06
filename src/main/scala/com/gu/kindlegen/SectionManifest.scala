@@ -39,16 +39,13 @@ object SectionManifest {
     )
   }
 
-  // TODO: Write test
-  // TODO: Filter duplicates
-  // TODO: Replace / with _
   def toSectionHeading(articles: Seq[Article]): Seq[SectionHeading] = {
     val allHeadings = articles.map(article =>
       SectionHeading(article))
     allHeadings.distinct
   }
 
-  // TODO: Write to files/folders
+  // TODO: Write to files/folders structure
 }
 
 case class SectionHeading(

@@ -32,10 +32,10 @@ object Article {
     val elements = content.elements
     val mainImage = elements.flatMap(_.find(isMainImage))
     val imageAsset = mainImage.flatMap(_.assets.find(isCorrectSizedAsset))
+    // keep imageUrl as an option otherwise later you will try to download form an empty string
     val imageUrl = imageAsset.flatMap(_.typeData).flatMap(_.secureFile)
     imageUrl
   }
-  // keep this as an option otherwise later you will try to download form an empty string
   // TODO: get rid of the gets
   def apply(contentWithIndex: (Content, Int)): Article = {
     val content = contentWithIndex._1

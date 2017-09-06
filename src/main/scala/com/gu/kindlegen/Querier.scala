@@ -1,7 +1,4 @@
 package com.gu.kindlegen
-import java.awt.image.BufferedImage
-import java.io._
-import javax.imageio.ImageIO
 
 import com.gu.contentapi.client._
 import com.gu.contentapi.client.model._
@@ -49,12 +46,12 @@ object Querier {
       .useDate("newspaper-edition")
       //      .page(pageNum)
       .showFields("newspaper-page-number, headline,newspaper-edition-date,byline,standfirst,body")
-      // TODO: what fields are required? main? content? Is tag `newspaper-book` required
       .showTags("newspaper-book-section, newspaper-book")
       .showElements("image")
     // TODO: Add error handling with Try for failed request.
     // TODO: Currently gets one result only; separate out sections and map over multiple pageSizes/ pages
     // TODO: Query requires use-date and exact date of publication
+    // TODO: Add pagination
     val response = Await.result(capiClient.getResponse(query), 5.seconds)
     response.results
   }
@@ -91,3 +88,5 @@ object Querier {
       case e: Exception => None
     }
 }
+
+// TODO: create a fileStructure model class with paths and file names.

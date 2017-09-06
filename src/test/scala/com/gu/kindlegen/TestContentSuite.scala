@@ -20,7 +20,7 @@ class TestContentSuite extends FunSuite {
     assert(ta.toContent.fields.flatMap(_.headline) === Some(""))
     val ta2 = ta.copy(testArticleTitle = "new title")
     assert(ta2.toContent.fields.get.headline === Some("new title"))
-    // add default args
+    // TODO: add default args?
   }
 
 }
