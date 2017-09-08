@@ -18,6 +18,7 @@ class QuerierSpec extends FlatSpec {
   val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
   val testcontent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0).toContent
   val capiResponse = List(testcontent)
+  val testArticle = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0)
 
   ".responseToArticles" should "convert a capi response (Seq[Content) to a Seq[Article]" in {
     val toArticles = Querier.responseToArticles(capiResponse)
@@ -27,7 +28,6 @@ class QuerierSpec extends FlatSpec {
 
   ".sortContentByPageAndSection" should "sort content according to page number then book section" in {
 
-    val testArticle = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0)
     val contents: Seq[Content] = {
       Seq(
         ("theguardian/mainsection/topstories", 4),

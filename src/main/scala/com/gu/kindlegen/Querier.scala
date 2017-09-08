@@ -4,7 +4,9 @@ import com.gu.contentapi.client._
 import com.gu.contentapi.client.model._
 import com.gu.contentapi.client.model.v1.Content
 
-import scala.concurrent.Await
+import scala.concurrent.{ Future, Await }
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{ Failure, Success }
 import scala.concurrent.duration._
 import scala.io.{ BufferedSource, Source }
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -49,9 +51,10 @@ object Querier {
       .showTags("newspaper-book-section, newspaper-book")
       .showElements("image")
     // TODO: Add error handling with Try for failed request.
-    // TODO: Currently gets one result only; separate out sections and map over multiple pageSizes/ pages
+    // TODO: Currently gets one page of results only; separate out sections and map over multiple pageSizes/ pages
     // TODO: Query requires use-date and exact date of publication
     // TODO: Add pagination
+    // TODO: Await is blocking - structure code so as the pages are retrieved the images can also strat to be requested
     val response = Await.result(capiClient.getResponse(query), 5.seconds)
     response.results
   }
@@ -67,26 +70,30 @@ object Querier {
     response.sortBy(content => (content.fields.flatMap(_.newspaperPageNumber), content.tags.find(_.`type` == NewspaperBookSection).get.id))
   }
 
-  // TODO: wrap Futures around image request
-  def fetchImageData(articles: List[Article]): Unit = {
+  // This will probably only be called only when sending the files to Amazon because the images can be stored in memory until they are written to the ftp server. Will use the Article.fileID to name the retrieved image byte[].
+  def fetchImageData(articles: List[Article]): List[Future[Option[Array[Byte]]]] = {
     articles.map {
       article =>
         {
           val urlOption = article.imageUrl
-          urlOption.flatMap(getImageData)
+          urlOption match {
+            case Some(url) => Querier.getImageData(url)
+            case None => Future.successful(None)
+          }
         }
     }
   }
 
-  // TODO: look up try monad instead of try catch
-  // TODO: the e Exception thing isn't correct - look up
-  def getImageData(url: String): Option[Array[Byte]] =
+  //  // TODO: look up try monad instead of try catch
+  //  // TODO: the e Exception
+  def getImageData(url: String): Future[Option[Array[Byte]]] = Future {
     try {
       val response: HttpRequest = Http(url)
       Some(response.asBytes.body)
     } catch {
       case e: Exception => None
     }
+  }
 }
 
 // TODO: create a fileStructure model class with paths and file names.
