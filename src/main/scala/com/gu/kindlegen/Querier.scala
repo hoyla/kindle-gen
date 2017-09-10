@@ -2,9 +2,9 @@ package com.gu.kindlegen
 
 import com.gu.contentapi.client._
 import com.gu.contentapi.client.model._
-import com.gu.contentapi.client.model.v1.Content
+import com.gu.contentapi.client.model.v1.{ Content, SearchResponse }
 
-import scala.concurrent.{ Future, Await }
+import scala.concurrent.{ Await, Future }
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{ Failure, Success }
 import scala.concurrent.duration._
@@ -34,31 +34,47 @@ object Querier {
 
   val readApiKey: String = readConfig(0)
 
-  def getPrintSentResponse: Seq[Content] = {
+  def getPrintSentResponse(pageNum: Int): SearchResponse = {
 
     val capiKey = readApiKey
     val capiClient = new PrintSentContentClient(capiKey)
-    val pageNum = 1
     val query = SearchQuery()
       .pageSize(5)
-      .showFields("all")
+      .showFields("all") //TODO: Don't need all fields.
       .orderBy("newest")
       .fromDate(editionDateStart)
       .toDate(editionDateEnd)
       .useDate("newspaper-edition")
-      //      .page(pageNum)
+      .page(pageNum)
       .showFields("newspaper-page-number, headline,newspaper-edition-date,byline,standfirst,body")
       .showTags("newspaper-book-section, newspaper-book")
       .showElements("image")
     // TODO: Add error handling with Try for failed request.
-    // TODO: Currently gets one page of results only; separate out sections and map over multiple pageSizes/ pages
-    // TODO: Query requires use-date and exact date of publication
-    // TODO: Add pagination
-    // TODO: Await is blocking - structure code so as the pages are retrieved the images can also strat to be requested
+    // TODO: Await is blocking - takes ages! One day is 26 pages.
     val response = Await.result(capiClient.getResponse(query), 5.seconds)
-    response.results
+    response
   }
 
+  def getAllPagesContent: List[SearchResponse] = {
+    def paginatedResponses(currentPageNumber: Int = 1, accumulatedPages: List[SearchResponse] = Nil): List[SearchResponse] = {
+      val currentPageContent = getPrintSentResponse(currentPageNumber)
+      val accumulatedAndCurrent = currentPageContent :: accumulatedPages
+      if (currentPageContent.currentPage >= currentPageContent.pages) {
+        accumulatedAndCurrent
+      } else {
+        paginatedResponses(currentPageNumber + 1, accumulatedAndCurrent)
+      }
+    }
+    paginatedResponses()
+  }
+
+  def responsesToContent(responses: List[SearchResponse]): Seq[Content] = {
+    responses.flatten(_.results)
+  }
+
+  def sortContentByPageAndSection(response: Seq[Content]): Seq[Content] = {
+    response.sortBy(content => (content.fields.flatMap(_.newspaperPageNumber), content.tags.find(_.`type` == NewspaperBookSection).get.id))
+  }
   // TODO: handle the possibility of there being no content in the getPrintSentResponse method above
   def responseToArticles(response: Seq[Content]): Seq[Article] = {
     val sortedContent = Querier.sortContentByPageAndSection(response)
@@ -66,19 +82,20 @@ object Querier {
     contentWithIndex.map(Article.apply)
   }
 
-  def sortContentByPageAndSection(response: Seq[Content]): Seq[Content] = {
-    response.sortBy(content => (content.fields.flatMap(_.newspaperPageNumber), content.tags.find(_.`type` == NewspaperBookSection).get.id))
-  }
-
   // This will probably only be called only when sending the files to Amazon because the images can be stored in memory until they are written to the ftp server. Will use the Article.fileID to name the retrieved image byte[].
-  def fetchImageData(articles: List[Article]): List[Future[Option[Array[Byte]]]] = {
+
+  def fetchImageData(articles: List[Article]): List[(Future[Option[Array[Byte]]], Int)] = {
     articles.map {
       article =>
         {
           val urlOption = article.imageUrl
           urlOption match {
-            case Some(url) => Querier.getImageData(url)
-            case None => Future.successful(None)
+            case Some(url) => {
+              val imageData = Querier.getImageData(url)
+              (imageData, article.fileId)
+            }
+            case None =>
+              (Future.successful(None), article.fileId)
           }
         }
     }

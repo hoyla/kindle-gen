@@ -40,6 +40,9 @@ object Article {
   def apply(contentWithIndex: (Content, Int)): Article = {
     val content = contentWithIndex._1
     val index = contentWithIndex._2
+    //    for {
+    //      newspaperBookSection <- content.tags.find(_.`type` == NewspaperBookSection)
+    //    } Article(
     Article(
       newspaperBookSection = content.tags.find(_.`type` == NewspaperBookSection).get.id,
       sectionName = content.tags.find(_.`type` == NewspaperBookSection).get.webTitle,
