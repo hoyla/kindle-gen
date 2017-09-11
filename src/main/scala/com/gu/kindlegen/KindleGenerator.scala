@@ -1,5 +1,8 @@
 package com.gu.kindlegen
 
+import java.nio.file.{ Files, Paths }
+import java.io.{ BufferedOutputStream, ByteArrayInputStream, FileOutputStream, InputStream }
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -27,8 +30,16 @@ object KindleGenerator {
 
   def getNitfBundleToDisk: Unit = {
     getNitfBundle.foreach(file => {
-      // Write file to disk here using the File's path and data...
+      val data = file.data
+      val fileName = file.path
+      bytesToFile(data, fileName)
     })
+  }
+
+  def bytesToFile(data: Array[Byte], fileName: String): Unit = {
+    val fileFolder = "tmp"
+    val filePath = s"${fileFolder}/${fileName}"
+    Files.write(Paths.get(filePath), data)
   }
 
   private def articleToFile(article: Article): File = {

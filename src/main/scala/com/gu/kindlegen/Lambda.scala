@@ -41,10 +41,3 @@ object Lambda {
    */
   def process(name: String, env: Env): String = s"Hello $name! (from ${env.app} in ${env.stack})\n"
 }
-
-object TestIt {
-  def main(args: Array[String]): Unit = {
-    println(Lambda.process(args.headOption.getOrElse("Alex"), Env()))
-  }
-}
-
