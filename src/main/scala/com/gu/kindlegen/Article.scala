@@ -21,6 +21,7 @@ case class Article(
     imageUrl: Option[String],
     fileId: Int
 ) {
+  // TODO: TEST THIS
   def fileName: String = {
     val titleDashFormatted = title.replace(" ", "-")
     s"${fileId}_$titleDashFormatted.nitf"

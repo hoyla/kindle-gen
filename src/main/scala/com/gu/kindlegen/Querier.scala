@@ -14,6 +14,9 @@ import scalaj.http._
 import DateUtils._
 import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
 
+// TODO: Move elsewhere
+case class ArticleImage(articleId: Int, data: Array[Byte])
+
 class Querier {
 }
 
@@ -76,6 +79,7 @@ object Querier {
     response.sortBy(content => (content.fields.flatMap(_.newspaperPageNumber), content.tags.find(_.`type` == NewspaperBookSection).get.id))
   }
   // TODO: handle the possibility of there being no content in the getPrintSentResponse method above
+  // TODO: This isn't to do with querying the API so we should move it somewhere else.
   def responseToArticles(response: Seq[Content]): Seq[Article] = {
     val sortedContent = Querier.sortContentByPageAndSection(response)
     val contentWithIndex = sortedContent.view.zipWithIndex.toList
@@ -84,32 +88,23 @@ object Querier {
 
   // This will probably only be called only when sending the files to Amazon because the images can be stored in memory until they are written to the ftp server. Will use the Article.fileID to name the retrieved image byte[].
 
-  def fetchImageData(articles: List[Article]): List[(Future[Option[Array[Byte]]], Int)] = {
-    articles.map {
-      article =>
-        {
-          val urlOption = article.imageUrl
-          urlOption match {
-            case Some(url) => {
-              val imageData = Querier.getImageData(url)
-              (imageData, article.fileId)
-            }
-            case None =>
-              (Future.successful(None), article.fileId)
-          }
-        }
-    }
+  def getAllArticleImages(articles: Seq[Article]): Future[Seq[ArticleImage]] = {
+    val futures = articles.flatMap(getArticleImage)
+    Future.sequence(futures)
   }
 
-  //  // TODO: look up try monad instead of try catch
-  //  // TODO: the e Exception
-  def getImageData(url: String): Future[Option[Array[Byte]]] = Future {
-    try {
-      val response: HttpRequest = Http(url)
-      Some(response.asBytes.body)
-    } catch {
-      case e: Exception => None
-    }
+  def getArticleImage(article: Article): Option[Future[ArticleImage]] = {
+    article.imageUrl.map(url => {
+      val future = getImageData(url)
+      future.map(bytes => ArticleImage(articleId = article.fileId, data = bytes))
+    })
+  }
+
+  // TODO: look up try monad instead of try catch
+  // TODO: the e Exception
+  def getImageData(url: String): Future[Array[Byte]] = Future {
+    val response: HttpRequest = Http(url)
+    response.asBytes.body
   }
 }
 
