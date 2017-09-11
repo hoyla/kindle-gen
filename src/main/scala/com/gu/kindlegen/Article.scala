@@ -7,20 +7,25 @@ import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
 import com.gu.contentapi.client.model.v1._
 
 case class Article(
-  newspaperBookSection: String,
-  sectionName: String,
-  newspaperPageNumber: Int,
-  title: String,
-  docId: String,
-  issueDate: CapiDateTime,
-  releaseDate: CapiDateTime,
-  pubDate: CapiDateTime,
-  byline: String,
-  articleAbstract: String,
-  content: String,
-  imageUrl: Option[String],
-  fileId: Int
-)
+    newspaperBookSection: String,
+    sectionName: String,
+    newspaperPageNumber: Int,
+    title: String,
+    docId: String,
+    issueDate: CapiDateTime,
+    releaseDate: CapiDateTime,
+    pubDate: CapiDateTime,
+    byline: String,
+    articleAbstract: String,
+    content: String,
+    imageUrl: Option[String],
+    fileId: Int
+) {
+  def fileName: String = {
+    val titleDashFormatted = title.replace(" ", "-")
+    s"${fileId}_$titleDashFormatted.nitf"
+  }
+}
 
 object Article {
   def getImageUrl(content: Content): Option[String] = {
