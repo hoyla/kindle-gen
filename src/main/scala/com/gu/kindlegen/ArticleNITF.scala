@@ -2,15 +2,33 @@ package com.gu.kindlegen
 
 import DateUtils._
 
+import scala.xml._
+import scala.xml.{ Elem, XML }
+import scala.xml.factory.XMLLoader
+import org.xml.sax.InputSource
+
+import scala.xml._
+import parsing._
+import scala.xml.transform.{ RewriteRule, RuleTransformer }
+
 case class ArticleNITF(fileContents: String)
 
 object ArticleNITF {
 
   def filterBodyContent(article: Article): String = {
+    val removeIt = new RewriteRule {
+      override def transform(n: Node): NodeSeq = n match {
+        case e: Elem if (e \ "a").text == "href" => NodeSeq.Empty
+        case n => n
+      }
+    }
     val bodyContent = article.content
-    bodyContent.
-      replaceAll("""’""", "'"). // converts apostrophe
-      replaceAll("""\<a .*>""", "") // strip links
+    //    bodyContent.
+    //      replaceAll("""’""", "'"). // converts apostrophe
+    //      replaceAll("""\<a .*>""", "") // strip links
+    val bodyXML = XML.loadString(bodyContent)
+    val filteredXML = new RuleTransformer(removeIt).transform(bodyXML)
+    filteredXML.toString
   }
 
   def apply(article: Article) = new ArticleNITF(
