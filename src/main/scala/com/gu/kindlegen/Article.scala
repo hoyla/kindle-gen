@@ -42,6 +42,19 @@ object Article {
     val imageUrl = imageAsset.flatMap(_.typeData).flatMap(_.secureFile)
     imageUrl
   }
+
+  def getBodyHtml(content: Content): String = {
+
+    def isTypeText(e: BlockElement): Boolean =
+      e.`type` == "text"
+
+    val blocks = content.blocks
+    val bodyBlocks: Option[Seq[Block]] = blocks.flatMap(_.body)
+    val bodyBlocksElements: Option[Seq[BlockElement]] = bodyBlocks.map(_.flatMap(_.elements))
+    val textElemField: Option[Seq[String]] = bodyBlocksElements.map(_.flatMap(_.textTypeData.flatMap(_.html)))
+    textElemField.mkString(" ")
+  }
+
   // TODO: get rid of the gets
   def apply(contentWithIndex: (Content, Int)): Article = {
     val content = contentWithIndex._1
@@ -53,14 +66,13 @@ object Article {
       newspaperBookSection = content.tags.find(_.`type` == NewspaperBookSection).get.id,
       sectionName = content.tags.find(_.`type` == NewspaperBookSection).get.webTitle,
       newspaperPageNumber = content.fields.flatMap(_.newspaperPageNumber).getOrElse(0),
-      //      title = content.fields.flatMap(_.headline).getOrElse("").toString,
       title = content.webTitle,
       docId = content.id,
       issueDate = content.fields.flatMap(_.newspaperEditionDate).get,
       releaseDate = content.fields.flatMap(_.newspaperEditionDate).get,
       pubDate = content.fields.flatMap(_.newspaperEditionDate).get,
       byline = content.fields.flatMap(_.byline).getOrElse(""), articleAbstract = content.fields.flatMap(_.standfirst).getOrElse(""),
-      content = content.fields.flatMap(_.body).getOrElse(""),
+      content = getBodyHtml(content: Content),
       imageUrl = getImageUrl(content: Content),
       fileId = index
     )

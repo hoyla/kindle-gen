@@ -21,6 +21,7 @@ object DateUtils {
   def isoDateConverter(capiDate: CapiDateTime): String = formatter.print(isoFormatter.parseDateTime(capiIsoDateTimeToString(capiDate)))
 
   // TODO: change this to DateTime.now or function that takes a passed in date.
+  // TODO: should be Z format not +XXXX hours?
   def editionDateTime: DateTime = formatterWithDashes.parseDateTime("2017-05-19") // to have a date I know the results for
   //  def editionDateTime: DateTime = DateTime.now()
 

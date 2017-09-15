@@ -52,6 +52,7 @@ object Querier {
       .showFields("newspaper-page-number, headline,newspaper-edition-date,byline,standfirst,body")
       .showTags("newspaper-book-section, newspaper-book")
       .showElements("image")
+      .showBlocks("all")
     // TODO: Add error handling with Try for failed request.
     // TODO: Await is blocking - takes ages! One day is 26 pages.
     val response = Await.result(capiClient.getResponse(query), 5.seconds)
