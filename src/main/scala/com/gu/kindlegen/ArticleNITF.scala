@@ -15,6 +15,7 @@ case class ArticleNITF(fileContents: String)
 
 object ArticleNITF {
 
+  // TODO: replace content below with filtered content in NITF
   def filterBodyContent(article: Article): String = {
     val removeIt = new RewriteRule {
       override def transform(n: Node): NodeSeq = n match {
@@ -23,12 +24,18 @@ object ArticleNITF {
       }
     }
     val bodyContent = article.content
+<<<<<<< Updated upstream
     //    bodyContent.
     //      replaceAll("""’""", "'"). // converts apostrophe
     //      replaceAll("""\<a .*>""", "") // strip links
     val bodyXML = XML.loadString(bodyContent)
     val filteredXML = new RuleTransformer(removeIt).transform(bodyXML)
     filteredXML.toString
+=======
+    bodyContent.
+      replaceAll("""’""", "'"). // converts apostrophe
+      replaceAll("""\<a.*\>""", "") // strip links
+>>>>>>> Stashed changes
   }
 
   def apply(article: Article) = new ArticleNITF(

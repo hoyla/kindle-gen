@@ -52,7 +52,9 @@ object Article {
     val bodyBlocks: Option[Seq[Block]] = blocks.flatMap(_.body)
     val bodyBlocksElements: Option[Seq[BlockElement]] = bodyBlocks.map(_.flatMap(_.elements))
     val textElemField: Option[Seq[String]] = bodyBlocksElements.map(_.flatMap(_.textTypeData.flatMap(_.html)))
-    textElemField.mkString(" ")
+    //    textElemField.get.mkString(" ")
+    val noOpt = textElemField.fold("")(_.mkString)
+    noOpt
   }
 
   // TODO: get rid of the gets
