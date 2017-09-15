@@ -5,6 +5,14 @@ import DateUtils._
 case class ArticleNITF(fileContents: String)
 
 object ArticleNITF {
+
+  def filterBodyContent(article: Article): String = {
+    val bodyContent = article.content
+    bodyContent.
+      replaceAll("""’""", "'"). // converts apostrophe
+      replaceAll("""\<a .*>""", "") // strip links
+  }
+
   def apply(article: Article) = new ArticleNITF(
     fileContents = s"""
      |<?xml version="1.0" encoding="UTF-8"?>
