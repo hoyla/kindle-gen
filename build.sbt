@@ -6,7 +6,7 @@ description:= "Converting content to NITF format"
 
 version := "1.0"
 
-scalaVersion := "2.11.11"
+scalaVersion := "2.12.3"
 
 scalacOptions ++= Seq(
   "-deprecation",
