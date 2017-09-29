@@ -5,6 +5,7 @@ import DateUtils._
 case class ArticleNITF(fileContents: String)
 
 object ArticleNITF {
+
   def apply(article: Article) = new ArticleNITF(
     fileContents = s"""
      |<?xml version="1.0" encoding="UTF-8"?>
@@ -31,5 +32,4 @@ object ArticleNITF {
      |</body>
      |</nitf>""".stripMargin
   )
-
 }

@@ -21,8 +21,11 @@ class ArticleNITFSuite extends FunSuite {
       pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
       byline = "my name",
       articleAbstract = "article abstract",
-      content = "content"
+      content = "content",
+      imageUrl = None,
+      fileId = 0
     )
+
     val expectedOutput =
       """
         |<?xml version="1.0" encoding="UTF-8"?>
@@ -51,5 +54,4 @@ class ArticleNITFSuite extends FunSuite {
     val aNitf = ArticleNITF(article)
     assert(aNitf.fileContents === expectedOutput)
   }
-
 }

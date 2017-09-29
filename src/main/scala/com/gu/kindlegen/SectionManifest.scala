@@ -27,28 +27,25 @@ case class SectionManifest(
        |</rss>
       """.stripMargin
   }
-  // TODO: in the NITF outputs the section manifest content page has a `Z` appended to the date. This is probably a mistake in the fingerpost script but worth checking
+  // TODO: in the NITF outputs the section manifest content page has a `Z` appended to the date. This is probably a mistake in the fingerpost script but worth checking ASK DB
 }
 
 object SectionManifest {
   def apply(articles: Seq[Article], buildDate: DateTime = DateTime.now): SectionManifest = {
-    new SectionManifest(
+    SectionManifest(
       publicationDate = articles.head.issueDate,
       buildDate = buildDate,
       sections = toSectionHeading(articles)
     )
   }
 
-  // TODO: Write test
-  // TODO: Filter duplicates
-  // TODO: Replace / with _
   def toSectionHeading(articles: Seq[Article]): Seq[SectionHeading] = {
     val allHeadings = articles.map(article =>
       SectionHeading(article))
     allHeadings.distinct
   }
 
-  // TODO: Write to files/folders
+  // TODO: Write to files/folders structure
 }
 
 case class SectionHeading(
@@ -66,7 +63,7 @@ case class SectionHeading(
 }
 
 object SectionHeading {
-  def apply(article: Article) = new SectionHeading(
+  def apply(article: Article): SectionHeading = SectionHeading(
     title = article.sectionName,
     titleLink = article.newspaperBookSection
   )

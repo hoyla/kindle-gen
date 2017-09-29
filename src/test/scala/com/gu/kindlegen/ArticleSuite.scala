@@ -1,21 +1,17 @@
 package com.gu.kindlegen
 
-import org.scalatest.FunSuite
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import com.gu.contentapi.client.model.v1.Content
+import org.scalatest.FlatSpec
 import com.gu.contentapi.client.utils._
 import DateUtils._
 
-@RunWith(classOf[JUnitRunner])
-class ArticleSuite extends FunSuite {
+class ArticleSuite extends FlatSpec {
 
   val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
-  val ta = TestContent("", "", 2, "", "", capiDate, capiDate, capiDate, "", "", "")
+  val ta = TestContent("", "", 2, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0)
 
-  test("apply method with content as parameter") {
+  ".apply" should "apply method with content as parameter" in {
     val content = ta.toContent
-    val a = Article(content: Content)
+    val a = Article((content, 0))
     assert(a.newspaperPageNumber === 2)
   }
 }

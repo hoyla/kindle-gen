@@ -10,7 +10,7 @@ import DateUtils._
 class TestContentSuite extends FunSuite {
 
   val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
-  val ta = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "")
+  val ta = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0)
 
   test("TestContent.toContent") {
     assert(ta.toContent.id === "")
@@ -20,7 +20,7 @@ class TestContentSuite extends FunSuite {
     assert(ta.toContent.fields.flatMap(_.headline) === Some(""))
     val ta2 = ta.copy(testArticleTitle = "new title")
     assert(ta2.toContent.fields.get.headline === Some("new title"))
-    // add default args
+    // TODO: add default args?
   }
 
 }
