@@ -18,3 +18,7 @@ src_managed/
 project/boot/
 .history
 .cache
+scratch.*
+response1.text
+response10.text
+sample.conf

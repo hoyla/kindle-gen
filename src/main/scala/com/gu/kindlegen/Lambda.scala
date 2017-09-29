@@ -1,7 +1,6 @@
 package com.gu.kindlegen
 
 import com.amazonaws.services.lambda.runtime.Context
-
 /**
  * This is compatible with aws' lambda JSON to POJO conversion.
  * You can test your lambda by sending it the following payload:
@@ -48,3 +47,4 @@ object TestIt {
     println(Lambda.process(args.headOption.getOrElse("Alex"), Env()))
   }
 }
+
