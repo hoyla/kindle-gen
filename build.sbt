@@ -24,7 +24,6 @@ libraryDependencies += "com.gu" %% "content-api-client" % "11.29"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 libraryDependencies += "junit" % "junit" % "4.10" % "test"
-libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test"
 
 /*deps for simple client*/
 //libraryDependencies += "com.typesafe.play" %% "play-ws" % "2.4.3"
@@ -32,7 +31,6 @@ libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.3.0"
 
 /* deps for jsoup and xml (html parsing) */
 libraryDependencies += "org.jsoup" % "jsoup" % "1.7.2"
-libraryDependencies += "org.scala-lang" % "scala-xml" % "2.11.0-M4"
 
 /* deps for Riff-Raff Guardian deployment tool */
 enablePlugins(RiffRaffArtifact)
