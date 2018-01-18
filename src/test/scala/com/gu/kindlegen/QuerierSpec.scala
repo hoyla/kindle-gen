@@ -7,14 +7,11 @@ import com.gu.contentapi.client.model.v1.Content
 import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
 
 class QuerierSpec extends FlatSpec {
-  val Querier = new Querier
+  val settings = Settings.load.get
+  val querier = new Querier(settings)
 
   // TODO: Find a way to test printSentResponse, extract the edition dates etc
   // TODO: Find a way to override the source file to a sample.conf version
-
-  ".readApiKey" should "read API key from external conf file" in {
-    assert(Querier.readApiKey !== "test")
-  }
 
   val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
   val testcontent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0).toContent
@@ -22,7 +19,7 @@ class QuerierSpec extends FlatSpec {
   val testArticle = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0)
 
   ".responseToArticles" should "convert a capi response (Seq[Content) to a Seq[Article]" in {
-    val toArticles = Querier.responseToArticles(capiResponse)
+    val toArticles = querier.responseToArticles(capiResponse)
 
     assert(toArticles.head.newspaperPageNumber === 3)
   }
@@ -53,7 +50,7 @@ class QuerierSpec extends FlatSpec {
         ("theguardian/mainsection/topstories", 4)
       )
     }
-    val mappedResult: Seq[(String, Int)] = Querier.sortContentByPageAndSection(contents).map(content => (content.tags.find(_.`type` == NewspaperBookSection).get.id, content.fields.flatMap(_.newspaperPageNumber).get))
+    val mappedResult: Seq[(String, Int)] = querier.sortContentByPageAndSection(contents).map(content => (content.tags.find(_.`type` == NewspaperBookSection).get.id, content.fields.flatMap(_.newspaperPageNumber).get))
     println(contents.head)
     println(mappedResult)
     assert(mappedResult == mappedSortedContents)
