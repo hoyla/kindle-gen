@@ -32,6 +32,9 @@ libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.3.0"
 /* deps for jsoup and xml (html parsing) */
 libraryDependencies += "org.jsoup" % "jsoup" % "1.7.2"
 
+/* deps for external configuration */
+libraryDependencies += "com.typesafe" % "config" % "1.3.2"
+
 /* deps for Riff-Raff Guardian deployment tool */
 enablePlugins(RiffRaffArtifact)
 
