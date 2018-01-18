@@ -7,6 +7,7 @@ import com.gu.contentapi.client.model.v1.Content
 import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
 
 class QuerierSpec extends FlatSpec {
+  val Querier = new Querier
 
   // TODO: Find a way to test printSentResponse, extract the edition dates etc
   // TODO: Find a way to override the source file to a sample.conf version

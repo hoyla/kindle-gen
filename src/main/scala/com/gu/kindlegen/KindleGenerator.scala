@@ -9,6 +9,8 @@ import scala.concurrent.duration._
 class KindleGenerator {
 }
 object KindleGenerator {
+  val Querier = new Querier
+
   def getNitfBundle: Seq[File] = {
     // TODO: Wrap all these up in one method on the Querier so when
     // we use it we don't have to call all three.

@@ -17,9 +17,6 @@ import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
 // TODO: Move elsewhere
 case class ArticleImage(articleId: Int, data: Array[Byte])
 
-class Querier {
-}
-
 object Querier {
 
   def readConfig(lineNum: Int): String = {
@@ -34,6 +31,10 @@ object Querier {
 
     override val targetUrl: String = readConfig(1)
   }
+}
+
+class Querier {
+  import Querier._
 
   val readApiKey: String = readConfig(0)
 
@@ -82,7 +83,7 @@ object Querier {
   // TODO: handle the possibility of there being no content in the getPrintSentResponse method above
   // TODO: This isn't to do with querying the API so we should move it somewhere else.
   def responseToArticles(response: Seq[Content]): Seq[Article] = {
-    val sortedContent = Querier.sortContentByPageAndSection(response)
+    val sortedContent = sortContentByPageAndSection(response)
     val contentWithIndex = sortedContent.view.zipWithIndex.toList
     contentWithIndex.map(Article.apply)
   }
