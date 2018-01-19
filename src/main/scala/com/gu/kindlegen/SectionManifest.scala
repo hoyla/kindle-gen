@@ -1,7 +1,6 @@
 package com.gu.kindlegen
 
 import com.gu.contentapi.client.model.v1.CapiDateTime
-import org.joda.time.DateTime
 import DateUtils._
 
 case class SectionManifest(

@@ -1,6 +1,5 @@
 package com.gu.kindlegen
 
-import com.gu.contentapi.client.utils.CapiModelEnrichment
 import org.scalatest.FlatSpec
 import DateUtils._
 import com.gu.contentapi.client.model.v1.Content

@@ -1,7 +1,6 @@
 package com.gu.kindlegen
 
 import com.gu.contentapi.client.model.v1.CapiDateTime
-import org.joda.time.DateTime
 import DateUtils._
 
 // This will be called/used with a subsection of articles that have been chunked by section.

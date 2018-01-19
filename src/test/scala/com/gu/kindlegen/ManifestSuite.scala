@@ -1,9 +1,7 @@
 package com.gu.kindlegen
 
-import com.gu.contentapi.client.utils._
 import org.scalatest.FlatSpec
 import DateUtils._
-import org.joda.time.DateTime
 
 class SectionManifestSpec extends FlatSpec {
 

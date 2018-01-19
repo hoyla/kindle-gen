@@ -1,7 +1,6 @@
 package com.gu.kindlegen
 
 import org.scalatest.FlatSpec
-import com.gu.contentapi.client.utils._
 import DateUtils._
 
 class ArticleSuite extends FlatSpec {
