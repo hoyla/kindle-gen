@@ -36,7 +36,6 @@ class SectionManifestSpec extends FlatSpec {
   }
 
   it should "use default datetime `now` if buildDate not passed" in {
-    // FIXME: This test sometimes fails if, say, GC happens and causes a delay between evaluation of the test and the variable (DateTime.now)!!
     val sectionManifest = SectionManifest(articles)
     assert(sectionManifest.sections ===
       List(
@@ -48,7 +47,7 @@ class SectionManifestSpec extends FlatSpec {
   val sectionHeadingList = SectionManifest.toSectionHeading(articles)
   val manifest = SectionManifest(
     publicationDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
-    buildDate = DateTime.now,
+    buildDate = time,
     sections = SectionManifest.toSectionHeading(articles)
   )
 
@@ -61,7 +60,7 @@ class SectionManifestSpec extends FlatSpec {
          |<title>The Guardian / The Observer</title>
          |<link>http://www.guardian.co.uk/</link>
          |<pubDate>20170724</pubDate>
-         |<lastBuildDate>${dtFormatter.print(DateTime.now)}</lastBuildDate>
+         |<lastBuildDate>${dtFormatter.print(time)}</lastBuildDate>
          |<item>
          | <title>International</title>
          | <link>theguardian_mainsection_international.xml</link>

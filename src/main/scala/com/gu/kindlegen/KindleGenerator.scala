@@ -1,14 +1,13 @@
 package com.gu.kindlegen
 
 import java.nio.file.{ Files, Paths }
-import java.io.{ BufferedOutputStream, ByteArrayInputStream, FileOutputStream, InputStream }
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class KindleGenerator {
-}
-object KindleGenerator {
+class KindleGenerator(settings: Settings) {
+  val Querier = new Querier(settings)
+
   def getNitfBundle: Seq[File] = {
     // TODO: Wrap all these up in one method on the Querier so when
     // we use it we don't have to call all three.

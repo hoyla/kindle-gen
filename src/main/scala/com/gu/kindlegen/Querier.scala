@@ -2,45 +2,32 @@ package com.gu.kindlegen
 
 import com.gu.contentapi.client._
 import com.gu.contentapi.client.model._
-import com.gu.contentapi.client.model.v1.{ Content, SearchResponse }
-
-import scala.concurrent.{ Await, Future }
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{ Failure, Success }
-import scala.concurrent.duration._
-import scala.io.{ BufferedSource, Source }
-import scala.concurrent.ExecutionContext.Implicits.global
-import scalaj.http._
-import DateUtils._
 import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
+import com.gu.contentapi.client.model.v1.{ Content, SearchResponse }
+import com.gu.kindlegen.DateUtils._
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future }
+import scalaj.http._
 
 // TODO: Move elsewhere
 case class ArticleImage(articleId: Int, data: Array[Byte])
 
-class Querier {
-}
-
 object Querier {
 
-  def readConfig(lineNum: Int): String = {
-    // local file `~/.gu/kindle-gen.conf` must exist with first line a valid API key for CAPI. Second line targetUrl
-    val localUserHome: String = scala.util.Properties.userHome
-    val configSource: BufferedSource = Source.fromFile(s"$localUserHome/.gu/kindle-gen.conf")
-    val arr = configSource.getLines.toArray
-    arr(lineNum)
+  class PrintSentContentClient(settings: Settings) extends GuardianContentClient(settings.contentApiKey) {
+
+    override val targetUrl: String = settings.contentApiTargetUrl
   }
+}
 
-  class PrintSentContentClient(override val apiKey: String) extends GuardianContentClient(apiKey) {
-
-    override val targetUrl: String = readConfig(1)
-  }
-
-  val readApiKey: String = readConfig(0)
+class Querier(settings: Settings) {
+  import Querier._
 
   def getPrintSentResponse(pageNum: Int): SearchResponse = {
 
-    val capiKey = readApiKey
-    val capiClient = new PrintSentContentClient(capiKey)
+    val capiClient = new PrintSentContentClient(settings)
     val query = SearchQuery()
       .pageSize(5)
       .showFields("all") //TODO: Don't need all fields.
@@ -77,12 +64,12 @@ object Querier {
   }
 
   def sortContentByPageAndSection(response: Seq[Content]): Seq[Content] = {
-    response.sortBy(content => (content.fields.flatMap(_.newspaperPageNumber), content.tags.find(_.`type` == NewspaperBookSection).get.id))
+    response.sortBy(content => (content.fields.flatMap(_.newspaperPageNumber), content.tags.find(_.`type` == NewspaperBookSection).map(_.id)))
   }
   // TODO: handle the possibility of there being no content in the getPrintSentResponse method above
   // TODO: This isn't to do with querying the API so we should move it somewhere else.
   def responseToArticles(response: Seq[Content]): Seq[Article] = {
-    val sortedContent = Querier.sortContentByPageAndSection(response)
+    val sortedContent = sortContentByPageAndSection(response)
     val contentWithIndex = sortedContent.view.zipWithIndex.toList
     contentWithIndex.map(Article.apply)
   }
