@@ -32,8 +32,8 @@ object DateUtils {
 
   /* Temporary adaptor classes in preparation to replace Joda Time with Java 8 Time */
 
-  protected[DateUtils] trait ReadableInstant { def toInstant: org.joda.time.ReadableInstant }
-  implicit def readableInstantAdaptor2ReadableInstant(readableInstantAdaptor: ReadableInstant): org.joda.time.ReadableInstant =
+  protected[DateUtils] trait ReadableInstant { def toInstant: Instant }
+  implicit def readableInstantAdaptor2ReadableInstant(readableInstantAdaptor: ReadableInstant): Instant =
     readableInstantAdaptor.toInstant
 
   object CapiModelEnrichment {
@@ -54,8 +54,7 @@ object DateUtils {
     def this(temporalAccessor: TemporalAccessor) =
       this(Instant.from(temporalAccessor))
 
-    override def toInstant: org.joda.time.ReadableInstant =
-      new org.joda.time.DateTime(instant.toEpochMilli)
+    override def toInstant: Instant = instant
 
     import ChronoField._
     def withHourOfDay(hour: Int): DateTime = withField(HOUR_OF_DAY, hour)
