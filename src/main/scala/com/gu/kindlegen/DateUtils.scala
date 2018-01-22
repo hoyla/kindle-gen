@@ -1,10 +1,12 @@
 package com.gu.kindlegen
 
-import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.time.temporal.{ChronoField, TemporalAccessor}
+import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 
 import com.gu.contentapi.client.model.v1.CapiDateTime
+
+import scala.util.Try
 
 object DateUtils {
   // formatter for use with print to convert a DateTime: Long to DateTime String
@@ -48,7 +50,7 @@ object DateUtils {
       new DateTime(Instant.now)
   }
 
-  final class DateTime(instant: Instant) extends ReadableInstant {
+  final class DateTime(protected[DateUtils] val instant: Instant) extends ReadableInstant {
     def this(temporalAccessor: TemporalAccessor) =
       this(Instant.from(temporalAccessor))
 
@@ -68,19 +70,21 @@ object DateUtils {
 
   object DateTimeFormat {
     def forPattern(pattern: String) =
-      new DateTimeFormatter(org.joda.time.format.DateTimeFormat.forPattern(pattern))
+      new DateTimeFormatter(DateTimeFormatter.ofPattern(pattern))
   }
 
-  final class DateTimeFormatter(formatter: org.joda.time.format.DateTimeFormatter) {
-    def parseDateTime(text: String): DateTime =
-      new DateTime(formatter.parseDateTime(text))
+  final class DateTimeFormatter(formatter: java.time.format.DateTimeFormatter) {
+    def parseDateTime(text: String): DateTime = {
+      val parsed = formatter.parse(text)
+      new DateTime(Try(Instant.from(parsed)).getOrElse(LocalDate.from(parsed).atStartOfDay(ZoneId.systemDefault)))
+    }
 
-    def print(instant: ReadableInstant): String =
-      formatter.print(instant.toInstant)
+    def print(dateTime: DateTime): String =
+      formatter.format(ZonedDateTime.ofInstant(dateTime.instant, ZoneId.systemDefault()))
   }
 
   object ISODateTimeFormat {
     def dateTime() =
-      new DateTimeFormatter(org.joda.time.format.ISODateTimeFormat.dateTime())
+      new DateTimeFormatter(DateTimeFormatter.ISO_DATE_TIME)
   }
 }
