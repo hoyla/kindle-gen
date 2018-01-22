@@ -5,7 +5,7 @@ import DateUtils._
 
 class SectionManifestSpec extends FlatSpec {
 
-  val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
+  val capiDate = formatter.parseDateTime("20170724").toCapiDateTime
   val ta = Article((TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0).toContent, 0))
 
   val articles = {
@@ -27,7 +27,7 @@ class SectionManifestSpec extends FlatSpec {
   "SectionManifest.apply" should "convert a sequence of articles to a section Manifest (Contents page)" in {
 
     assert(SectionManifest(articles, time) === SectionManifest(
-      publicationDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+      publicationDate = formatter.parseDateTime("20170724").toCapiDateTime,
       buildDate = time,
       sections = List(SectionHeading("International", "theguardian/mainsection/international"), SectionHeading("Top Stories", "theguardian/mainsection/topstories"))
     ))
@@ -44,7 +44,7 @@ class SectionManifestSpec extends FlatSpec {
   }
   val sectionHeadingList = SectionManifest.toSectionHeading(articles)
   val manifest = SectionManifest(
-    publicationDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+    publicationDate = formatter.parseDateTime("20170724").toCapiDateTime,
     buildDate = time,
     sections = SectionManifest.toSectionHeading(articles)
   )

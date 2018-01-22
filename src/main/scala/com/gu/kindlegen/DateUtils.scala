@@ -32,16 +32,16 @@ object DateUtils {
 
   /* Temporary adaptor classes in preparation to replace Joda Time with Java 8 Time */
 
-  protected[DateUtils] trait ReadableInstant { def toInstant: Instant }
-  implicit def readableInstantAdaptor2ReadableInstant(readableInstantAdaptor: ReadableInstant): Instant =
-    readableInstantAdaptor.toInstant
-
-  object CapiModelEnrichment {
-    implicit final class RichJodaDateTime(val readableInstantAdaptor: ReadableInstant) extends AnyVal {
-      private def dt = readableInstantAdaptor.toInstant
-      def toCapiDateTime: CapiDateTime = CapiDateTime.apply(dt.toEpochMilli, dt.toString)
+  protected[DateUtils] trait ReadableInstant {
+    def toInstant: Instant
+    def toCapiDateTime: CapiDateTime = {
+      val dt = toInstant
+      CapiDateTime.apply(dt.toEpochMilli, dt.toString)
     }
   }
+
+  implicit def readableInstantAdaptor2ReadableInstant(readableInstantAdaptor: ReadableInstant): Instant =
+    readableInstantAdaptor.toInstant
 
   object DateTime {
     def parse(pattern: String) =

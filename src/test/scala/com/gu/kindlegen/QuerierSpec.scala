@@ -12,7 +12,7 @@ class QuerierSpec extends FlatSpec {
   // TODO: Find a way to test printSentResponse, extract the edition dates etc
   // TODO: Find a way to override the source file to a sample.conf version
 
-  val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
+  val capiDate = formatter.parseDateTime("20170724").toCapiDateTime
   val testcontent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0).toContent
   val capiResponse = List(testcontent)
   val testArticle = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0)
