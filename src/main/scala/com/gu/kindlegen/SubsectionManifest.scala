@@ -11,7 +11,7 @@ case class SubsectionManifest(
     buildDate: DateTime,
     articles: Seq[ArticleHeading]
 ) {
-  val formattedPublicationDate: String = isoDateConverter(publicationDate)
+  val formattedPublicationDate: String = formatDate(publicationDate)
   val formattedBuildDate: String = dtFormatter.print(buildDate)
   val sectionsString: String = articles.map(_.toArticleHeadingString).mkString("")
   def toSubsectionContentsPage: String = {

@@ -8,7 +8,7 @@ import DateUtils._
 @RunWith(classOf[JUnitRunner])
 class BookSectionPageSuite extends FunSuite {
 
-  val capiDate = formatter.parseDateTime("20170724").toCapiDateTime
+  val capiDate = formatter.parseDate("20170724").toCapiDateTime
   val ta = Article((TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0).toContent), 0)
 
   val articles: List[Article] = List(1, 1, 2, 2, 3).map(n => ta.copy(newspaperPageNumber = n))

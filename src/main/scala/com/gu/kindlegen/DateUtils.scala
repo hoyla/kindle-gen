@@ -17,16 +17,14 @@ object DateUtils {
   def isoFormatter = ISODateTimeFormat.dateTime()
   def formatterWithDashes = DateTimeFormat.forPattern("yyyy-MM-dd")
 
-  def capiIsoDateTimeToString(capidatetime: CapiDateTime): String = capidatetime.iso8601
-
-  def isoDateConverter(capiDate: CapiDateTime): String = formatter.print(isoFormatter.parseDateTime(capiIsoDateTimeToString(capiDate)))
+  def formatDate(capiDate: CapiDateTime): String = formatter.format(isoFormatter.parseDate(capiDate.iso8601))
 
   // TODO: change this to DateTime.now or function that takes a passed in date.
   // TODO: should be Z format not +XXXX hours?
-  def editionDateTime: DateTime = formatterWithDashes.parseDateTime("2017-05-19") // to have a date I know the results for
+  def editionDateTime: DateTime = formatterWithDashes.parseDate("2017-05-19") // to have a date I know the results for
   //  def editionDateTime: DateTime = DateTime.now()
 
-  def editionDateString: String = formatterWithDashes.print(editionDateTime)
+  def editionDateString: String = formatterWithDashes.format(editionDateTime)
   def editionDateStart: DateTime = DateTime.parse(editionDateString).withMillisOfDay(0).withMillisOfSecond(0)
   def editionDateEnd: DateTime = DateTime.parse(editionDateString).withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59).withMillisOfSecond(999)
 
@@ -73,12 +71,14 @@ object DateUtils {
   }
 
   final class DateTimeFormatter(formatter: java.time.format.DateTimeFormatter) {
-    def parseDateTime(text: String): DateTime = {
+    def parseDate(text: String): DateTime = {
       val parsed = formatter.parse(text)
-      new DateTime(Try(Instant.from(parsed)).getOrElse(LocalDate.from(parsed).atStartOfDay(ZoneId.systemDefault)))
+      new DateTime(LocalDate.from(parsed).atStartOfDay(ZoneId.of("UTC")))
     }
 
     def print(dateTime: DateTime): String =
+      format(dateTime)
+    def format(dateTime: DateTime): String =
       formatter.format(ZonedDateTime.ofInstant(dateTime.instant, ZoneId.systemDefault()))
   }
 
