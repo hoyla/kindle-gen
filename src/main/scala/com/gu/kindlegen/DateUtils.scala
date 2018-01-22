@@ -1,5 +1,9 @@
 package com.gu.kindlegen
 
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.time.temporal.{ChronoField, TemporalAccessor}
+
 import com.gu.contentapi.client.model.v1.CapiDateTime
 
 object DateUtils {
@@ -33,24 +37,33 @@ object DateUtils {
   object CapiModelEnrichment {
     implicit final class RichJodaDateTime(val readableInstantAdaptor: ReadableInstant) extends AnyVal {
       private def dt = readableInstantAdaptor.toInstant
-      def toCapiDateTime: CapiDateTime = CapiDateTime.apply(dt.getMillis, dt.toString)
+      def toCapiDateTime: CapiDateTime = CapiDateTime.apply(dt.toEpochMilli, dt.toString)
     }
   }
 
   object DateTime {
     def parse(pattern: String) =
-      new DateTime(org.joda.time.DateTime.parse(pattern))
+      new DateTime(DateTimeFormatter.ISO_DATE_TIME.parse(pattern))
     def now() =
-      new DateTime(org.joda.time.DateTime.now)
+      new DateTime(Instant.now)
   }
 
-  final class DateTime(dateTime: org.joda.time.DateTime) extends ReadableInstant {
-    override def toInstant: org.joda.time.ReadableInstant = dateTime
-    def withHourOfDay(millis: Int) = new DateTime(dateTime.withHourOfDay(millis))
-    def withMinuteOfHour(millis: Int) = new DateTime(dateTime.withMinuteOfHour(millis))
-    def withSecondOfMinute(millis: Int) = new DateTime(dateTime.withSecondOfMinute(millis))
-    def withMillisOfSecond(millis: Int) = new DateTime(dateTime.withMillisOfSecond(millis))
-    def withMillisOfDay(millis: Int) = new DateTime(dateTime.withMillisOfDay(millis))
+  final class DateTime(instant: Instant) extends ReadableInstant {
+    def this(temporalAccessor: TemporalAccessor) =
+      this(Instant.from(temporalAccessor))
+
+    override def toInstant: org.joda.time.ReadableInstant =
+      new org.joda.time.DateTime(instant.toEpochMilli)
+
+    import ChronoField._
+    def withHourOfDay(hour: Int): DateTime = withField(HOUR_OF_DAY, hour)
+    def withMinuteOfHour(minute: Int): DateTime = withField(MINUTE_OF_HOUR, minute)
+    def withSecondOfMinute(second: Int): DateTime = withField(SECOND_OF_MINUTE, second)
+    def withMillisOfSecond(millis: Int): DateTime = withField(MILLI_OF_SECOND, millis)
+    def withMillisOfDay(millis: Int): DateTime = withField(MILLI_OF_DAY, millis)
+
+    private def withField(field: ChronoField, value: Int): DateTime =
+      new DateTime(instant.`with`(field, value))
   }
 
   object DateTimeFormat {
