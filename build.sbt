@@ -19,7 +19,7 @@ scalacOptions ++= Seq(
 libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0"
 
 /*deps for CAPI client*/
-libraryDependencies += "com.gu" %% "content-api-client" % "11.32"
+libraryDependencies += "com.gu" %% "content-api-client" % "11.51"
 /* deps required to use junit test and test watch */
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"

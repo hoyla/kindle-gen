@@ -6,8 +6,6 @@ import java.time.{Instant, LocalDate, ZoneId, ZonedDateTime}
 
 import com.gu.contentapi.client.model.v1.CapiDateTime
 
-import scala.util.Try
-
 object DateUtils {
   // formatter for use with print to convert a DateTime: Long to DateTime String
   def formatter = DateTimeFormat.forPattern("yyyyMMdd")
@@ -38,6 +36,7 @@ object DateUtils {
     }
   }
 
+  import scala.language.implicitConversions
   implicit def readableInstantAdaptor2ReadableInstant(readableInstantAdaptor: ReadableInstant): Instant =
     readableInstantAdaptor.toInstant
 
