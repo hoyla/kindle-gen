@@ -9,7 +9,7 @@ case class SectionManifest(
     sections: Seq[SectionHeading]
 ) {
   val formattedPublicationDate: String = formatDate(publicationDate)
-  val formattedBuildDate: String = dtFormatter.print(buildDate)
+  val formattedBuildDate: String = dtFormatter.format(buildDate)
   // TODO: filter for unique sections
   // TODO: Sort by pagenum to order
   val sectionsString: String = sections.map(_.toSectionString).mkString("")

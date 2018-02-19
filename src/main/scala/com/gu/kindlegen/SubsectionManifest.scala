@@ -12,7 +12,7 @@ case class SubsectionManifest(
     articles: Seq[ArticleHeading]
 ) {
   val formattedPublicationDate: String = formatDate(publicationDate)
-  val formattedBuildDate: String = dtFormatter.print(buildDate)
+  val formattedBuildDate: String = dtFormatter.format(buildDate)
   val sectionsString: String = articles.map(_.toArticleHeadingString).mkString("")
   def toSubsectionContentsPage: String = {
     s"""

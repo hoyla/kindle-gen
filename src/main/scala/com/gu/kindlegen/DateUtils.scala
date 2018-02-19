@@ -12,21 +12,20 @@ object DateUtils {
   def dtFormatter = DateTimeFormat.forPattern("yyyyMMddHHmmss")
 
   // formatter for use with parseDateTime to convert an isoDateTime: String to isoDateTime: DateTime
-  def isoFormatter = ISODateTimeFormat.dateTime()
-  def formatterWithDashes = DateTimeFormat.forPattern("yyyy-MM-dd")
+  private def isoFormatter = DateTimeFormat.isoDateTime()
+  private def formatterWithDashes = DateTimeFormat.forPattern("yyyy-MM-dd")
 
   def formatDate(capiDate: CapiDateTime): String = formatter.format(isoFormatter.parseDate(capiDate.iso8601))
 
   // TODO: change this to DateTime.now or function that takes a passed in date.
   // TODO: should be Z format not +XXXX hours?
-  def editionDateTime: DateTime = formatterWithDashes.parseDate("2017-05-19") // to have a date I know the results for
+  private def editionDateTime: DateTime = formatterWithDashes.parseDate("2017-05-19") // to have a date I know the results for
   //  def editionDateTime: DateTime = DateTime.now()
 
-  def editionDateString: String = formatterWithDashes.format(editionDateTime)
-  def editionDateStart: DateTime = DateTime.parse(editionDateString).withMillisOfDay(0).withMillisOfSecond(0)
-  def editionDateEnd: DateTime = DateTime.parse(editionDateString).withHourOfDay(23).withMinuteOfHour(59).withSecondOfMinute(59).withMillisOfSecond(999)
+  def editionDateStart: DateTime = editionDateTime.startOfDay
+  def editionDateEnd: DateTime = editionDateTime.endOfDay
 
-  /* Temporary adaptor classes in preparation to replace Joda Time with Java 8 Time */
+  /* Adaptor classes to simplify the migration from Joda-Time to Java 8 Time */
 
   protected[DateUtils] trait ReadableInstant {
     def toInstant: Instant
@@ -54,19 +53,19 @@ object DateUtils {
     override def toInstant: Instant = instant
 
     import ChronoField._
-    def withHourOfDay(hour: Int): DateTime = withField(HOUR_OF_DAY, hour)
-    def withMinuteOfHour(minute: Int): DateTime = withField(MINUTE_OF_HOUR, minute)
-    def withSecondOfMinute(second: Int): DateTime = withField(SECOND_OF_MINUTE, second)
-    def withMillisOfSecond(millis: Int): DateTime = withField(MILLI_OF_SECOND, millis)
-    def withMillisOfDay(millis: Int): DateTime = withField(MILLI_OF_DAY, millis)
+    def startOfDay: DateTime = withField(MILLI_OF_DAY, MILLI_OF_DAY.range.getMinimum)
+    def endOfDay: DateTime = withField(MILLI_OF_DAY, MILLI_OF_DAY.range.getMaximum)
 
-    private def withField(field: ChronoField, value: Int): DateTime =
+    private def withField(field: ChronoField, value: Long): DateTime =
       new DateTime(instant.`with`(field, value))
   }
 
   object DateTimeFormat {
     def forPattern(pattern: String) =
       new DateTimeFormatter(DateTimeFormatter.ofPattern(pattern))
+
+    def isoDateTime() =
+      new DateTimeFormatter(DateTimeFormatter.ISO_DATE_TIME)
   }
 
   final class DateTimeFormatter(formatter: java.time.format.DateTimeFormatter) {
@@ -75,14 +74,7 @@ object DateUtils {
       new DateTime(LocalDate.from(parsed).atStartOfDay(ZoneId.of("UTC")))
     }
 
-    def print(dateTime: DateTime): String =
-      format(dateTime)
     def format(dateTime: DateTime): String =
       formatter.format(ZonedDateTime.ofInstant(dateTime.instant, ZoneId.systemDefault()))
-  }
-
-  object ISODateTimeFormat {
-    def dateTime() =
-      new DateTimeFormatter(DateTimeFormatter.ISO_DATE_TIME)
   }
 }

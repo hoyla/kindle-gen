@@ -58,7 +58,7 @@ class SectionManifestSpec extends FlatSpec {
          |<title>The Guardian / The Observer</title>
          |<link>http://www.guardian.co.uk/</link>
          |<pubDate>20170724</pubDate>
-         |<lastBuildDate>${dtFormatter.print(time)}</lastBuildDate>
+         |<lastBuildDate>${dtFormatter.format(time)}</lastBuildDate>
          |<item>
          | <title>International</title>
          | <link>theguardian_mainsection_international.xml</link>
