@@ -1,7 +1,6 @@
 package com.gu.kindlegen
 
 import org.jsoup.Jsoup
-import scala.xml._
 import org.jsoup.safety.Whitelist
 
 /**
