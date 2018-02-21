@@ -1,6 +1,5 @@
 package com.gu.kindlegen
 
-import com.gu.contentapi.client.utils.CapiModelEnrichment
 import org.scalatest.FlatSpec
 import DateUtils._
 import com.gu.contentapi.client.model.v1.Content
@@ -13,7 +12,7 @@ class QuerierSpec extends FlatSpec {
   // TODO: Find a way to test printSentResponse, extract the edition dates etc
   // TODO: Find a way to override the source file to a sample.conf version
 
-  val capiDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime
+  val capiDate = exampleDate
   val testcontent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0).toContent
   val capiResponse = List(testcontent)
   val testArticle = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0)

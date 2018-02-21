@@ -19,10 +19,10 @@ scalacOptions ++= Seq(
 libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0"
 
 /*deps for CAPI client*/
-libraryDependencies += "com.gu" %% "content-api-client" % "11.30"
+libraryDependencies += "com.gu" %% "content-api-client" % "11.51"
 /* deps required to use junit test and test watch */
-libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.4"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.4" % "test"
+libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 libraryDependencies += "junit" % "junit" % "4.12" % "test"
 
 /*deps for simple client*/
@@ -30,7 +30,7 @@ libraryDependencies += "junit" % "junit" % "4.12" % "test"
 libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.3.0"
 
 /* deps for jsoup and xml (html parsing) */
-libraryDependencies += "org.jsoup" % "jsoup" % "1.7.2"
+libraryDependencies += "org.jsoup" % "jsoup" % "1.11.2"
 
 /* deps for external configuration */
 libraryDependencies += "com.typesafe" % "config" % "1.3.2"

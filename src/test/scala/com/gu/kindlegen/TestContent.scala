@@ -13,7 +13,7 @@ import com.gu.contentapi.client.model.v1._
  * Therefore we can pass a few parameters to TestContent and easily create a piece of Content:
  * For example:
  *
- * scala> val ta = TestContent("","",1,"","",CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,"","","")
+ * scala> val ta = TestContent("","",1,"","",formatter.parseDateTime("20170724").toCapiDateTime,"","","")
  * ta: com.gu.kindlegen.TestContent = TestContent(,,1,,,CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00),,,)
  *
  * scala> ta.toContent

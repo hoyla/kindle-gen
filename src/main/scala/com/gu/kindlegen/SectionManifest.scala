@@ -1,16 +1,17 @@
 package com.gu.kindlegen
 
+import java.time.Instant
+
 import com.gu.contentapi.client.model.v1.CapiDateTime
-import org.joda.time.DateTime
 import DateUtils._
 
 case class SectionManifest(
     publicationDate: CapiDateTime,
-    buildDate: DateTime,
+    buildDate: Instant,
     sections: Seq[SectionHeading]
 ) {
-  val formattedPublicationDate: String = isoDateConverter(publicationDate)
-  val formattedBuildDate: String = dtFormatter.print(buildDate)
+  val formattedPublicationDate: String = formatDate(publicationDate)
+  val formattedBuildDate: String = dtFormatter.format(buildDate)
   // TODO: filter for unique sections
   // TODO: Sort by pagenum to order
   val sectionsString: String = sections.map(_.toSectionString).mkString("")
@@ -31,7 +32,7 @@ case class SectionManifest(
 }
 
 object SectionManifest {
-  def apply(articles: Seq[Article], buildDate: DateTime = DateTime.now): SectionManifest = {
+  def apply(articles: Seq[Article], buildDate: Instant = Instant.now): SectionManifest = {
     SectionManifest(
       publicationDate = articles.head.issueDate,
       buildDate = buildDate,

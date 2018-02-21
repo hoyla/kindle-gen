@@ -3,7 +3,6 @@ package com.gu.kindlegen
 import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import com.gu.contentapi.client.utils._
 import DateUtils._
 
 @RunWith(classOf[JUnitRunner])
@@ -16,9 +15,9 @@ class ArticleNITFSuite extends FunSuite {
       newspaperPageNumber = 2,
       title = "my title",
       docId = "section/date/title",
-      issueDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
-      releaseDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
-      pubDate = CapiModelEnrichment.RichJodaDateTime(formatter.parseDateTime("20170724")).toCapiDateTime,
+      issueDate = exampleDate,
+      releaseDate = exampleDate,
+      pubDate = exampleDate,
       byline = "my name",
       articleAbstract = "article abstract",
       content = "content",
