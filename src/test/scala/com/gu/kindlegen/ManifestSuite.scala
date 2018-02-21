@@ -1,11 +1,13 @@
 package com.gu.kindlegen
 
+import java.time.Instant
+
 import org.scalatest.FlatSpec
 import DateUtils._
 
 class SectionManifestSpec extends FlatSpec {
 
-  val capiDate = formatter.parseDate("20170724").toCapiDateTime
+  val capiDate = exampleDate
   val ta = Article((TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0).toContent, 0))
 
   val articles = {
@@ -22,12 +24,12 @@ class SectionManifestSpec extends FlatSpec {
       }
   }
 
-  val time = DateTime.now()
+  private val time = Instant.now()
 
   "SectionManifest.apply" should "convert a sequence of articles to a section Manifest (Contents page)" in {
 
     assert(SectionManifest(articles, time) === SectionManifest(
-      publicationDate = formatter.parseDate("20170724").toCapiDateTime,
+      publicationDate = exampleDate,
       buildDate = time,
       sections = List(SectionHeading("International", "theguardian/mainsection/international"), SectionHeading("Top Stories", "theguardian/mainsection/topstories"))
     ))
@@ -44,7 +46,7 @@ class SectionManifestSpec extends FlatSpec {
   }
   val sectionHeadingList = SectionManifest.toSectionHeading(articles)
   val manifest = SectionManifest(
-    publicationDate = formatter.parseDate("20170724").toCapiDateTime,
+    publicationDate = exampleDate,
     buildDate = time,
     sections = SectionManifest.toSectionHeading(articles)
   )

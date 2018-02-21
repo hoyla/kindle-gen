@@ -1,5 +1,7 @@
 package com.gu.kindlegen
 
+import java.time.Instant
+
 import com.gu.contentapi.client.model.v1.CapiDateTime
 import DateUtils._
 
@@ -8,7 +10,7 @@ import DateUtils._
 case class SubsectionManifest(
     title: String,
     publicationDate: CapiDateTime,
-    buildDate: DateTime,
+    buildDate: Instant,
     articles: Seq[ArticleHeading]
 ) {
   val formattedPublicationDate: String = formatDate(publicationDate)
@@ -29,7 +31,7 @@ case class SubsectionManifest(
 }
 
 object SubsectionManifest {
-  def apply(articles: Seq[Article], buildDate: DateTime = DateTime.now): SubsectionManifest = {
+  def apply(articles: Seq[Article], buildDate: Instant = Instant.now): SubsectionManifest = {
     SubsectionManifest(
       // this is the chunk we are creating the contents for
       title = articles.head.newspaperBookSection,

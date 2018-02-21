@@ -1,11 +1,13 @@
 package com.gu.kindlegen
 
+import java.time.Instant
+
 import com.gu.contentapi.client.model.v1.CapiDateTime
 import DateUtils._
 
 case class SectionManifest(
     publicationDate: CapiDateTime,
-    buildDate: DateTime,
+    buildDate: Instant,
     sections: Seq[SectionHeading]
 ) {
   val formattedPublicationDate: String = formatDate(publicationDate)
@@ -30,7 +32,7 @@ case class SectionManifest(
 }
 
 object SectionManifest {
-  def apply(articles: Seq[Article], buildDate: DateTime = DateTime.now): SectionManifest = {
+  def apply(articles: Seq[Article], buildDate: Instant = Instant.now): SectionManifest = {
     SectionManifest(
       publicationDate = articles.head.issueDate,
       buildDate = buildDate,

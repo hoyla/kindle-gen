@@ -1,10 +1,12 @@
 package com.gu.kindlegen
 
+import java.time.Instant
+import java.time.temporal.ChronoUnit.{DAYS, NANOS}
+
 import com.gu.contentapi.client._
 import com.gu.contentapi.client.model._
 import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
 import com.gu.contentapi.client.model.v1.{ Content, SearchResponse }
-import com.gu.kindlegen.DateUtils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -15,6 +17,12 @@ import scalaj.http._
 case class ArticleImage(articleId: Int, data: Array[Byte])
 
 object Querier {
+  // TODO: change this to DateTime.now or function that takes a passed in date.
+  private def editionDateTime: Instant = Instant.parse("2017-05-19T00:00:00Z") // to have a date I know the results for
+  //  def editionDateTime: DateTime = DateTime.now()
+
+  def editionDateStart: Instant = editionDateTime
+  def editionDateEnd: Instant = editionDateTime.plus(1, DAYS).minus(1, NANOS)
 
   class PrintSentContentClient(settings: Settings) extends GuardianContentClient(settings.contentApiKey) {
 
