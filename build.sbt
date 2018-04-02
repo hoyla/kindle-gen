@@ -6,7 +6,7 @@ description:= "Converting content to NITF format"
 
 version := "1.0"
 
-scalaVersion := "2.12.4"
+scalaVersion := "2.12.5"
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -33,7 +33,7 @@ libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.3.0"
 libraryDependencies += "org.jsoup" % "jsoup" % "1.11.2"
 
 /* deps for external configuration */
-libraryDependencies += "com.typesafe" % "config" % "1.3.2"
+libraryDependencies += "com.typesafe" % "config" % "1.3.3"
 
 /* deps for Riff-Raff Guardian deployment tool */
 enablePlugins(RiffRaffArtifact)
@@ -61,4 +61,6 @@ assemblyMergeStrategy in assembly := {
 }
 
 /* for auto import in console */
-initialCommands in console := "import com.gu.kindlegen._"
+initialCommands in console += """
+  import com.gu.kindlegen._;
+"""
