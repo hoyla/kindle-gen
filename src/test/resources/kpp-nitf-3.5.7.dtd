@@ -1,3 +1,11 @@
+<!-- Version 3.5.1 - edited on 11-05-2011  - Added 'strong' element in entity % enriched-text, Added 'content' element in the 'block', Added 'img' and 'p' elements in the 'content', Added 'a' element in the 'body.content'-->
+<!-- Version 3.5.2 - edited on 12-01-2012  - Removed 'p' from 'content', Allowed '% general-text;', 'strong' and 'em' in 'img'-->
+<!-- Version 3.5.3 - edited on 17-01-2012 - Added 'h3' 'h4' 'h5' and 'h6' in '% block.content'-->
+<!-- Version 3.5.4 - edited on 18-01-2012 - width attribute is added in 'p' element. The attribute value will be '0'-->
+<!-- Version 3.5.5 - edited on 25-01-2012 - Disallowed 'strong' and 'em' in 'img'-->
+<!-- Version 3.5.6 - edited on 16-02-2012 - Allowed 'br' in 'block'-->
+<!-- Version 3.5.7 - edited on 21-06-2012 - Allowed 'a' in 'block' and 'content'-->
+
 <!--
 	News Industry Text Format
 	Document Type Definition - Version 3.5
@@ -112,6 +120,7 @@
 	| a
 	| br
 	| em
+	| strong
 	| lang
 	| pronounce
 	| q
@@ -123,7 +132,7 @@
 <!ENTITY % plain-text '#PCDATA'>
 
 <!ENTITY % block.start "tobject?, key-list?, classifier*, byline?, dateline?, copyrite?, abstract*">
-<!ENTITY % block.content "p | hl2 | table | nitf-table | media | ol | ul | dl | bq | fn | note | pre | hr">
+<!ENTITY % block.content "p | hl2 | h3 | h4 | h5 | h6 | table | nitf-table | media | ol | ul | dl | bq | fn | note | pre | hr | content">
 <!ENTITY % block.end "datasource?">
 
 
@@ -146,6 +155,18 @@
 
 	id			Unique identifier for the element.
 	-->
+
+<!ELEMENT content (img | a)*>
+<!ATTLIST content
+	%global-attributes;
+	>
+
+<!ELEMENT img (%general-text;)*>
+<!ATTLIST img
+	src 		CDATA 		#IMPLIED
+	credit 		CDATA 		#IMPLIED
+	>
+
 
 <!ELEMENT title (%plain-text;)*>
 <!ATTLIST title
@@ -779,6 +800,18 @@
 	xml:lang		Language value governed by RFC3066. Example: en-US.
 	-->
 
+	<!ELEMENT h3 (%enriched-text;)*>
+	<!ATTLIST h3 %common-attributes;>
+
+	<!ELEMENT h4 (%enriched-text;)*>
+	<!ATTLIST h5 %common-attributes;>
+
+	<!ELEMENT h5 (%enriched-text;)*>
+	<!ATTLIST h6 %common-attributes;>
+
+	<!ELEMENT h6 (%enriched-text;)*>
+	<!ATTLIST h6 %common-attributes;>
+
 <!ELEMENT note (body.content)+>
 <!ATTLIST note
 	%common-attributes;
@@ -1049,7 +1082,7 @@
 	found within body, note, and fn (footnote) elements
 	**************************************************************** -->
 
-<!ELEMENT body.content (block | %block.content;)*>
+<!ELEMENT body.content (a | block | %block.content;)*>
 <!ATTLIST body.content
 	%global-attributes;
 	>
@@ -1061,7 +1094,7 @@
 	id			Unique identifier for the element.
 	-->
 
-<!ELEMENT block ((%block.start;)?, (%block.content;)*, (%block.end;)?)>
+<!ELEMENT block ((%block.start;)?, (%block.content; | br | a)*, (%block.end;)?)>
 <!ATTLIST block %common-attributes;>
 	<!--
 	Element			block
@@ -1077,6 +1110,7 @@
 <!ELEMENT p (%enriched-text;)*>
 <!ATTLIST p
 	%common-attributes;
+	width (0)  #IMPLIED
 	lede 		CDATA 	#IMPLIED
 	summary 	CDATA 	#IMPLIED
 	optional-text 	CDATA 	#IMPLIED
@@ -2147,6 +2181,20 @@
 	<!--
 	Element			em
 	Partial description	Emphasis.
+	Full description	Can be rendered as bold, italics, or another style.
+
+	id			Unique identifier for the element.
+	class			An open placeholder for categorization.
+	style			An open placeholder for reference by an external stylesheet.
+	xml:lang		Language value governed by RFC3066. Example: en-US.
+	-->
+
+
+<!ELEMENT strong (%enriched-text;)*>
+<!ATTLIST strong %common-attributes;>
+	<!--
+	Element			strong
+	Partial description	Importance.
 	Full description	Can be rendered as bold, italics, or another style.
 
 	id			Unique identifier for the element.

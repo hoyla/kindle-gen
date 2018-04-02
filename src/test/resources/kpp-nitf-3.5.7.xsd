@@ -1,4 +1,13 @@
 <?xml version="1.0"?>
+<!-- Version 3.5.1 - edited on 11-05-2011  - Added 'strong' element in entity % enriched-text, Added 'content' element in the 'block', Added 'img' and 'p' elements in the 'content', Added 'a' element in the 'body.content'-->
+<!-- Version 3.5.2 - edited on 12-01-2012  - Removed 'p' from 'content', Allowed '% general-text;', 'strong' and 'em' in 'img'-->
+<!-- Version 3.5.3 - edited on 17-01-2012 - Added 'h3' 'h4' 'h5' and 'h6' in '% block.content'-->
+<!-- Version 3.5.4 - edited on 18-01-2012 - width attribute is added in 'p' element. The attribute value will be '0'-->
+<!-- Version 3.5.5 - edited on 25-01-2012 - Disallowed 'strong' and 'em' in 'img'-->
+<!-- Version 3.5.6 - edited on 16-02-2012 - Allowed 'br' in 'block'-->
+<!-- Version 3.5.7 - edited on 21-06-2012 - Allowed 'a' in 'block' and 'content'-->
+<!-- Ver.   3.5.7.1 - hosamaly on 02-04-2018 - Allowed free text in 'dd' to match the DTD -->
+
 <!--
 IPTC - International Press Telecommunications Council
 20 Garrick Street, London WC2E 9BT, United Kingdom
@@ -112,6 +121,7 @@ Fixed a typo in documentation for date.release/@norm - to say "YYYYMMDDT000000-H
 			<element ref="nitf:a"/>
 			<element ref="nitf:br"/>
 			<element ref="nitf:em"/>
+			<element ref="nitf:strong"/>
 			<element ref="nitf:lang"/>
 			<element ref="nitf:pronounce"/>
 			<element ref="nitf:q"/>
@@ -122,6 +132,10 @@ Fixed a typo in documentation for date.release/@norm - to say "YYYYMMDDT000000-H
 		<choice>
 			<element ref="nitf:p"/>
 			<element ref="nitf:hl2"/>
+			<element ref="nitf:h3"/>
+			<element ref="nitf:h4"/>
+			<element ref="nitf:h5"/>
+			<element ref="nitf:h6"/>
 			<element ref="nitf:table"/>
 			<element ref="nitf:nitf-table"/>
 			<element ref="nitf:media"/>
@@ -133,6 +147,7 @@ Fixed a typo in documentation for date.release/@norm - to say "YYYYMMDDT000000-H
 			<element ref="nitf:note"/>
 			<element ref="nitf:pre"/>
 			<element ref="nitf:hr"/>
+			<element ref="nitf:content"/>
 		</choice>
 	</group>
 	<element name="nitf">
@@ -162,6 +177,21 @@ Fixed a typo in documentation for date.release/@norm - to say "YYYYMMDDT000000-H
 				<element ref="nitf:revision-history" minOccurs="0" maxOccurs="unbounded"/>
 			</sequence>
 			<attributeGroup ref="nitf:globalNITFAttributes"/>
+		</complexType>
+	</element>
+	<element name="content">
+		<complexType>
+			<choice minOccurs="0" maxOccurs="unbounded">
+				<element ref="nitf:img"/>
+				<element ref="nitf:a"/>
+			</choice>
+			<attributeGroup ref="nitf:globalNITFAttributes"/>
+		</complexType>
+	</element>
+	<element name="img">
+		<complexType mixed="true">
+			<attribute name="src" type="string" use="optional"/>
+			<attribute name="credit" type="string" use="optional"/>
 		</complexType>
 	</element>
 	<element name="title">
@@ -511,6 +541,38 @@ Fixed a typo in documentation for date.release/@norm - to say "YYYYMMDDT000000-H
 			<attributeGroup ref="nitf:commonNITFAttributes"/>
 		</complexType>
 	</element>
+	<element name="h3">
+		<complexType mixed="true">
+			<choice minOccurs="0" maxOccurs="unbounded">
+				<group ref="nitf:enrichedText"/>
+			</choice>
+			<attributeGroup ref="nitf:commonNITFAttributes"/>
+		</complexType>
+	</element>
+	<element name="h4">
+		<complexType mixed="true">
+			<choice minOccurs="0" maxOccurs="unbounded">
+				<group ref="nitf:enrichedText"/>
+			</choice>
+			<attributeGroup ref="nitf:commonNITFAttributes"/>
+		</complexType>
+	</element>
+	<element name="h5">
+		<complexType mixed="true">
+			<choice minOccurs="0" maxOccurs="unbounded">
+				<group ref="nitf:enrichedText"/>
+			</choice>
+			<attributeGroup ref="nitf:commonNITFAttributes"/>
+		</complexType>
+	</element>
+	<element name="h6">
+		<complexType mixed="true">
+			<choice minOccurs="0" maxOccurs="unbounded">
+				<group ref="nitf:enrichedText"/>
+			</choice>
+			<attributeGroup ref="nitf:commonNITFAttributes"/>
+		</complexType>
+	</element>
 	<element name="note">
 		<complexType>
 			<sequence maxOccurs="unbounded">
@@ -667,6 +729,7 @@ Fixed a typo in documentation for date.release/@norm - to say "YYYYMMDDT000000-H
 	<element name="body.content">
 		<complexType>
 			<choice minOccurs="0" maxOccurs="unbounded">
+				<element ref="nitf:a"/>
 				<element ref="nitf:block"/>
 				<group ref="nitf:blockContent"/>
 			</choice>
@@ -687,6 +750,8 @@ Fixed a typo in documentation for date.release/@norm - to say "YYYYMMDDT000000-H
 				</sequence>
 				<choice minOccurs="0" maxOccurs="unbounded">
 					<group ref="nitf:blockContent"/>
+					<element ref="nitf:br"/>
+					<element ref="nitf:a"/>
 				</choice>
 				<sequence minOccurs="0">
 					<element ref="nitf:datasource" minOccurs="0"/>
@@ -701,6 +766,13 @@ Fixed a typo in documentation for date.release/@norm - to say "YYYYMMDDT000000-H
 				<group ref="nitf:enrichedText"/>
 			</choice>
 			<attributeGroup ref="nitf:commonNITFAttributes"/>
+			<attribute name="width" use="optional">
+				<simpleType>
+					<restriction base="string">
+						<enumeration value="0"/>
+					</restriction>
+				</simpleType>
+			</attribute>
 			<attribute name="lede" type="string" use="optional"/>
 			<attribute name="summary" type="string" use="optional"/>
 			<attribute name="optional-text" type="string" use="optional"/>
@@ -894,7 +966,7 @@ Fixed a typo in documentation for date.release/@norm - to say "YYYYMMDDT000000-H
 		</complexType>
 	</element>
 	<element name="dd">
-		<complexType>
+		<complexType mixed="true">
 			<choice minOccurs="0" maxOccurs="unbounded">
 				<group ref="nitf:enrichedText"/>
 				<group ref="nitf:blockContent"/>
@@ -1323,6 +1395,14 @@ Fixed a typo in documentation for date.release/@norm - to say "YYYYMMDDT000000-H
 		</complexType>
 	</element>
 	<element name="em">
+		<complexType mixed="true">
+			<choice minOccurs="0" maxOccurs="unbounded">
+				<group ref="nitf:enrichedText"/>
+			</choice>
+			<attributeGroup ref="nitf:commonNITFAttributes"/>
+		</complexType>
+	</element>
+	<element name="strong">
 		<complexType mixed="true">
 			<choice minOccurs="0" maxOccurs="unbounded">
 				<group ref="nitf:enrichedText"/>
