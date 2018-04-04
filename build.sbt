@@ -31,6 +31,8 @@ libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.3.0"
 
 /* deps for jsoup and xml (html parsing) */
 libraryDependencies += "org.jsoup" % "jsoup" % "1.11.2"
+libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.1.0"
+libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0"
 
 /* deps for external configuration */
 libraryDependencies += "com.typesafe" % "config" % "1.3.3"
