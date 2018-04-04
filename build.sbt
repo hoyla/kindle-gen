@@ -24,6 +24,9 @@ libraryDependencies += "com.gu" %% "content-api-client" % "11.51"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 libraryDependencies += "junit" % "junit" % "4.12" % "test"
+libraryDependencies += "com.github.andyglow" %% "scala-xml-diff" % "2.0.3" % "test"
+Test / logBuffered := false  // enjoy ScalaTest's built-in event buffering algorithm
+Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oI")   // show reminder of failed and canceled tests without stack traces
 
 /*deps for simple client*/
 //libraryDependencies += "com.typesafe.play" %% "play-ws" % "2.4.3"
