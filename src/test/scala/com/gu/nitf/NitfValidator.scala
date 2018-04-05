@@ -34,6 +34,12 @@ class NitfValidator extends FunSpec {
     "20180117.0111.moved/122_theguardianweather_weather_world.nitf",
     "20180118.0111.moved/115_theguardianweather_weather_world.nitf",
     "20180119.0111.moved/133_theguardianweather_weather_world.nitf",
+    "20180120.0111.moved/125_theguardianweather_weather_world.nitf",
+    "20180121.0111.moved/201_theguardianweather_weather_world.nitf",
+    "20180122.0111.moved/170_theobserverweather_weather_obs.nitf",
+    "20180123.0111.moved/107_theguardianweather_weather_world.nitf",
+    "20180124.0111.moved/112_theguardianweather_weather_world.nitf",
+    "20180125.0111.moved/115_theguardianweather_weather_world.nitf",
     // misplaced </figure> without an opening tag
     "20171029.0111.moved/086_mysterious-object-detected-speeding-past-the-sun-could-be-from-another-solar-system-a2017-u1.nitf",
     "20171213.0111.moved/038_astronomers-to-check-interstellar-body-for-signs-of-alien-technology.nitf"
@@ -42,7 +48,6 @@ class NitfValidator extends FunSpec {
   Files.walk(basePath).iterator.asScala
     .filter(_.toString.endsWith(".nitf"))
     .filterNot(invalidXmlFiles)
-  //.filter(_.getName(5).toString.startsWith("201803"))
     .foreach { nitfFilePath =>
       describe("NITF file " + nitfFilePath) {
         it("should match the schema") {
@@ -50,7 +55,7 @@ class NitfValidator extends FunSpec {
             validateFile(nitfFilePath.toFile)
           } catch {
             case e: org.xml.sax.SAXParseException =>
-              cancel("XML file is invalid!", e)
+              cancel("XML file is invalid! " + e.getMessage, e)
           }
         }
       }
@@ -96,7 +101,7 @@ object NitfValidator {
     val isList = (x: Node) => x.label == "ol" || x.label == "ul"
     val isListItem = (x: Node) => x.label == "li"
     val nonListItem = (x: Node) => !isListItem(x)
-    rewriteRule("Convert misplaced <li> to <p>") {
+    rewriteRule("Convert misplaced <li>, <ol> and <ul> to <p>") {
       case e: Elem if isList(e) && e.hasChildren(nonListItem) =>
         if (e.child.forall(nonListItem))
           e.child  // remove the extraneous list tag
@@ -152,6 +157,7 @@ object NitfValidator {
   private val unwrapTables = rewriteRule("Unwrap tables") {
     case e: Elem if e.label != "block" && e.hasChildren("table") =>
       unwrapChildren(e, _.label == "table")
+      // this should be done recursively but, after 30k examples, I have yet to see a case where we need it to be recursive
   }
 
   private def rewriteRule(ruleName: String)(pf: PartialFunction[Node, Seq[Node]]): RewriteRule = new RewriteRule {
@@ -170,6 +176,7 @@ object NitfValidator {
     adaptPartitions(parent.child, !matches(_),
       adaptMatching = wrappables => parent.copy(child = wrappables)
     )
+
   private type NodeProcessor = Seq[Node] => Seq[Node]
   /** Partitions a sequence of nodes according to the ''matcher'' predicate, adapts them as required,
     * and then combines them again.
@@ -179,14 +186,13 @@ object NitfValidator {
     */
   private def adaptPartitions(nodes: Seq[Node],
                               matches: Node => Boolean,
-                              adaptMatching: Seq[Node] => Seq[Node] = identity,
-                              adaptUnmatching: Seq[Node] => Seq[Node] = identity): Seq[Node] = {
-    def adaptUnlessEmpty(partition: Seq[Node], adapt: Seq[Node] => Seq[Node]): Seq[Node] =
+                              adaptMatching: NodeProcessor = identity,
+                              adaptUnmatching: NodeProcessor = identity): Seq[Node] = {
+    def adaptUnlessEmpty(partition: Seq[Node], adapt: NodeProcessor): Seq[Node] =
       if (partition.isEmpty) partition else adapt(partition)
 
-    val before = nodes.takeWhile(!matches(_))
-    val middle = nodes.drop(before.size).takeWhile(matches)
-    val after  = nodes.drop(before.size + middle.size)
+    val (before, rest) = nodes.span(!matches(_))
+    val (middle, after) = rest.span(matches)
 
     adaptUnlessEmpty(before, adaptUnmatching) ++
       adaptUnlessEmpty(middle, adaptMatching) ++
