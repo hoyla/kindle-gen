@@ -14,31 +14,8 @@ import com.gu.xml.XmlUtils._
 class NitfValidator extends FunSpec {
   import NitfValidator._
 
-  private val historicalNitfFiles: Iterator[Path] = {
-    val basePath = Paths.get("../kindle-publications-extracted/feeds").toRealPath()
-    val invalidXmlFiles = Set(
-      // empty content / wrong XML
-      "20180117.0111.moved/122_theguardianweather_weather_world.nitf",
-      "20180118.0111.moved/115_theguardianweather_weather_world.nitf",
-      "20180119.0111.moved/133_theguardianweather_weather_world.nitf",
-      "20180120.0111.moved/125_theguardianweather_weather_world.nitf",
-      "20180121.0111.moved/201_theguardianweather_weather_world.nitf",
-      "20180122.0111.moved/170_theobserverweather_weather_obs.nitf",
-      "20180123.0111.moved/107_theguardianweather_weather_world.nitf",
-      "20180124.0111.moved/112_theguardianweather_weather_world.nitf",
-      "20180125.0111.moved/115_theguardianweather_weather_world.nitf",
-      // misplaced </figure> without an opening tag
-      "20171029.0111.moved/086_mysterious-object-detected-speeding-past-the-sun-could-be-from-another-solar-system-a2017-u1.nitf",
-      "20171213.0111.moved/038_astronomers-to-check-interstellar-body-for-signs-of-alien-technology.nitf"
-    ).map(basePath.resolve)
-
-    Files.walk(basePath).iterator.asScala
-      .filter(_.toString.endsWith(".nitf"))
-      .filterNot(invalidXmlFiles)
-  }
-
-  historicalNitfFiles
-    .foreach { nitfFilePath =>
+  Seq(Paths.get(resource("example.nitf").toURI))
+  .foreach { nitfFilePath =>
       describe("NITF file " + nitfFilePath) {
         it("should match the schema") {
           try {

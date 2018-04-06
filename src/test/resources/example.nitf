@@ -1,0 +1,66 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<nitf>
+    <head>
+        <title>How babies learn - and why robots can't compete</title>
+        <docdata management-status="usable">
+            <doc-id id-string="news/2018/apr/03/how-babies-learn-and-why-robots-cant-compete"/>
+            <urgency ed-urg="2"/>
+            <date.issue norm="20180403"/>
+            <date.release norm="20180403"/>
+            <doc.copyright holder="guardian.co.uk"/>
+        </docdata>
+        <pubdata type="print" date.publication="20180403"/>
+    </head>
+    <body>
+        <body.head>
+            <hedline>
+                <hl1>How babies learn - and why robots can't compete</hl1>
+            </hedline>
+            <byline>An Author</byline>
+            <abstract>
+                Text should be wrapped in a paragraph
+            </abstract>
+        </body.head>
+        <body.content>
+            <block>
+                <content>
+                    <img src="194_425.jpg">Images should be supported</img>
+                </content>
+                <p>paragraphs should be supported
+                    <b>bold should become strong</b>
+                    text after tag should be left as-is
+                    <i>italics should become &lt;em&gt;</i>
+                </p>
+                <p unsupported="attributes" should="be removed">
+                    <u>underlined should become em</u>
+                    <span>spans should be removed</span>
+
+                    <img src="some-image.png">Inline images should be supported</img>
+                    <table><tr><td>Inline tables should be moved outside</td></tr></table>
+                </p>
+                <h2>should become hl2</h2>
+                <p class="supported attributes should be left intact">
+                    <s>striked should be removed</s>
+                    <em><strike>striked</strike> inside em should be removed</em>
+                    <sub>sub</sub> and <sup>sup</sup> should be removed but the text inside should remain intact
+                    symbols § and character references &#xa3; should be left intact
+                </p>
+                <ul>Text inside ul should be wrapped in a paragraph</ul>
+                <ol>Text inside ol should be wrapped in a paragraph</ol>
+                <li>List items outside lists should be converted to paragraphs</li>
+                Text directly inside a &lt;block&gt; should be wrapped in a paragraph
+                <strong>Enriched text directly inside a &lt;block&gt; should be wrapped in a paragraph</strong>
+                <blockquote>
+                    HTML blockquote should be converted to &lt;bq&gt;&lt;block&gt;
+                    <br/>
+                    and the <em>text</em> (and <strong>enriched</strong> text)
+                    should be wrapped in a paragraph.
+                    <p>but existing paragraphs</p>
+                    <p>should not be combined</p>
+                    <p>with other paragraphs, not even the new wrappers</p>
+                </blockquote>
+            </block>
+        </body.content>
+        <body.end/>
+    </body>
+</nitf>
