@@ -5,12 +5,11 @@ import java.nio.file.{Files, Paths}
 
 import scala.collection.JavaConverters._
 import scala.xml._
-import scala.xml.transform._
 
 import org.scalatest.FunSpec
 
-import com.gu.xml.XmlUtils._
 import com.gu.xml._
+import com.gu.xml.XmlUtils._
 
 class NitfValidator extends FunSpec {
   import NitfValidator._
@@ -127,9 +126,9 @@ object NitfValidator {
         if (e.child.forall(nonListItem))
           e.child  // remove the extraneous list tag
         else
-          wrapChildren(e, nonListItem, e.copy(label = "li", attributes = Null, child = Nil))
+          e.wrapChildren(nonListItem, e.copy(label = "li", attributes = Null, child = Nil))
       case e: Elem if !isList(e) && e.hasChildren("li") =>
-        e.copy(child = adaptPartitions(e.child, isListItem,
+        e.copy(child = e.child.adaptPartitions(isListItem,
           adaptMatching = _.map(n => Elem(n.prefix, "p", n.attributes, n.scope, true, n.child: _*)))
         )
     }
@@ -157,7 +156,7 @@ object NitfValidator {
     val nonBlockContentTag = (x: Node) => !blockContentTags.contains(x.label)
     rewriteRule("Wrap text (and enriched text) in non-mixed elements") {
       case e: Elem if blockContentElements.contains(e.label) && e.hasChildren(nonBlockContentTag) =>
-        wrapChildren(e, nonBlockContentTag,
+        e.wrapChildren(nonBlockContentTag,
           wrapper = e.copy(label = "p", attributes = Null, child = Nil))
     }
   }
@@ -177,46 +176,7 @@ object NitfValidator {
 
   private val unwrapTables = rewriteRule("Unwrap tables") {
     case e: Elem if e.label != "block" && e.hasChildren("table") =>
-      unwrapChildren(e, _.label == "table")
+      e.unwrapChildren(_.label == "table")
       // this should be done recursively but, after 30k examples, I have yet to see a case where we need it to be recursive
-  }
-
-  private def rewriteRule(ruleName: String)(pf: PartialFunction[Node, Seq[Node]]): RewriteRule = new RewriteRule {
-    override def transform(n: Node): Seq[Node] = pf.applyOrElse(n, identity[Seq[Node]])
-    override def toString(): String = ruleName
-  }
-
-  private def wrapChildren(parent: Elem, matches: Node => Boolean, wrapper: Elem): Elem =
-    parent.copy(child =
-      adaptPartitions(parent.child, matches,
-        adaptMatching = wrappables => wrapper.copy(child = wrappables)
-      )
-    )
-
-  private def unwrapChildren(parent: Elem, matches: Node => Boolean): Seq[Node] =
-    adaptPartitions(parent.child, !matches(_),
-      adaptMatching = wrappables => parent.copy(child = wrappables)
-    )
-
-  private type NodeProcessor = Seq[Node] => Seq[Node]
-  /** Partitions a sequence of nodes according to the ''matcher'' predicate, adapts them as required,
-    * and then combines them again.
-    *
-    * Nodes are divided into contiguous sections of nodes that either match or don't match the predicate.
-    * Each contiguous section is passed to ''adaptMatching'' or ''adaptUnmatching''.
-    */
-  private def adaptPartitions(nodes: Seq[Node],
-                              matches: Node => Boolean,
-                              adaptMatching: NodeProcessor = identity,
-                              adaptUnmatching: NodeProcessor = identity): Seq[Node] = {
-    def adaptUnlessEmpty(partition: Seq[Node], adapt: NodeProcessor): Seq[Node] =
-      if (partition.isEmpty) partition else adapt(partition)
-
-    val (before, rest) = nodes.span(!matches(_))
-    val (middle, after) = rest.span(matches)
-
-    adaptUnlessEmpty(before, adaptUnmatching) ++
-      adaptUnlessEmpty(middle, adaptMatching) ++
-      adaptUnlessEmpty(after, adaptPartitions(_, matches, adaptMatching = adaptMatching, adaptUnmatching = adaptUnmatching))
   }
 }
