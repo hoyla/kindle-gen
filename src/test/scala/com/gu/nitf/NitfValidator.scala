@@ -80,14 +80,11 @@ object NitfValidator {
   )
 
   private val removeControlCharacters = {  // temporary rule until https://github.com/scala/scala-xml/pull/203 is fixed
-    def unwanted(x: Char) = x.isControl &&
-      x != '\n' && x != '\r' && x != '\t' && x != '\u0085' /* new line (NEL) */
-    def hasUnwanted(x: Atom[_]) = x.text.exists(unwanted)
-    def cleanText(x: Atom[_]) = x.text.filterNot(unwanted)
+    val unwanted = (c: Char) => c.isControl && c != '\n' && c != '\r' && c != '\t'
 
     rewriteRule("Remove control characters") {
-      case a: Atom[_] if hasUnwanted(a) =>
-        val cleaned = cleanText(a)
+      case a: Atom[_] if a.text.exists(unwanted) =>
+        val cleaned = a.text.filterNot(unwanted)
         a match {
           case x: Text     => Text(cleaned)
           case x: PCData   => PCData(cleaned)
