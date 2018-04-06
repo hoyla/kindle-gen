@@ -28,13 +28,22 @@ object `package` {
       * This method is also more efficient than calling {{{node.attributes.asAttrMap.keys}}}
       * because it doesn't serialise the values.
       */
-    def attributeKeys: Iterable[String] = node.attributes.map(_.key)
+    def attributeKeys: Iterable[String] =
+      node.attributes.map(_.key)
 
-    /** Checks if any ''direct'' child has any of the specified labels */
-    def hasChildren(childLabels: String*): Boolean = hasChildren(c => childLabels.contains(c.label))
+    /** Checks if any ''direct'' child has the specified label */
+    def hasChildrenWithLabel(childLabel: String): Boolean =
+      hasChildrenMatching(_.label == childLabel)
+
+    /** Checks if any ''direct'' child has any of the specified labels.
+      * Example usage: {{{node.hasChildren(Set("p", "span"))}}}
+      */
+    def hasChildrenWithLabels(childLabels: String => Boolean): Boolean =
+      hasChildrenMatching(c => childLabels(c.label))
 
     /** Checks if any ''direct'' child matches the ''predicate'' */
-    def hasChildren(predicate: Node => Boolean): Boolean = node.child.exists(predicate)
+    def hasChildrenMatching(predicate: Node => Boolean): Boolean =
+      node.child.exists(predicate)
 
     /** Transforms the node using the specified rules.
       * @see [[rewriteRule]]
@@ -76,7 +85,8 @@ object `package` {
   implicit class RichSeqOfNodes(val nodes: Seq[Node]) extends AnyVal {
     type NodeProcessor = Seq[Node] => Seq[Node]
 
-    def transformAll(rules: RewriteRule*): Seq[Node] = new RuleTransformer(rules: _*).transform(nodes)
+    def transformAll(rules: RewriteRule*): Seq[Node] =
+      new RuleTransformer(rules: _*).transform(nodes)
 
     /** Partitions a sequence of nodes according to the ''matches'' predicate, adapts them as required,
       * and then combines them again.

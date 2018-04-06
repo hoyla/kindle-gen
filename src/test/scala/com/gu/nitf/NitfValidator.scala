@@ -119,12 +119,12 @@ object NitfValidator {
     val isListItem = (x: Node) => x.label == "li"
     val nonListItem = (x: Node) => !isListItem(x)
     rewriteRule("Convert misplaced <li>, <ol> and <ul> to <p>") {
-      case e: Elem if isList(e) && e.hasChildren(nonListItem) =>
+      case e: Elem if isList(e) && e.hasChildrenMatching(nonListItem) =>
         if (e.child.forall(nonListItem))
           e.child  // remove the extraneous list tag
         else
           e.wrapChildren(nonListItem, e.copy(label = "li", attributes = Null, child = Nil))
-      case e: Elem if !isList(e) && e.hasChildren("li") =>
+      case e: Elem if !isList(e) && e.hasChildrenWithLabel("li") =>
         e.copy(child = e.child.adaptPartitions(isListItem,
           adaptMatching = _.map(n => Elem(n.prefix, "p", n.attributes, n.scope, true, n.child: _*)))
         )
@@ -152,7 +152,7 @@ object NitfValidator {
     )
     val nonBlockContentTag = (x: Node) => !blockContentTags.contains(x.label)
     rewriteRule("Wrap text (and enriched text) in non-mixed elements") {
-      case e: Elem if blockContentElements.contains(e.label) && e.hasChildren(nonBlockContentTag) =>
+      case e: Elem if blockContentElements.contains(e.label) && e.hasChildrenMatching(nonBlockContentTag) =>
         e.wrapChildren(nonBlockContentTag,
           wrapper = e.copy(label = "p", attributes = Null, child = Nil))
     }
@@ -163,7 +163,7 @@ object NitfValidator {
       // <blockquote>text</blockquote> => <bq><block>text</block></bq>
       // will need to go through [[wrapBlockContentText]] to wrap the text into a paragraph
       e.copy(label = "bq", child = wrapBlockContentText(e.copy(label = "block")))
-    case e: Elem if e.label != "content" && e.hasChildren("img") =>
+    case e: Elem if e.label != "content" && e.hasChildrenWithLabel("img") =>
       // <img /> => <content><img /></content>
       e.copy(child = e.child.map {
         case c: Elem if c.label == "img" => c.copy(label = "content", attributes = Null, child = c)
@@ -172,7 +172,7 @@ object NitfValidator {
   }
 
   private val unwrapTables = rewriteRule("Unwrap tables") {
-    case e: Elem if e.label != "block" && e.hasChildren("table") =>
+    case e: Elem if e.label != "block" && e.hasChildrenWithLabel("table") =>
       e.unwrapChildren(_.label == "table")
       // this should be done recursively but, after 30k examples, I have yet to see a case where we need it to be recursive
   }
