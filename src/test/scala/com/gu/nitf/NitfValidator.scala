@@ -69,6 +69,7 @@ class NitfValidator extends FunSpec {
 
 object NitfValidator {
   private def transform = new RuleTransformer(
+    removeControlCharacters,
     setVersionToNitf35,
     convertOrRemoveTags,
     convertMisplacedLists,
@@ -78,7 +79,25 @@ object NitfValidator {
     wrapElements
   )
 
-  private val setVersionToNitf35 = rewriteRule("set version to NITF 3.5") {
+  private val removeControlCharacters = {  // temporary rule until https://github.com/scala/scala-xml/pull/203 is fixed
+    def unwanted(x: Char) = x.isControl &&
+      x != '\n' && x != '\r' && x != '\t' && x != '\u0085' /* new line (NEL) */
+    def hasUnwanted(x: Atom[_]) = x.text.exists(unwanted)
+    def cleanText(x: Atom[_]) = x.text.filterNot(unwanted)
+
+    rewriteRule("Remove control characters") {
+      case a: Atom[_] if hasUnwanted(a) =>
+        val cleaned = cleanText(a)
+        a match {
+          case x: Text     => Text(cleaned)
+          case x: PCData   => PCData(cleaned)
+          case x: Unparsed => Unparsed(cleaned)
+          case _           => new Atom(cleaned)
+        }
+    }
+  }
+
+  private val setVersionToNitf35 = rewriteRule("Set version to NITF 3.5") {
     case e: Elem if e.label == "nitf" =>
       e.copy(scope = NamespaceBinding(null, "http://iptc.org/std/NITF/2006-10-18/", TopScope))
         .withAttribute(e.prefix, "version", "-//IPTC//DTD NITF 3.5//EN")
@@ -165,7 +184,7 @@ object NitfValidator {
     override def toString(): String = ruleName
   }
 
-  private def wrapChildren(parent: Elem, matches: Node => Boolean, wrapper: Elem): Seq[Node] =
+  private def wrapChildren(parent: Elem, matches: Node => Boolean, wrapper: Elem): Elem =
     parent.copy(child =
       adaptPartitions(parent.child, matches,
         adaptMatching = wrappables => wrapper.copy(child = wrappables)
