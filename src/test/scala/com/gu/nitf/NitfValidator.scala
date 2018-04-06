@@ -14,40 +14,30 @@ import com.gu.xml.XmlUtils._
 class NitfValidator extends FunSpec {
   import NitfValidator._
 
-  /* known issues:
-       - some weather files have no content
-         - 20180117.0111.moved/122_theguardianweather_weather_world.nitf
-         - 20180118.0111.moved/115_theguardianweather_weather_world.nitf
-         - 20180119.0111.moved/133_theguardianweather_weather_world.nitf
-       - stray <li> in 20180117.0111.moved/085_leave-campaigns-350m-claim-was-too-low-says-boris-johnson.nitf
-       - XML entity ("Information Separator 3" control char!) in 20180116.0111.moved/060_hm-stores-in-south-afrtica-trashed-by-protesters-after-racist-ad.nitf
-       - empty <ul> in 20180223.0111.moved/073_freehold-on-disputed-birmingham-leasehold-flats-goes-on-sale.nitf
-       - <ul> with <p> children in 20180217.0111.moved/024_barry-bennell-abuse-manchester-city-crewe.nitf
-       - <li> without <ul> or <ol> in
-         - 20180308.0111.moved/017_disgraced-ex-co-op-bank-boss-paul-flowers-crystal-methodist-banned-from-financial-services.nitf
-         - 20180302.0111.moved/010_judges-told-to-limit-observers-if-witness-has-to-remove-veil.nitf
-  */
+  private val historicalNitfFiles: Iterator[Path] = {
+    val basePath = Paths.get("../kindle-publications-extracted/feeds").toRealPath()
+    val invalidXmlFiles = Set(
+      // empty content / wrong XML
+      "20180117.0111.moved/122_theguardianweather_weather_world.nitf",
+      "20180118.0111.moved/115_theguardianweather_weather_world.nitf",
+      "20180119.0111.moved/133_theguardianweather_weather_world.nitf",
+      "20180120.0111.moved/125_theguardianweather_weather_world.nitf",
+      "20180121.0111.moved/201_theguardianweather_weather_world.nitf",
+      "20180122.0111.moved/170_theobserverweather_weather_obs.nitf",
+      "20180123.0111.moved/107_theguardianweather_weather_world.nitf",
+      "20180124.0111.moved/112_theguardianweather_weather_world.nitf",
+      "20180125.0111.moved/115_theguardianweather_weather_world.nitf",
+      // misplaced </figure> without an opening tag
+      "20171029.0111.moved/086_mysterious-object-detected-speeding-past-the-sun-could-be-from-another-solar-system-a2017-u1.nitf",
+      "20171213.0111.moved/038_astronomers-to-check-interstellar-body-for-signs-of-alien-technology.nitf"
+    ).map(basePath.resolve)
 
-  private val basePath = Paths.get("../kindle-publications-extracted/feeds").toRealPath()
-  private val invalidXmlFiles = Set(
-    // empty content / wrong XML
-    "20180117.0111.moved/122_theguardianweather_weather_world.nitf",
-    "20180118.0111.moved/115_theguardianweather_weather_world.nitf",
-    "20180119.0111.moved/133_theguardianweather_weather_world.nitf",
-    "20180120.0111.moved/125_theguardianweather_weather_world.nitf",
-    "20180121.0111.moved/201_theguardianweather_weather_world.nitf",
-    "20180122.0111.moved/170_theobserverweather_weather_obs.nitf",
-    "20180123.0111.moved/107_theguardianweather_weather_world.nitf",
-    "20180124.0111.moved/112_theguardianweather_weather_world.nitf",
-    "20180125.0111.moved/115_theguardianweather_weather_world.nitf",
-    // misplaced </figure> without an opening tag
-    "20171029.0111.moved/086_mysterious-object-detected-speeding-past-the-sun-could-be-from-another-solar-system-a2017-u1.nitf",
-    "20171213.0111.moved/038_astronomers-to-check-interstellar-body-for-signs-of-alien-technology.nitf"
-  ).map(basePath.resolve)
+    Files.walk(basePath).iterator.asScala
+      .filter(_.toString.endsWith(".nitf"))
+      .filterNot(invalidXmlFiles)
+  }
 
-  Files.walk(basePath).iterator.asScala
-    .filter(_.toString.endsWith(".nitf"))
-    .filterNot(invalidXmlFiles)
+  historicalNitfFiles
     .foreach { nitfFilePath =>
       describe("NITF file " + nitfFilePath) {
         it("should match the schema") {
