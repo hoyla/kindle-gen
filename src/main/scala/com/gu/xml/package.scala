@@ -1,5 +1,6 @@
 package com.gu.xml
 
+import scala.util.Try
 import scala.xml._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
@@ -48,7 +49,34 @@ object `package` {
     /** Transforms the node using the specified rules.
       * @see [[rewriteRule]]
       */
-    def transform(rules: RewriteRule*): Node = new RuleTransformer(rules: _*).apply(node)
+    def transform(rules: RewriteRule*): Node =
+      new RuleTransformer(rules: _*).apply(node)
+
+    /** Creates an element that matches this node, unless this node is a [[scala.xml.SpecialNode]]. */
+    def toElem: Option[Elem] = node match {
+      case e: Elem => Some(e)
+      case _ => Try(toElem()).toOption
+    }
+
+    /** Creates an element that matches this node with the specified properties adjusted.
+      *
+      * @throws IllegalArgumentException if this node is a [[scala.xml.SpecialNode]]
+      */
+    def toElem(prefix: String = node.prefix,
+               label: String = node.label,
+               attributes: MetaData = node.attributes,
+               scope: NamespaceBinding = node.scope,
+               minimizeEmpty: Boolean = node.isEmpty,
+               child: Seq[Node] = node.child): Elem = {
+      def illegal(description: String) =
+        throw new IllegalArgumentException(s"An element cannot be created from $description")
+      node match {
+        case _: Group => illegal("a Group")
+        case _: SpecialNode => illegal(s"${node.label}($node)")
+        case _ =>
+          Elem(prefix, label, attributes, scope, minimizeEmpty, child: _*)
+      }
+    }
   }
 
   implicit class RichElem(val elem: Elem) extends AnyVal {

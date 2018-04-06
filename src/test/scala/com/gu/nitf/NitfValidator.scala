@@ -125,8 +125,8 @@ object NitfValidator {
         else
           e.wrapChildren(nonListItem, e.copy(label = "li", attributes = Null, child = Nil))
       case e: Elem if !isList(e) && e.hasChildrenWithLabel("li") =>
-        e.copy(child = e.child.adaptPartitions(isListItem,
-          adaptMatching = _.map(n => Elem(n.prefix, "p", n.attributes, n.scope, true, n.child: _*)))
+        e.copy(child =
+          e.child.adaptPartitions(isListItem, adaptMatching = _.map(_.toElem(label = "p")))
         )
     }
   }
