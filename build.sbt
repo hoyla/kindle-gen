@@ -15,6 +15,10 @@ scalacOptions ++= Seq(
   "-Ywarn-dead-code"
 )
 
+// allow scaladoc to process links to classes from libraryDependencies
+autoAPIMappings := true
+doc / exportJars := true
+
 /* deps for aws lambda */
 libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0"
 

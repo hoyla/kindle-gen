@@ -4,7 +4,7 @@ import scala.xml._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 object `package` {
-  /** Creates a ''RewriteRule'' that can be used to transform nodes
+  /** Creates a [[scala.xml.transform.RewriteRule]] that can be used to transform nodes.
     *
     * @see [[RichNode.transform]]
     * @see [[RichSeqOfNodes.transformAll]]
@@ -20,9 +20,25 @@ object `package` {
   }
 
   implicit class RichNode(val node: Node) extends AnyVal {
+    /** Returns all the ''unprefixed keys'' of all attributes attached to this node.
+      *
+      * The result of this method is different than that of [[scala.xml.MetaData.asAttrMap]]
+      * in that the keys returned by this method _do not_ contain prefixes.
+      *
+      * This method is also more efficient than calling {{{node.attributes.asAttrMap.keys}}}
+      * because it doesn't serialise the values.
+      */
     def attributeKeys: Iterable[String] = node.attributes.map(_.key)
+
+    /** Checks if any ''direct'' child has any of the specified labels */
     def hasChildren(childLabels: String*): Boolean = hasChildren(c => childLabels.contains(c.label))
+
+    /** Checks if any ''direct'' child matches the ''predicate'' */
     def hasChildren(predicate: Node => Boolean): Boolean = node.child.exists(predicate)
+
+    /** Transforms the node using the specified rules.
+      * @see [[rewriteRule]]
+      */
     def transform(rules: RewriteRule*): Node = new RuleTransformer(rules: _*).apply(node)
   }
 
@@ -46,7 +62,7 @@ object `package` {
       ))
 
     /** Extracts each direct child that ''matches'' to become a sibling to ''parent''.
-      * This is equivalent to wrapping contiguous blocks of direct children that _do not_ match into copies of ''parent''.
+      * This is equivalent to wrapping contiguous blocks of direct children that ''do not'' match into copies of ''parent''.
       *
       * @param matches a predicate that identifies which children are to be extracted
       * @return a sequence of nodes that either match the condition or are a ''parent'' themselves
