@@ -69,15 +69,21 @@ class NitfValidator extends FunSpec {
 }
 
 object NitfValidator {
+  private val BlockContentParents = Set("abstract", "block")
+  private val BlockContentTags = Set(
+    "bq", "content", "dl", "fn", "hl2", "h3", "h4", "h5", "h6", "hr",
+    "media", "nitf-table", "note", "ol", "p", "pre", "table", "ul"
+  )
+
   private def transformRules = Seq(
     removeControlCharacters,
     setVersionToNitf35,
     convertOrRemoveTags,
     convertMisplacedLists,
     removeUnsupportedAttributes,
-    unwrapTables,
     wrapBlockContentText,
-    wrapElements
+    wrapSpecialElements,
+    unwrapBlockContentParents
   )
 
   private val removeControlCharacters = {  // temporary rule until https://github.com/scala/scala-xml/pull/203 is fixed
@@ -146,19 +152,22 @@ object NitfValidator {
   }
 
   private val wrapBlockContentText = {
-    val blockContentElements = Set("abstract", "block")
-    val blockContentTags = Set(
-      "p", "hl2", "h3", "h4", "h5", "h6", "table", "nitf-table", "media", "ol", "ul", "dl", "bq", "fn", "note", "pre", "hr", "content"
-    )
-    val nonBlockContentTag = (x: Node) => !blockContentTags.contains(x.label)
+    val nonBlockContentTag = (x: Node) => !BlockContentTags.contains(x.label)
     rewriteRule("Wrap text (and enriched text) in non-mixed elements") {
-      case e: Elem if blockContentElements.contains(e.label) && e.hasChildrenMatching(nonBlockContentTag) =>
+      case e: Elem if BlockContentParents.contains(e.label) && e.hasChildrenMatching(nonBlockContentTag) =>
         e.wrapChildren(nonBlockContentTag,
           wrapper = e.copy(label = "p", attributes = Null, child = Nil))
     }
   }
 
-  private val wrapElements = rewriteRule("Wrap elements") {
+  private val unwrapBlockContentParents = {
+    rewriteRule("Unwrap block content parents") {
+      case e: Elem if !BlockContentParents.contains(e.label) && e.hasChildrenWithLabels(BlockContentTags) =>
+        e.unwrapChildren(child => BlockContentTags.contains(child.label))
+    }
+  }
+
+  private val wrapSpecialElements = rewriteRule("Wrap special elements") {
     case e: Elem if e.label == "blockquote" =>
       // <blockquote>text</blockquote> => <bq><block>text</block></bq>
       // will need to go through [[wrapBlockContentText]] to wrap the text into a paragraph
@@ -169,11 +178,5 @@ object NitfValidator {
         case c: Elem if c.label == "img" => c.copy(label = "content", attributes = Null, child = c)
         case c => c
       })
-  }
-
-  private val unwrapTables = rewriteRule("Unwrap tables") {
-    case e: Elem if e.label != "block" && e.hasChildrenWithLabel("table") =>
-      e.unwrapChildren(_.label == "table")
-      // this should be done recursively but, after 30k examples, I have yet to see a case where we need it to be recursive
   }
 }
