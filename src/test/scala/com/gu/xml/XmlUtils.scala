@@ -21,19 +21,6 @@ import org.xml.sax.ErrorHandler
 
 
 object XmlUtils {
-  implicit class RichMetaData(val metaData: MetaData) extends AnyVal {
-    def without(unwantedAttributes: Seq[String]): MetaData = unwantedAttributes.foldLeft(metaData)(_ remove _)
-  }
-
-  implicit class RichElem(val e: Elem) extends AnyVal {
-    def attributeKeys: Iterable[String] = e.attributes.map(_.key)
-    def hasChildren(childLabels: String*): Boolean = hasChildren(c => childLabels.contains(c.label))
-    def hasChildren(predicate: Node => Boolean): Boolean = e.child.exists(predicate)
-    def withAttribute(prefix: String, key: String, value: String): Elem = e % Attribute(prefix, key, value, Null)
-    def withAttributes(attrs: Attribute*): Elem = attrs.foldLeft(e)(_ % _)
-    def withoutAttributes(unwanted: String*): Elem = e.copy(attributes = e.attributes.without(unwanted))
-  }
-
   def resource(fileName: String): URL =
     Option(Thread.currentThread.getContextClassLoader)
       .getOrElse(this.getClass.getClassLoader)

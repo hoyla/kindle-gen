@@ -10,6 +10,7 @@ import scala.xml.transform._
 import org.scalatest.FunSpec
 
 import com.gu.xml.XmlUtils._
+import com.gu.xml._
 
 class NitfValidator extends FunSpec {
   import NitfValidator._
@@ -61,14 +62,15 @@ class NitfValidator extends FunSpec {
       }
     }
 
-  private def validateFile(nitfFile: File): Unit = {
-    val xml = transform(Utility.trim(XML.loadFile(nitfFile)))
+  private def validateFile(nitfFile: File): Node = {
+    val xml = Utility.trim(XML.loadFile(nitfFile)).transform(transformRules: _*)
     validateXml(xml, "kpp-nitf-3.5.7.xsd")
+    xml
   }
 }
 
 object NitfValidator {
-  private def transform = new RuleTransformer(
+  private def transformRules = Seq(
     removeControlCharacters,
     setVersionToNitf35,
     convertOrRemoveTags,
