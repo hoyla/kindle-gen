@@ -1,9 +1,8 @@
 package com.gu.nitf
 
 import java.io.File
-import java.nio.file.{Files, Paths}
+import java.nio.file.{Path, Paths}
 
-import scala.collection.JavaConverters._
 import scala.xml._
 
 import org.scalatest.FunSpec
@@ -12,11 +11,15 @@ import com.gu.kpp.nitf.XhtmlToNitfTransformer
 import com.gu.xml._
 import com.gu.xml.XmlUtils._
 
-class NitfValidator extends FunSpec {
-  import NitfValidator._
+class XhtmlToNitfTransformationSpec extends FunSpec {
+  import XhtmlToNitfTransformationSpec._
 
-  Seq(Paths.get(resource("xhtml-example.nitf").toURI))
-  .foreach { nitfFilePath =>
+  filesToTest.foreach(test)
+
+  protected def filesToTest: TraversableOnce[Path] =
+    Seq(Paths.get(resource("xhtml-example.nitf").toURI))
+
+  protected def test(nitfFilePath: Path): Unit = {
       describe("NITF file " + nitfFilePath) {
         it("should match the schema") {
           try {
@@ -24,19 +27,20 @@ class NitfValidator extends FunSpec {
             validateXml(xml, "kpp-nitf-3.5.7.xsd")
           } catch {
             case e: org.xml.sax.SAXParseException =>
+              e.printStackTrace()
               cancel("XML file is invalid! " + e.getMessage, e)
           }
         }
       }
-    }
+  }
 
-  private def loadAndTransform(nitfFile: File): Elem = {
+  protected def loadAndTransform(nitfFile: File): Elem = {
     val inputXml = Utility.trim(XML.loadFile(nitfFile)).transform(Seq(setVersionToNitf35))
     XhtmlToNitfTransformer(inputXml.toElem())
   }
 }
 
-object NitfValidator {
+object XhtmlToNitfTransformationSpec {
   private val setVersionToNitf35 = rewriteRule("Set version to NITF 3.5") {
     case e: Elem if e.label == "nitf" =>
       e.copy(scope = NamespaceBinding(null, "http://iptc.org/std/NITF/2006-10-18/", TopScope))
