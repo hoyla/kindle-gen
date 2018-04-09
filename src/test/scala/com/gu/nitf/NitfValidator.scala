@@ -14,7 +14,7 @@ import com.gu.xml.XmlUtils._
 class NitfValidator extends FunSpec {
   import NitfValidator._
 
-  Seq(Paths.get(resource("example.nitf").toURI))
+  Seq(Paths.get(resource("xhtml-example.nitf").toURI))
   .foreach { nitfFilePath =>
       describe("NITF file " + nitfFilePath) {
         it("should match the schema") {
