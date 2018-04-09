@@ -49,7 +49,7 @@ object `package` {
     /** Transforms the node using the specified rules.
       * @see [[rewriteRule]]
       */
-    def transform(rules: RewriteRule*): Node =
+    def transform(rules: Seq[RewriteRule]): Node =
       new RuleTransformer(rules: _*).apply(node)
 
     /** Creates an element that matches this node, unless this node is a [[scala.xml.SpecialNode]]. */
@@ -113,7 +113,7 @@ object `package` {
   implicit class RichSeqOfNodes(val nodes: Seq[Node]) extends AnyVal {
     type NodeProcessor = Seq[Node] => Seq[Node]
 
-    def transformAll(rules: RewriteRule*): Seq[Node] =
+    def transformAll(rules: Seq[RewriteRule]): Seq[Node] =
       new RuleTransformer(rules: _*).transform(nodes)
 
     /** Partitions a sequence of nodes according to the ''matches'' predicate, adapts them as required,
