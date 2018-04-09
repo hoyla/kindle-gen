@@ -36,9 +36,9 @@ class NitfValidator extends FunSpec {
 }
 
 object NitfValidator {
-  private val BlockContentParents = Set("abstract", "block")
+  private val BlockContentParents = Set("abstract", "block", "body.content", "bq")
   private val BlockContentTags = Set(
-    "bq", "content", "dl", "fn", "hl2", "h3", "h4", "h5", "h6", "hr",
+    "block", "bq", "content", "dl", "fn", "hl2", "h3", "h4", "h5", "h6", "hr",
     "media", "nitf-table", "note", "ol", "p", "pre", "table", "ul"
   )
 
