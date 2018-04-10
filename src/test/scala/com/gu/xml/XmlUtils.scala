@@ -19,17 +19,19 @@ object XmlUtils {
       .getOrElse(this.getClass.getClassLoader)
       .getResource(fileName)
 
-  def writeTemporaryFile(fileName: String, xmlContents: NodeSeq): Path = {
-    val outputDir = Files.createDirectories(Paths.get("target/tmp"))
-    Files.write(outputDir.resolve(s"$fileName.xml"), prettyPrint(xmlContents).getBytes("UTF8"))
+  def writeTemporaryFile(xmlContents: Node, fileName: String, outputSubDir: Path = Paths.get(".")): Path = {
+    val outputDir = Files.createDirectories(Paths.get("target", "tmp").resolve(outputSubDir))
+    val outputPath = outputDir.toRealPath().resolve(fileName)
+    XML.save(filename = outputPath.toString, node = xmlContents, xmlDecl = true, enc = "UTF-8")
+    outputPath
   }
 
   def prettify(xml: Node): Elem = {
     XML.load(new StringReader(prettyPrint(xml)))
   }
 
-  def prettyPrint(n: NodeSeq): String = {
-    val printer = new PrettyPrinter(200, 2)
+  def prettyPrint(n: Seq[Node], maxLineWidth: Int = 200): String = {
+    val printer = new PrettyPrinter(maxLineWidth, 2)
     n.map(printer.format(_)).mkString("\n")
   }
 
