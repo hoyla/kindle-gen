@@ -24,7 +24,7 @@ class XhtmlToNitfTransformationSpec extends FunSpec {
         it("should match the schema") {
           try {
             val xml = loadAndTransform(nitfFilePath.toFile)
-            validateXml(xml, "kpp-nitf-3.5.7.xsd")
+            validateXml(xml, resource("kpp-nitf-3.5.7.xsd").toURI)
           } catch {
             case e: org.xml.sax.SAXParseException =>
               e.printStackTrace()

@@ -1,23 +1,16 @@
 package com.gu.xml
 
-import java.io.{ByteArrayInputStream, StringReader}
+import java.io.StringReader
 import java.net.{URI, URL}
 import java.nio.file.{Files, Path, Paths}
 
-import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
-import javax.xml.transform.Source
-import javax.xml.transform.stream.StreamSource
-import javax.xml.validation.{Schema, SchemaFactory}
-
-import scala.util.control.NonFatal
 import scala.xml._
-import scala.xml.parsing.ConsoleErrorHandler
 
 import com.github.andyglow.xml.diff._
 import org.scalatest.Matchers._
-import org.scalatest.exceptions.{TestCanceledException, TestFailedException}
 import org.scalatest.xml.XmlMatchers._
-import org.xml.sax.ErrorHandler
+
+import com.gu.xml.validation.XmlSchemaValidator
 
 
 object XmlUtils {
@@ -47,37 +40,15 @@ object XmlUtils {
     }
   }
 
-  def validateXml(xmlContents: NodeSeq, schemaResourceName: String): Unit =
-    validateXml(xmlContents, resource(schemaResourceName).toURI)
+  def validateXml(xmlContents: NodeSeq, schemaURI: URI): Unit = {
+    val schemaPath = Paths.get(schemaURI)
+    val xsdSources = Seq(schemaPath.resolveSibling("xml.xsd"), schemaPath).map(XmlSchemaValidator.xmlSource)
 
-  def validateXml(xmlContents: NodeSeq, schemaPath: URI): Unit = {
-    val path = Paths.get(schemaPath)
-    val xsdSources = Seq(path.resolveSibling("xml.xsd"), path).map(xsdSource)
-    val schema = SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI).newSchema(xsdSources.toArray)
-
-    withClue(prettyPrint(xmlContents)) {
-      val validationErrors = try { validateXml(xmlContents, schema) } catch { case NonFatal(e) => throw new TestFailedException(e, 0) }
-      val formattedErrors = if (validationErrors.isEmpty) "" else validationErrors.mkString("\nValidation errors:\n", "\n", "\n")
-      formattedErrors shouldBe empty
+    withClue(prettyPrint(xmlContents) + "\n") {
+      val validationResult = XmlSchemaValidator.validateXml(xmlContents, xsdSources: _*)
+      withClue(validationResult.issues.mkString("\n")) {
+        validationResult shouldBe 'successful
+      }
     }
-  }
-
-  def validateXml(xmlContents: NodeSeq, schema: Schema): Iterable[SAXParseException] = {
-    val validator = schema.newValidator()
-    val errorHandler = new ConsoleErrorHandler with ExceptionCollectingSaxErrorHandler
-    validator.setErrorHandler(errorHandler)
-    validator.validate(new StreamSource(new StringReader(xmlContents.toString)))
-    errorHandler.exceptions
-  }
-
-  private def xsdSource(xsdPath: Path): Source =
-    new StreamSource(new ByteArrayInputStream(Files.readAllBytes(xsdPath)))
-
-  private trait ExceptionCollectingSaxErrorHandler extends ErrorHandler {
-    var exceptions = Seq.empty[SAXParseException]
-    abstract override def warning   (ex: SAXParseException): Unit = { collect(ex); super.warning(ex) }
-    abstract override def error     (ex: SAXParseException): Unit = { collect(ex); super.error(ex) }
-    abstract override def fatalError(ex: SAXParseException): Unit = { collect(ex); super.fatalError(ex) }
-    protected def collect(ex: SAXParseException): Unit = { exceptions :+= ex }
   }
 }
