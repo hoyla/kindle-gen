@@ -11,6 +11,7 @@ scalaVersion := "2.12.5"
 scalacOptions ++= Seq(
   "-deprecation",
   "-encoding", "UTF-8",
+  "-feature",
   "-target:jvm-1.8",
   "-Ywarn-dead-code"
 )
@@ -23,7 +24,7 @@ doc / exportJars := true
 libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0"
 
 /*deps for CAPI client*/
-libraryDependencies += "com.gu" %% "content-api-client" % "11.51"
+libraryDependencies += "com.gu" %% "content-api-client" % "11.55"
 /* deps required to use junit test and test watch */
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
@@ -34,7 +35,7 @@ Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oI")   // show 
 
 /*deps for simple client*/
 //libraryDependencies += "com.typesafe.play" %% "play-ws" % "2.4.3"
-libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.3.0"
+libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.3.0"  // used to fetch images
 
 /* deps for jsoup and xml (html parsing) */
 libraryDependencies += "org.jsoup" % "jsoup" % "1.11.2"
