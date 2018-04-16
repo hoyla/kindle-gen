@@ -46,14 +46,13 @@ object Article {
   def getBodyHtml(content: Content): String = {
 
     def isTypeText(e: BlockElement): Boolean =
-      e.`type` == "text"
+      e.`type` == ElementType.Text
 
     val blocks = content.blocks
-    val bodyBlocks: Option[Seq[Block]] = blocks.flatMap(_.body)
-    val bodyBlocksElements: Option[Seq[BlockElement]] = bodyBlocks.map(_.flatMap(_.elements))
-    val textElemField: Option[Seq[String]] = bodyBlocksElements.map(_.flatMap(_.textTypeData.flatMap(_.html)))
-    //    textElemField.get.mkString(" ")
-    val noOpt = textElemField.fold("")(_.mkString)
+    val bodyBlocks: Seq[Block] = blocks.flatMap(_.body).getOrElse(Nil)
+    val bodyBlocksElements: Seq[BlockElement] = bodyBlocks.flatMap(_.elements)
+    val textElemField: Seq[String] = bodyBlocksElements.flatMap(_.textTypeData.flatMap(_.html))
+    val noOpt = textElemField.mkString
     noOpt
   }
 
