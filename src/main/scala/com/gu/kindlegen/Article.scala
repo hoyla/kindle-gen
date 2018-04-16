@@ -56,25 +56,31 @@ object Article {
     noOpt
   }
 
-  // TODO: get rid of the gets
-  def apply(contentWithIndex: (Content, Int)): Article = {
-    val content = contentWithIndex._1
-    val index = contentWithIndex._2
-    //    for {
-    //      newspaperBookSection <- content.tags.find(_.`type` == NewspaperBookSection)
-    //    } Article(
+  def apply(content: Content, index: Int): Article = {
+    val maybeSectionTag = content.tags.find(_.`type` == NewspaperBookSection)
+    val maybeNewspaperDate = content.fields.flatMap(_.newspaperEditionDate).orElse(content.webPublicationDate)
+
+    require(content.fields.nonEmpty)
+    require(maybeSectionTag.nonEmpty)
+    require(maybeNewspaperDate.nonEmpty)
+
+    apply(content, index, maybeNewspaperDate.get, content.fields.get, maybeSectionTag.get)
+  }
+
+  def apply(content: Content, index: Int, newspaperDate: CapiDateTime, fields: ContentFields, sectionTag: Tag): Article = {
     Article(
-      newspaperBookSection = content.tags.find(_.`type` == NewspaperBookSection).get.id,
-      sectionName = content.tags.find(_.`type` == NewspaperBookSection).get.webTitle,
-      newspaperPageNumber = content.fields.flatMap(_.newspaperPageNumber).getOrElse(0),
+      newspaperBookSection = sectionTag.id,
+      sectionName = sectionTag.webTitle,
+      newspaperPageNumber = fields.newspaperPageNumber.getOrElse(0),
       title = content.webTitle,
       docId = content.id,
-      issueDate = content.fields.flatMap(_.newspaperEditionDate).get,
-      releaseDate = content.fields.flatMap(_.newspaperEditionDate).get,
-      pubDate = content.fields.flatMap(_.newspaperEditionDate).get,
-      byline = content.fields.flatMap(_.byline).getOrElse(""), articleAbstract = content.fields.flatMap(_.standfirst).getOrElse(""),
-      content = getBodyHtml(content: Content),
-      imageUrl = getImageUrl(content: Content),
+      issueDate = newspaperDate,
+      releaseDate = newspaperDate,
+      pubDate = newspaperDate,
+      byline = fields.byline.getOrElse(""),
+      articleAbstract = fields.standfirst.getOrElse(""),
+      content = getBodyHtml(content),
+      imageUrl = getImageUrl(content),
       fileId = index
     )
   }

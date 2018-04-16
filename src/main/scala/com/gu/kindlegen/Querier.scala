@@ -79,7 +79,7 @@ class Querier(settings: Settings) {
   def responseToArticles(response: Seq[Content]): Seq[Article] = {
     val sortedContent = sortContentByPageAndSection(response)
     val contentWithIndex = sortedContent.view.zipWithIndex.toList
-    contentWithIndex.map(Article.apply)
+    contentWithIndex.map { case (content, index) => Article(content, index) }
   }
 
   // This will probably only be called only when sending the files to Amazon because the images can be stored in memory until they are written to the ftp server. Will use the Article.fileID to name the retrieved image byte[].
