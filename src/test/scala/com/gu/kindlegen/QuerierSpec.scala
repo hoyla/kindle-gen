@@ -1,13 +1,18 @@
 package com.gu.kindlegen
 
 import org.scalatest.FlatSpec
-import DateUtils._
+import org.scalatest.Matchers._
+
 import com.gu.contentapi.client.model.v1.Content
 import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
+import com.gu.contentapi.client.utils.CapiModelEnrichment._
+import com.gu.kindlegen.DateUtils._
 
 class QuerierSpec extends FlatSpec {
   val settings = Settings.load.get
-  val querier = new Querier(settings)
+  val querier = new Querier(settings, exampleDate.toOffsetDateTime.toInstant)
+
+  val totalArticles = 104  // on exampleDate = 2017-07-24
 
   // TODO: Find a way to test printSentResponse, extract the edition dates etc
   // TODO: Find a way to override the source file to a sample.conf version
@@ -17,7 +22,7 @@ class QuerierSpec extends FlatSpec {
   val capiResponse = List(testcontent)
   val testArticle = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0)
 
-  ".responseToArticles" should "convert a capi response (Seq[Content) to a Seq[Article]" in {
+  ".responseToArticles" should "convert a capi response (Seq[Content) to a Seq[Article])" in {
     val toArticles = querier.responseToArticles(capiResponse)
 
     assert(toArticles.head.newspaperPageNumber === 3)
@@ -53,5 +58,13 @@ class QuerierSpec extends FlatSpec {
     println(contents.head)
     println(mappedResult)
     assert(mappedResult == mappedSortedContents)
+  }
+
+  "getPrintSentResponse" should "initiate a proper search query" in {
+    querier.getPrintSentResponse(pageNum = 1).total shouldEqual totalArticles
+  }
+
+  "getAllPagesContent" should "extract all response pages" in {
+    querier.getAllPagesContent.flatMap(_.results) should have length totalArticles
   }
 }

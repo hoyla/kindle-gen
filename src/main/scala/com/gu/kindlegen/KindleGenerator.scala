@@ -1,12 +1,13 @@
 package com.gu.kindlegen
 
-import java.nio.file.{ Files, Paths }
+import java.nio.file.{Files, Paths}
+import java.time.Instant
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class KindleGenerator(settings: Settings) {
-  val Querier = new Querier(settings)
+  val Querier = new Querier(settings, Instant.now)
 
   def getNitfBundle: Seq[File] = {
     // TODO: Wrap all these up in one method on the Querier so when

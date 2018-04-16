@@ -3,37 +3,33 @@ package com.gu.kindlegen
 import java.time.Instant
 import java.time.temporal.ChronoUnit.{DAYS, NANOS}
 
-import com.gu.contentapi.client._
-import com.gu.contentapi.client.model._
-import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
-import com.gu.contentapi.client.model.v1.{ Content, SearchResponse }
-
+import scala.concurrent.{Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+
 import scalaj.http._
+
+import com.gu.contentapi.client._
+import com.gu.contentapi.client.model._
+import com.gu.contentapi.client.model.v1.{Content, SearchResponse}
+import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
 
 // TODO: Move elsewhere
 case class ArticleImage(articleId: Int, data: Array[Byte])
 
 object Querier {
-  // TODO: change this to DateTime.now or function that takes a passed in date.
-  private def editionDateTime: Instant = Instant.parse("2017-05-19T00:00:00Z") // to have a date I know the results for
-  //  def editionDateTime: DateTime = DateTime.now()
-
-  def editionDateStart: Instant = editionDateTime
-  def editionDateEnd: Instant = editionDateTime.plus(1, DAYS).minus(1, NANOS)
-
   class PrintSentContentClient(settings: Settings) extends GuardianContentClient(settings.contentApiKey) {
 
     override val targetUrl: String = settings.contentApiTargetUrl
   }
 }
 
-class Querier(settings: Settings) {
+class Querier(settings: Settings, editionDateTime: Instant) {
   import Querier._
 
   def getPrintSentResponse(pageNum: Int): SearchResponse = {
+    val editionDateStart = editionDateTime.truncatedTo(DAYS)
+    val editionDateEnd = editionDateStart.plus(1, DAYS).minus(1, NANOS)
 
     val capiClient = new PrintSentContentClient(settings)
     val query = SearchQuery()
@@ -96,8 +92,6 @@ class Querier(settings: Settings) {
     })
   }
 
-  // TODO: look up try monad instead of try catch
-  // TODO: the e Exception
   def getImageData(url: String): Future[Array[Byte]] = Future {
     val response: HttpRequest = Http(url)
     response.asBytes.body
