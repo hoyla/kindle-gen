@@ -16,7 +16,7 @@ class QuerierSpec extends FlatSpec {
   val settings = Settings.load.get
   val querier = new Querier(settings, exampleDate.toOffsetDateTime.toLocalDate)
 
-  val totalArticles = 104  // on exampleDate = 2017-07-24
+  val totalArticles = 96  // on exampleDate = 2017-07-24
 
   // TODO: Find a way to test printSentResponse, extract the edition dates etc
   // TODO: Find a way to override the source file to a sample.conf version
@@ -68,9 +68,9 @@ class QuerierSpec extends FlatSpec {
     querier.getPrintSentResponse(pageNum = 1).total shouldEqual totalArticles
   }
 
-  "getAllPagesContent" should "handle single-page responses" in {
+  "getAllPagesContent" should "handle empty responses" in {
     val holiday = LocalDate.of(2017, 12, 25)
-    new Querier(settings, holiday).getAllPagesContent.flatMap(_.results) should have length 3
+    new Querier(settings, holiday).getAllPagesContent.flatMap(_.results) should have length 0
   }
 
   "getAllPagesContent" should "extract all response pages" in {

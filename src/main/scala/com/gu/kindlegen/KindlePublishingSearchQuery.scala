@@ -1,7 +1,7 @@
 package com.gu.kindlegen
 
-import java.time.temporal.ChronoUnit.DAYS
 import java.time.{LocalDate, ZoneOffset}
+import java.time.temporal.ChronoUnit.DAYS
 
 import com.gu.contentapi.client.model.PrintSentSearchQuery
 
@@ -12,7 +12,7 @@ object KindlePublishingSearchQuery {
   val WhiteListedTags = Seq.empty[String]  // leave empty to get all tags
   val BlackListedTags = Seq("type/interactive")
 
-  val ResponseTags = Seq("newspaper-book", "newspaper-book-section", "tone", "type")
+  val ResponseTags = Seq("newspaper-book", "newspaper-book-section", "type")
   val ResponseFields = Seq("body", "byline", "newspaper-edition-date", "newspaper-page-number", "standfirst")
 
   def apply(date: LocalDate,

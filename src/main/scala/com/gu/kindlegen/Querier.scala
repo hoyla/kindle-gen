@@ -1,7 +1,6 @@
 package com.gu.kindlegen
 
-import java.time.{LocalDate, ZoneId}
-import java.time.temporal.ChronoUnit.{DAYS, NANOS}
+import java.time.LocalDate
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
@@ -10,7 +9,6 @@ import scala.util.{Success, Try}
 import scalaj.http._
 
 import com.gu.contentapi.client._
-import com.gu.contentapi.client.model._
 import com.gu.contentapi.client.model.v1.{Content, SearchResponse}
 import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
 
@@ -28,22 +26,8 @@ class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: Execution
   import Querier._
 
   def getPrintSentResponse(pageNum: Int): SearchResponse = {
-    val editionDateStart = editionDate.atStartOfDay(ZoneId.of("UTC")).toInstant
-    val editionDateEnd = editionDateStart.plus(1, DAYS).minus(1, NANOS)
-
     val capiClient = new PrintSentContentClient(settings)
-    val query = SearchQuery()
-      .pageSize(5)
-      .showFields("all") //TODO: Don't need all fields.
-      .orderBy("newest")
-      .fromDate(editionDateStart)
-      .toDate(editionDateEnd)
-      .useDate("newspaper-edition")
-      .page(pageNum)
-      .showFields("newspaper-page-number, headline,newspaper-edition-date,byline,standfirst,body")
-      .showTags("newspaper-book-section, newspaper-book")
-      .showElements("image")
-      .showBlocks("all")
+    val query = KindlePublishingSearchQuery(editionDate, pageSize = 5, page = pageNum).showBlocks("all")
     // TODO: Add error handling with Try for failed request.
     // TODO: Await is blocking - takes ages! One day is 26 pages.
     val response = Await.result(capiClient.getResponse(query), 5.seconds)

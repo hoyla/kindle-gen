@@ -17,7 +17,7 @@ class KindleGeneratorSpec extends FunSpec {
       val outputDir = Files.createTempDirectory(tmp, "")
       info(s"writing NITF bundles to $outputDir")
 
-      val editionDate = LocalDate.of(2017, 12, 25)  // small edition with few articles
+      val editionDate = LocalDate.of(2017, 12, 26)
       val kindleGenerator = new KindleGenerator(settings, editionDate)
       kindleGenerator.getNitfBundleToDisk(outputDir)
 
