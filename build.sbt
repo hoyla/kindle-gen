@@ -24,7 +24,7 @@ doc / exportJars := true
 libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0"
 
 /*deps for CAPI client*/
-libraryDependencies += "com.gu" %% "content-api-client" % "11.55"
+libraryDependencies += "com.gu" %% "content-api-client-default" % "12.0"
 /* deps required to use junit test and test watch */
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
