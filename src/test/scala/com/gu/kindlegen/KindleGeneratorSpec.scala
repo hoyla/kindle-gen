@@ -1,7 +1,7 @@
 package com.gu.kindlegen
 
 import java.nio.file.{Files, Paths}
-import java.time.Instant
+import java.time.LocalDate
 
 import scala.collection.JavaConverters._
 
@@ -17,7 +17,7 @@ class KindleGeneratorSpec extends FunSpec {
       val outputDir = Files.createTempDirectory(tmp, "")
       info(s"writing NITF bundles to $outputDir")
 
-      val editionDate = Instant.parse("2017-12-25T00:00:00Z")  // small edition with few articles
+      val editionDate = LocalDate.of(2017, 12, 25)  // small edition with few articles
       val kindleGenerator = new KindleGenerator(settings, editionDate)
       kindleGenerator.getNitfBundleToDisk(outputDir)
 

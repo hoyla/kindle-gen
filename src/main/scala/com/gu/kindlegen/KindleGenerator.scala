@@ -1,12 +1,12 @@
 package com.gu.kindlegen
 
 import java.nio.file.{Files, Path}
-import java.time.Instant
+import java.time.LocalDate
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class KindleGenerator(settings: Settings, editionStart: Instant) {
+class KindleGenerator(settings: Settings, editionStart: LocalDate) {
   import scala.concurrent.ExecutionContext.Implicits.global
   val Querier = new Querier(settings, editionStart)
 

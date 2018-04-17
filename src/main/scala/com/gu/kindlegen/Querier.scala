@@ -1,6 +1,6 @@
 package com.gu.kindlegen
 
-import java.time.Instant
+import java.time.{LocalDate, ZoneId}
 import java.time.temporal.ChronoUnit.{DAYS, NANOS}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -24,11 +24,11 @@ object Querier {
   }
 }
 
-class Querier(settings: Settings, editionDateTime: Instant)(implicit ec: ExecutionContext) {
+class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: ExecutionContext) {
   import Querier._
 
   def getPrintSentResponse(pageNum: Int): SearchResponse = {
-    val editionDateStart = editionDateTime.truncatedTo(DAYS)
+    val editionDateStart = editionDate.atStartOfDay(ZoneId.of("UTC")).toInstant
     val editionDateEnd = editionDateStart.plus(1, DAYS).minus(1, NANOS)
 
     val capiClient = new PrintSentContentClient(settings)

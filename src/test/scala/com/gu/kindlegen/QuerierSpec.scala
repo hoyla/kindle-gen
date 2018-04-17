@@ -1,6 +1,6 @@
 package com.gu.kindlegen
 
-import java.time.Instant
+import java.time.{Instant, LocalDate}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -14,7 +14,7 @@ import com.gu.kindlegen.DateUtils._
 
 class QuerierSpec extends FlatSpec {
   val settings = Settings.load.get
-  val querier = new Querier(settings, exampleDate.toOffsetDateTime.toInstant)
+  val querier = new Querier(settings, exampleDate.toOffsetDateTime.toLocalDate)
 
   val totalArticles = 104  // on exampleDate = 2017-07-24
 
@@ -69,7 +69,7 @@ class QuerierSpec extends FlatSpec {
   }
 
   "getAllPagesContent" should "handle single-page responses" in {
-    val holiday = Instant.parse("2017-12-25T00:00:00Z")
+    val holiday = LocalDate.of(2017, 12, 25)
     new Querier(settings, holiday).getAllPagesContent.flatMap(_.results) should have length 3
   }
 
