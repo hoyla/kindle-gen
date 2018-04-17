@@ -12,17 +12,23 @@ class KindleGeneratorSpec extends FunSpec {
   private val settings = Settings.load.get
 
   describe("KindleGenerator") {
-    it("writes NITF bundles to disk") {
-      val tmp = Files.createDirectories(Paths.get("target", "tmp"))
-      val outputDir = Files.createTempDirectory(tmp, "")
-      info(s"writing NITF bundles to $outputDir")
+    val tmp = Files.createDirectories(Paths.get("target", "tmp"))
+    def generateFilesFor(editionDate: LocalDate) = {
+      val outputDir = Files.createDirectory(tmp.resolve(editionDate.toString))
 
-      val editionDate = LocalDate.of(2017, 12, 26)
       val kindleGenerator = new KindleGenerator(settings, editionDate)
       kindleGenerator.getNitfBundleToDisk(outputDir)
 
       val generatedFiles = Files.list(outputDir).iterator.asScala.toList
       generatedFiles should not be empty
+    }
+
+    val firstDate = LocalDate.of(2018, 1, 1)
+    val  lastDate = LocalDate.of(2018, 4, 15)
+    (firstDate.toEpochDay to lastDate.toEpochDay).map(LocalDate.ofEpochDay).foreach { editionDate =>
+      it(s"writes NITF bundles to disk for date $editionDate") {
+        generateFilesFor(editionDate)
+      }
     }
   }
 }
