@@ -1,6 +1,7 @@
 package com.gu.kindlegen
 
 import scala.util.{ Failure, Success, Try }
+import java.time.Instant
 
 object Main extends App {
   Settings.load match {
@@ -9,7 +10,7 @@ object Main extends App {
   }
 
   private def run(settings: Settings): Unit = {
-    val kindleGenerator = new KindleGenerator(settings)
+    val kindleGenerator = new KindleGenerator(settings, Instant.now)
     kindleGenerator.getNitfBundleToDisk
     println("Done!")
     // Why does the program not exit here?
