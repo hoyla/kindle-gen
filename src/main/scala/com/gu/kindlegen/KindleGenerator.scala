@@ -7,6 +7,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class KindleGenerator(settings: Settings) {
+  import scala.concurrent.ExecutionContext.Implicits.global
   val Querier = new Querier(settings, Instant.now)
 
   def getNitfBundle: Seq[File] = {

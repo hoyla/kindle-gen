@@ -3,8 +3,7 @@ package com.gu.kindlegen
 import java.time.Instant
 import java.time.temporal.ChronoUnit.{DAYS, NANOS}
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 
 import scalaj.http._
@@ -24,7 +23,7 @@ object Querier {
   }
 }
 
-class Querier(settings: Settings, editionDateTime: Instant) {
+class Querier(settings: Settings, editionDateTime: Instant)(implicit ec: ExecutionContext) {
   import Querier._
 
   def getPrintSentResponse(pageNum: Int): SearchResponse = {

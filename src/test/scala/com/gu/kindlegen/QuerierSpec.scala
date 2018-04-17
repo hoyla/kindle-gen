@@ -1,5 +1,7 @@
 package com.gu.kindlegen
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
