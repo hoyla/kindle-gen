@@ -23,8 +23,7 @@ case class Article(
 ) {
   // TODO: TEST THIS
   def fileName: String = {
-    val titleDashFormatted = title.replace(" ", "-")
-    s"${fileId}_$titleDashFormatted.nitf"
+    s"${fileId}_${docId.replace('/', '_')}.nitf"
   }
 }
 
