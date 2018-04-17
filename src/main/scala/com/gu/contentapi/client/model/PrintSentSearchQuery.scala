@@ -13,7 +13,7 @@ final case class PrintSentSearchQuery private(parameterHolder: Map[String, Param
      with TierParameter[PrintSentSearchQuery] {
 
   override def pathSegment: String = "content/print-sent"
-  override def withParameters(parameterMap: Map[String, Parameter]) = new PrintSentSearchQuery(parameterMap)
+  override def withParameters(parameterMap: Map[String, Parameter]) = PrintSentSearchQuery(parameterMap)
 }
 
 trait TierParameter[Owner <: Parameters[Owner]] extends Parameters[Owner] { this: Owner =>
