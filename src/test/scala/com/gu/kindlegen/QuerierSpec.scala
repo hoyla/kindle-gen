@@ -1,5 +1,7 @@
 package com.gu.kindlegen
 
+import java.time.Instant
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import org.scalatest.FlatSpec
@@ -64,6 +66,11 @@ class QuerierSpec extends FlatSpec {
 
   "getPrintSentResponse" should "initiate a proper search query" in {
     querier.getPrintSentResponse(pageNum = 1).total shouldEqual totalArticles
+  }
+
+  "getAllPagesContent" should "handle single-page responses" in {
+    val holiday = Instant.parse("2017-12-25T00:00:00Z")
+    new Querier(settings, holiday).getAllPagesContent.flatMap(_.results) should have length 3
   }
 
   "getAllPagesContent" should "extract all response pages" in {
