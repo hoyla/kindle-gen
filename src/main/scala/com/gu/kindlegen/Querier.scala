@@ -5,6 +5,7 @@ import java.time.temporal.ChronoUnit.{DAYS, NANOS}
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.util.{Success, Try}
 
 import scalaj.http._
 
@@ -74,7 +75,9 @@ class Querier(settings: Settings, editionDateTime: Instant)(implicit ec: Executi
   def responseToArticles(response: Seq[Content]): Seq[Article] = {
     val sortedContent = sortContentByPageAndSection(response)
     val contentWithIndex = sortedContent.view.zipWithIndex.toList
-    contentWithIndex.map { case (content, index) => Article(content, index) }
+    contentWithIndex.map { case (content, index) => Try(Article(content, index)) }.collect {
+      case Success(article) => article
+    }
   }
 
   // This will probably only be called only when sending the files to Amazon because the images can be stored in memory until they are written to the ftp server. Will use the Article.fileID to name the retrieved image byte[].

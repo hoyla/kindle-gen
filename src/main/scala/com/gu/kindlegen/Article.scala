@@ -60,9 +60,10 @@ object Article {
     val maybeSectionTag = content.tags.find(_.`type` == NewspaperBookSection)
     val maybeNewspaperDate = content.fields.flatMap(_.newspaperEditionDate).orElse(content.webPublicationDate)
 
-    require(content.fields.nonEmpty)
-    require(maybeSectionTag.nonEmpty)
-    require(maybeNewspaperDate.nonEmpty)
+    val contentId = s"Content(${content.id})"
+    require(content.fields.nonEmpty, s"$contentId retrieved without fields")
+    require(maybeSectionTag.nonEmpty, s"$contentId doesn't have a NewspaperBookSection")
+    require(maybeNewspaperDate.nonEmpty, s"$contentId doesn't have a NewspaperEditionDate")
 
     apply(content, index, maybeNewspaperDate.get, content.fields.get, maybeSectionTag.get)
   }

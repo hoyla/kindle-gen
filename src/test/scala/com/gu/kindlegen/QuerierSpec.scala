@@ -76,4 +76,13 @@ class QuerierSpec extends FlatSpec {
   "getAllPagesContent" should "extract all response pages" in {
     querier.getAllPagesContent.flatMap(_.results) should have length totalArticles
   }
+
+  "responseToArticles" should "convert publishable content" in {
+    querier.responseToArticles(Seq(testcontent)) should not be empty
+  }
+
+  "responseToArticles" should "ignore non-publishable content" in {
+    val withoutTags = testcontent.copy(tags = Seq.empty)
+    querier.responseToArticles(Seq(withoutTags)) shouldBe empty
+  }
 }
