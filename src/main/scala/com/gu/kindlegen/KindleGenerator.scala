@@ -52,7 +52,7 @@ class KindleGenerator(settings: Settings, editionStart: LocalDate) {
 
   private def articleImageToFile(image: ArticleImage): File = {
     File(
-      path = s"${image.articleId}.jpg",
+      path = s"${image.articleId}.${image.fileExtension}",
       data = image.data
     )
   }
