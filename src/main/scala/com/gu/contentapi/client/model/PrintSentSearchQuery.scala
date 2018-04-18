@@ -18,7 +18,8 @@ final case class PrintSentSearchQuery private(parameterHolder: Map[String, Param
     if (parameterMap.contains(tier.name))
       parameterMap
     else
-      parameterMap.updated(tier.name, tier.withValue(Some("internal"))))
+      parameterMap.updated(tier.name, tier.withValue(Some("internal")))
+  )
 }
 
 trait TierParameter[Owner <: Parameters[Owner]] extends Parameters[Owner] { this: Owner =>
