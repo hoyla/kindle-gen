@@ -5,7 +5,7 @@ import java.time.Instant
 import org.scalatest.FlatSpec
 import DateUtils._
 
-class SectionManifestSpec extends FlatSpec {
+class SectionsManifestSpec extends FlatSpec {
 
   val capiDate = exampleDate
   val ta = Article(TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0).toContent, 0)
@@ -28,7 +28,7 @@ class SectionManifestSpec extends FlatSpec {
 
   "SectionManifest.apply" should "convert a sequence of articles to a section Manifest (Contents page)" in {
 
-    assert(SectionManifest(articles, time) === SectionManifest(
+    assert(SectionsManifest(articles, time) === SectionsManifest(
       publicationDate = exampleDate,
       buildDate = time,
       sections = List(SectionHeading("International", "theguardian/mainsection/international"), SectionHeading("Top Stories", "theguardian/mainsection/topstories"))
@@ -36,7 +36,7 @@ class SectionManifestSpec extends FlatSpec {
   }
 
   it should "use default datetime `now` if buildDate not passed" in {
-    val sectionManifest = SectionManifest(articles)
+    val sectionManifest = SectionsManifest(articles)
     assert(sectionManifest.sections ===
       List(
         SectionHeading("International", "theguardian/mainsection/international"),
@@ -44,11 +44,11 @@ class SectionManifestSpec extends FlatSpec {
       ))
 
   }
-  val sectionHeadingList = SectionManifest.toSectionHeading(articles)
-  val manifest = SectionManifest(
+  val sectionHeadingList = SectionsManifest.toSectionHeading(articles)
+  val manifest = SectionsManifest(
     publicationDate = exampleDate,
     buildDate = time,
-    sections = SectionManifest.toSectionHeading(articles)
+    sections = SectionsManifest.toSectionHeading(articles)
   )
 
   ".toManifestContentsPage" should "create xml hierachical-title-manifest" in {
@@ -85,7 +85,7 @@ class SectionManifestSpec extends FlatSpec {
           "theguardian/mainsection/topstories"
         )
       )
-    assert(SectionManifest.toSectionHeading(articles) === expectedOutput)
+    assert(SectionsManifest.toSectionHeading(articles) === expectedOutput)
   }
 
   ".toSectionString" should "add `.xml` and change slash to underscore in titleLink" in {

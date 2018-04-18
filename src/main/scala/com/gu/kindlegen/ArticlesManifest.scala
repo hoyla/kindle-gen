@@ -7,7 +7,7 @@ import DateUtils._
 
 // This will be called/used with a subsection of articles that have been chunked by section.
 // OR it will be the first thing to be called/applied...
-case class SubsectionManifest(
+case class ArticlesManifest(
     title: String,
     publicationDate: CapiDateTime,
     buildDate: Instant,
@@ -21,7 +21,7 @@ case class SubsectionManifest(
        |<?xml version="1.0" encoding="UTF-8" ?>
        |<rss version="2.0">
        |<channel>
-       |<title>Comment and debate</title>
+       |<title>$title</title>
        |<pubDate>$formattedPublicationDate</pubDate>
        |<lastBuildDate>$formattedBuildDate</lastBuildDate>
        |$sectionsString</channel>
@@ -30,9 +30,9 @@ case class SubsectionManifest(
   }
 }
 
-object SubsectionManifest {
-  def apply(articles: Seq[Article], buildDate: Instant = Instant.now): SubsectionManifest = {
-    SubsectionManifest(
+object ArticlesManifest {
+  def apply(articles: Seq[Article], buildDate: Instant = Instant.now): ArticlesManifest = {
+    ArticlesManifest(
       // this is the chunk we are creating the contents for
       title = articles.head.sectionId,
       publicationDate = articles.head.issueDate,

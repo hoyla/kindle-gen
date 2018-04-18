@@ -5,7 +5,7 @@ import java.time.Instant
 import com.gu.contentapi.client.model.v1.CapiDateTime
 import DateUtils._
 
-case class SectionManifest(
+case class SectionsManifest(
     publicationDate: CapiDateTime,
     buildDate: Instant,
     sections: Seq[SectionHeading]
@@ -31,9 +31,9 @@ case class SectionManifest(
   // TODO: in the NITF outputs the section manifest content page has a `Z` appended to the date. This is probably a mistake in the fingerpost script but worth checking ASK DB
 }
 
-object SectionManifest {
-  def apply(articles: Seq[Article], buildDate: Instant = Instant.now): SectionManifest = {
-    SectionManifest(
+object SectionsManifest {
+  def apply(articles: Seq[Article], buildDate: Instant = Instant.now): SectionsManifest = {
+    SectionsManifest(
       publicationDate = articles.head.issueDate,
       buildDate = buildDate,
       sections = toSectionHeading(articles)
