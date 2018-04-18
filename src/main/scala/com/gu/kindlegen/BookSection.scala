@@ -12,9 +12,6 @@ case class BookSection(bookSectionId: String, bookSectionTitle: String, pages: L
 
 object BookSection {
 
-  def chunkBookSectionPages(listBSPs: List[BookSectionPage]): List[List[BookSectionPage]] =
-    ListUtil.chunkBy(listBSPs, getBookSectionId)
-
-  private def getBookSectionId(page: BookSectionPage): String =
-    page.bookSectionId
+  def groupPagesIntoSections(bookSectionPages: List[BookSectionPage]): Seq[List[BookSectionPage]] =
+    bookSectionPages.groupBy(_.bookSectionId).values.toSeq
 }

@@ -1,6 +1,7 @@
 package com.gu.kindlegen
 
 import org.scalatest.FlatSpec
+import org.scalatest.Matchers._
 
 class BookSectionSuite extends FlatSpec {
   ".chunkBookSectionPages" should "return list of list of BookSectionPages grouped by bookSectionId" in {
@@ -12,7 +13,7 @@ class BookSectionSuite extends FlatSpec {
       BookSectionPage("b", 1, List()),
       BookSectionPage("b", 1, List())
     )
-    val result = BookSection.chunkBookSectionPages(bookSectionPages)
+    val result = BookSection.groupPagesIntoSections(bookSectionPages)
     val expected = List(
       List(
         BookSectionPage("a", 1, List()),
@@ -25,10 +26,10 @@ class BookSectionSuite extends FlatSpec {
         BookSectionPage("b", 1, List())
       )
     )
-    assert(result === expected)
+    result should contain theSameElementsAs expected
   }
 
   it should "return empty list when given an empty list" in {
-    assert(BookSection.chunkBookSectionPages(Nil) === List())
+    BookSection.groupPagesIntoSections(Nil) shouldBe empty
   }
 }

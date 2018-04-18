@@ -9,14 +9,8 @@ case class BookSectionPage(bookSectionId: String, pageNum: Int, articles: List[A
 
 object BookSectionPage {
 
-  def chunkByPageNum(articles: List[Article]): List[List[Article]] = {
-    // TODO: sort articles in/before responseToArticles method
-    val sortedArticles = articles.sortBy(_.newspaperPageNumber)
-
-    ListUtil.chunkBy(sortedArticles, getNewspaperPageNumber)
-  }
-
-  private def getNewspaperPageNumber(article: Article): Int = article.newspaperPageNumber
+  def chunkByPageNum(articles: List[Article]): List[List[Article]] =
+    articles.groupBy(_.newspaperPageNumber).toSeq.sortBy(_._1).map(_._2)(scala.collection.breakOut)
 
   def chunksToBSP(chunks: List[List[Article]]): List[BookSectionPage] = {
     chunks.map(lst => {
