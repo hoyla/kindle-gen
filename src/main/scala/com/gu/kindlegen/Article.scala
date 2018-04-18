@@ -2,10 +2,10 @@ package com.gu.kindlegen
 
 import com.gu.contentapi.client.model.v1.{Asset, Element, _}
 import com.gu.contentapi.client.model.v1.ElementType.Image
-import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
+import com.gu.contentapi.client.model.v1.TagType.NewspaperBook
 
 case class Article(
-    newspaperBookSection: String,
+    sectionId: String,
     sectionName: String,
     newspaperPageNumber: Int,
     title: String,
@@ -55,12 +55,12 @@ object Article {
   }
 
   def apply(content: Content, index: Int): Article = {
-    val maybeSectionTag = content.tags.find(_.`type` == NewspaperBookSection)
-    val maybeNewspaperDate = content.fields.flatMap(_.newspaperEditionDate).orElse(content.webPublicationDate)
+    val maybeSectionTag = content.tags.find(_.`type` == NewspaperBook)
+    val maybeNewspaperDate = content.fields.flatMap(_.newspaperEditionDate)
 
     val contentId = s"Content(${content.id})"
     require(content.fields.nonEmpty, s"$contentId retrieved without fields")
-    require(maybeSectionTag.nonEmpty, s"$contentId doesn't have a NewspaperBookSection")
+    require(maybeSectionTag.nonEmpty, s"$contentId doesn't have a NewspaperBook")
     require(maybeNewspaperDate.nonEmpty, s"$contentId doesn't have a NewspaperEditionDate")
 
     apply(content, index, maybeNewspaperDate.get, content.fields.get, maybeSectionTag.get)
@@ -68,7 +68,7 @@ object Article {
 
   def apply(content: Content, index: Int, newspaperDate: CapiDateTime, fields: ContentFields, sectionTag: Tag): Article = {
     Article(
-      newspaperBookSection = sectionTag.id,
+      sectionId = sectionTag.id,
       sectionName = sectionTag.webTitle,
       newspaperPageNumber = fields.newspaperPageNumber.getOrElse(0),
       title = content.webTitle,

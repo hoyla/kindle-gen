@@ -1,10 +1,7 @@
 package com.gu.kindlegen
 
-import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
-import com.gu.contentapi.client.model.v1.ElementType.Image
-import com.gu.contentapi.client.model.v1.Asset
-import com.gu.contentapi.client.model.v1.AssetType.Image
 import com.gu.contentapi.client.model.v1._
+import com.gu.contentapi.client.model.v1.TagType.NewspaperBook
 
 /*
  * This class is to be used as a method for creating article content of type Content for use in tests (ie unit tests that don't hit the API).
@@ -17,7 +14,7 @@ import com.gu.contentapi.client.model.v1._
  * ta: com.gu.kindlegen.TestContent = TestContent(,,1,,,CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00),,,)
  *
  * scala> ta.toContent
- * res0: com.gu.contentapi.client.model.v1.Content = Content(,Article,None,None,None,,,,Some(ContentFields(Some(),Some(),None,Some(),None,Some(),Some(1),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,Some(CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00)),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),List(Tag(,NewspaperBookSection,None,None,,,,List(),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),Some(List()),List(),None,None,None,None,None,None,None,None,None,false)
+ * res0: com.gu.contentapi.client.model.v1.Content = Content(,Article,None,None,None,,,,Some(ContentFields(Some(),Some(),None,Some(),None,Some(),Some(1),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,Some(CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00)),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),List(Tag(,NewspaperBook,None,None,,,,List(),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),Some(List()),List(),None,None,None,None,None,None,None,None,None,false)
  *
  * More useful however is that we can use `copy` (because TestContent is a case class) to change just one of the parameters that we are interested in testing:
  *
@@ -25,11 +22,11 @@ import com.gu.contentapi.client.model.v1._
  * res1: com.gu.kindlegen.TestContent = TestContent(,,1,new title,,CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00),,,)
  *
  * scala> ta2.toContent
- * res2: com.gu.contentapi.client.model.v1.Content = Content(,Article,None,None,None,,,,Some(ContentFields(Some(new title),Some(),None,Some(),None,Some(),Some(1),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,Some(CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00)),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),List(Tag(,NewspaperBookSection,None,None,,,,List(),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),Some(List()),List(),None,None,None,None,None,None,None,None,None,false)
+ * res2: com.gu.contentapi.client.model.v1.Content = Content(,Article,None,None,None,,,,Some(ContentFields(Some(new title),Some(),None,Some(),None,Some(),Some(1),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,Some(CapiDateTime(1500850800000,2017-07-24T00:00:00.000+01:00)),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),List(Tag(,NewspaperBook,None,None,,,,List(),None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None)),Some(List()),List(),None,None,None,None,None,None,None,None,None,false)
  *
 */
 case class TestContent(
-    testArticleNewspaperBookSection: String,
+    testArticleNewspaperBook: String,
     testArticleSectionName: String,
     testArticlePageNumber: Int,
     testArticleTitle: String,
@@ -56,11 +53,11 @@ case class TestContent(
       paidContentType = None,
       bio = None,
       paidContentCampaignColour = None,
-      `type` = NewspaperBookSection,
+      `type` = NewspaperBook,
       entityIds = None,
       emailAddress = None,
       apiUrl = "",
-      id = testArticleNewspaperBookSection,
+      id = testArticleNewspaperBook,
       tagCategories = None,
       r2ContributorId = None,
       firstName = None,

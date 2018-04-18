@@ -10,7 +10,7 @@ import scalaj.http._
 
 import com.gu.contentapi.client._
 import com.gu.contentapi.client.model.v1.{Content, SearchResponse}
-import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
+import com.gu.contentapi.client.model.v1.TagType.NewspaperBook
 
 // TODO: Move elsewhere
 case class ArticleImage(articleId: Int, fileExtension: String, data: Array[Byte])
@@ -52,7 +52,7 @@ class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: Execution
   }
 
   def sortContentByPageAndSection(response: Seq[Content]): Seq[Content] = {
-    response.sortBy(content => (content.fields.flatMap(_.newspaperPageNumber), content.tags.find(_.`type` == NewspaperBookSection).map(_.id)))
+    response.sortBy(content => (content.fields.flatMap(_.newspaperPageNumber), content.tags.find(_.`type` == NewspaperBook).map(_.id)))
   }
   // TODO: handle the possibility of there being no content in the getPrintSentResponse method above
   // TODO: This isn't to do with querying the API so we should move it somewhere else.

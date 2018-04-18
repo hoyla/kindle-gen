@@ -66,7 +66,7 @@ case class SectionHeading(
 object SectionHeading {
   def apply(article: Article): SectionHeading = SectionHeading(
     title = article.sectionName,
-    titleLink = article.newspaperBookSection
+    titleLink = article.sectionId
   )
 }
 

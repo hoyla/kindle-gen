@@ -34,7 +34,7 @@ object SubsectionManifest {
   def apply(articles: Seq[Article], buildDate: Instant = Instant.now): SubsectionManifest = {
     SubsectionManifest(
       // this is the chunk we are creating the contents for
-      title = articles.head.newspaperBookSection,
+      title = articles.head.sectionId,
       publicationDate = articles.head.issueDate,
       buildDate = buildDate,
       articles = toArticleHeading(articles)

@@ -8,7 +8,7 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
 import com.gu.contentapi.client.model.v1.Content
-import com.gu.contentapi.client.model.v1.TagType.NewspaperBookSection
+import com.gu.contentapi.client.model.v1.TagType.NewspaperBook
 import com.gu.contentapi.client.utils.CapiModelEnrichment._
 import com.gu.kindlegen.DateUtils._
 
@@ -44,7 +44,7 @@ class QuerierSpec extends FlatSpec {
         ("theguardian/mainsection/international", 3)
       ).map {
 
-          case (l, m) => testArticle.copy(testArticleNewspaperBookSection = l, testArticlePageNumber = m).toContent
+          case (l, m) => testArticle.copy(testArticleNewspaperBook = l, testArticlePageNumber = m).toContent
         }
     }
 
@@ -58,7 +58,7 @@ class QuerierSpec extends FlatSpec {
         ("theguardian/mainsection/topstories", 4)
       )
     }
-    val mappedResult: Seq[(String, Int)] = querier.sortContentByPageAndSection(contents).map(content => (content.tags.find(_.`type` == NewspaperBookSection).get.id, content.fields.flatMap(_.newspaperPageNumber).get))
+    val mappedResult: Seq[(String, Int)] = querier.sortContentByPageAndSection(contents).map(content => (content.tags.find(_.`type` == NewspaperBook).get.id, content.fields.flatMap(_.newspaperPageNumber).get))
     println(contents.head)
     println(mappedResult)
     assert(mappedResult == mappedSortedContents)

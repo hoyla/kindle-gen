@@ -12,8 +12,8 @@ object KindlePublishingSearchQuery {
   val WhiteListedTags = Seq.empty[String]  // leave empty to get all tags
   val BlackListedTags = Seq("type/interactive")
 
-  val ResponseTags = Seq("newspaper-book", "newspaper-book-section", "type")
-  val ResponseFields = Seq("body", "byline", "newspaper-edition-date", "newspaper-page-number", "standfirst")
+  val ResponseTags = Seq("newspaper-book", "type")
+  val ResponseFields = Seq("byline", "newspaper-edition-date", "newspaper-page-number", "standfirst")
 
   def apply(date: LocalDate,
             publishingZone: ZoneOffset = ZoneOffset.UTC,
