@@ -20,7 +20,7 @@ class ArticleNITFSuite extends FunSuite {
       byline = "my name",
       articleAbstract = "article abstract",
       bodyBlocks = Seq("content"),
-      imageUrl = None
+      mainImage = None
     )
 
     val expectedOutput =

@@ -16,15 +16,11 @@ class KindleGenerator(settings: Settings, editionStart: LocalDate) {
     // More concise, and removes some chance of forgetting one.
     val contents = Querier.fetchAllContents()
     val articles = Querier.responseToArticles(contents)
-    val images = Await.result(
-      Querier.getAllArticleImages(articles),
-      120.seconds
-    )
 
-    def toFiles[T](items: Seq[T], itemToFile: (T, Int) => File): Seq[File] =
-      items.zipWithIndex.map { case (article, index) => itemToFile(article, index) }
-
-    toFiles(articles, articleToFile) ++ toFiles(images, articleImageToFile)
+    articles.zipWithIndex.flatMap { case (article, index) =>
+      Some(articleToFile(article, index)) ++
+        Querier.getArticleImage(article).map(Await.result(_, 15.seconds)).map(articleImageToFile(_, index))
+    }
   }
 
   def getNitfBundleToDisk(outputDirectory: Path): Unit = {
@@ -48,9 +44,9 @@ class KindleGenerator(settings: Settings, editionStart: LocalDate) {
     )
   }
 
-  private def articleImageToFile(image: ArticleImage, index: Int): File = {
+  private def articleImageToFile(image: ImageData, index: Int): File = {
     File(
-      path = s"${index}_${image.articleId}.${image.fileExtension}",
+      path = s"${index}_${image.metadata.id}.${image.fileExtension}",
       data = image.data
     )
   }

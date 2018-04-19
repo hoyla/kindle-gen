@@ -13,8 +13,7 @@ case class Article(
     byline: String,
     articleAbstract: String,
     bodyBlocks: Seq[String],
-    imageUrl: Option[String]
-) {
+    mainImage: Option[Image]) {
   // TODO: TEST THIS
   // TODO move this method to another class (ArticleNITF?)
   def fileName: String = {
@@ -23,21 +22,6 @@ case class Article(
 }
 
 object Article {
-  def getImageUrl(content: Content): Option[String] = {
-    def isMainImage(e: Element): Boolean =
-      e.`type` == ElementType.Image && e.relation == "main"
-
-    def isMasterImage(a: Asset): Boolean =
-      a.typeData.flatMap(_.isMaster).getOrElse(false)
-
-    val elements = content.elements.getOrElse(Nil)
-    val mainImage = elements.find(isMainImage)
-    val imageAsset = mainImage.flatMap(_.assets.find(isMasterImage))
-    // keep imageUrl as an option otherwise later you will try to download form an empty string
-    val imageUrl = imageAsset.flatMap(_.typeData).flatMap(_.secureFile)
-    imageUrl
-  }
-
   def getBodyBlocks(content: Content): Seq[String] = {
     val blocks = content.blocks
     val bodyBlocks = blocks.flatMap(_.body).getOrElse(Nil)
@@ -71,7 +55,7 @@ object Article {
       articleAbstract = fields.standfirst.getOrElse(""),
       // TODO handle non-text articles (e.g. cartoons)
       bodyBlocks = getBodyBlocks(content),
-      imageUrl = getImageUrl(content)
+      mainImage = Image.mainMaster(content)
     )
   }
 }

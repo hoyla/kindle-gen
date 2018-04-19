@@ -10,10 +10,15 @@ import scalaj.http._
 
 import com.gu.contentapi.client._
 import com.gu.contentapi.client.model.v1.{Content, SearchResponse}
-import com.gu.contentapi.client.model.v1.TagType.NewspaperBook
+
 
 // TODO: Move elsewhere
-case class ArticleImage(articleId: String, fileExtension: String, data: Array[Byte])
+case class ImageData(metadata: Image, data: Array[Byte]) {
+  def fileExtension: String = {
+    val url = metadata.url
+    url.substring(url.lastIndexOf('.') + 1)
+  }
+}
 
 object Querier {
   class PrintSentContentClient(settings: Settings) extends GuardianContentClient(settings.contentApiKey) {
@@ -53,20 +58,18 @@ class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: Execution
 
   // This will probably only be called only when sending the files to Amazon because the images can be stored in memory until they are written to the ftp server. Will use the Article.fileID to name the retrieved image byte[].
 
-  def getAllArticleImages(articles: Seq[Article]): Future[Seq[ArticleImage]] = {
+  def getAllArticleImages(articles: Seq[Article]): Future[Seq[ImageData]] = {
     val futures = articles.flatMap(getArticleImage)
     Future.sequence(futures)
   }
 
-  def getArticleImage(article: Article): Option[Future[ArticleImage]] = {
-    article.imageUrl.map(url => {
-      val extension = url.substring(url.lastIndexOf('.') + 1)
-      val future = getImageData(url)
-      future.map(bytes => ArticleImage(articleId = article.fileName, fileExtension = extension, data = bytes))
-    })
+  def getArticleImage(article: Article): Option[Future[ImageData]] = {
+    article.mainImage.map { image =>
+      download(image.url).map(bytes => ImageData(image, bytes))
+    }
   }
 
-  def getImageData(url: String): Future[Array[Byte]] = Future {
+  def download(url: String): Future[Array[Byte]] = Future {
     val response: HttpRequest = Http(url)
     response.asBytes.body
   }
