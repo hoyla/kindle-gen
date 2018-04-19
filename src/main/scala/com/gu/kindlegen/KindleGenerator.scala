@@ -11,11 +11,7 @@ class KindleGenerator(settings: Settings, editionStart: LocalDate) {
   val Querier = new Querier(settings, editionStart)
 
   def getNitfBundle: Seq[File] = {
-    // TODO: Wrap all these up in one method on the Querier so when
-    // we use it we don't have to call all three.
-    // More concise, and removes some chance of forgetting one.
-    val contents = Querier.fetchAllContents()
-    val articles = Querier.responseToArticles(contents)
+    val articles = Querier.fetchAllArticles()
 
     articles.zipWithIndex.flatMap { case (article, index) =>
       Some(articleToFile(article, index)) ++

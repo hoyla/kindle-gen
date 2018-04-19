@@ -30,6 +30,9 @@ object Querier {
 class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: ExecutionContext) {
   import Querier._
 
+  def fetchAllArticles(): Seq[Article] =
+    responseToArticles(fetchAllContents())
+
   def fetchPrintSentResponse(): Future[SearchResponse] = {
     val capiClient = new PrintSentContentClient(settings)
     val query = KindlePublishingSearchQuery(editionDate)
