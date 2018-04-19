@@ -27,7 +27,7 @@ object ArticleNITF {
      |<byline>${article.byline}</byline>
      |<abstract>${article.articleAbstract}</abstract>
      |</body.head>
-     |<body.content>${article.content}</body.content>
+     |<body.content>${article.bodyBlocks.mkString("\n") /* TODO convert to NITF blocks*/}</body.content>
      |<body.end />
      |</body>
      |</nitf>""".stripMargin

@@ -19,7 +19,7 @@ class ArticleNITFSuite extends FunSuite {
       pubDate = exampleDate,
       byline = "my name",
       articleAbstract = "article abstract",
-      content = "content",
+      bodyBlocks = Seq("content"),
       imageUrl = None
     )
 

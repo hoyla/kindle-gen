@@ -12,7 +12,7 @@ case class Article(
     pubDate: CapiDateTime,
     byline: String,
     articleAbstract: String,
-    content: String,
+    bodyBlocks: Seq[String],
     imageUrl: Option[String]
 ) {
   // TODO: TEST THIS
@@ -38,15 +38,13 @@ object Article {
     imageUrl
   }
 
-  def getBodyHtml(content: Content): String = {
-
+  def getBodyBlocks(content: Content): Seq[String] = {
     val blocks = content.blocks
     val bodyBlocks = blocks.flatMap(_.body).getOrElse(Nil)
     // TODO what if bodyBlocks.length < blocks.totalBodyBlocks ?
     val bodyElements = bodyBlocks.flatMap(_.elements).filter(_.`type` == ElementType.Text)
     val htmlBlocks = bodyElements.flatMap(_.textTypeData.flatMap(_.html))
-    // TODO should each block be converted to an NITF block?
-    htmlBlocks.mkString
+    htmlBlocks
   }
 
   def apply(content: Content): Article = {
@@ -72,7 +70,7 @@ object Article {
       byline = fields.byline.getOrElse(""),
       articleAbstract = fields.standfirst.getOrElse(""),
       // TODO handle non-text articles (e.g. cartoons)
-      content = getBodyHtml(content),
+      bodyBlocks = getBodyBlocks(content),
       imageUrl = getImageUrl(content)
     )
   }
