@@ -65,7 +65,7 @@ class QuerierSpec extends FlatSpec {
   }
 
   "getPrintSentResponse" should "initiate a proper search query" in {
-    querier.getPrintSentResponse(pageNum = 1).total shouldEqual totalArticles
+    querier.fetchPrintSentResponse().total shouldEqual totalArticles
   }
 
   "getAllPagesContent" should "handle empty responses" in {
@@ -74,7 +74,14 @@ class QuerierSpec extends FlatSpec {
   }
 
   "getAllPagesContent" should "extract all response pages" in {
-    querier.getAllPagesContent.flatMap(_.results) should have length totalArticles
+    val ids = querier.getAllPagesContent.flatMap(_.results).map(_.id)
+
+    ids should have length totalArticles
+
+    val duplicateIds = ids.filter(id => ids.count(_ == id) > 1)
+    withClue(s"${duplicateIds.length} duplicate ids found: $duplicateIds") {
+      duplicateIds shouldBe empty
+    }
   }
 
   "responseToArticles" should "convert publishable content" in {
