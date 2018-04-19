@@ -29,6 +29,7 @@ object KindlePublishingSearchQuery {
       .fromDate(startOfDay)
       .toDate(endOfDay)
       .useDate("newspaper-edition")
+      .showBlocks("body")
       .showElements("image")
       .showTags(combineParams(ResponseTags))
       .showFields(combineParams(ResponseFields))

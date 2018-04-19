@@ -1,8 +1,7 @@
 package com.gu.kindlegen
 
-import com.gu.contentapi.client.model.v1.{Asset, Element, _}
-import com.gu.contentapi.client.model.v1.ElementType.Image
-import com.gu.contentapi.client.model.v1.TagType.NewspaperBook
+import com.gu.contentapi.client.model.v1._
+
 
 case class Article(
     sectionId: String,
@@ -28,7 +27,7 @@ case class Article(
 object Article {
   def getImageUrl(content: Content): Option[String] = {
     def isMainImage(e: Element): Boolean =
-      e.`type` == Image && e.relation == "main"
+      e.`type` == ElementType.Image && e.relation == "main"
 
     def isMasterImage(a: Asset): Boolean =
       a.typeData.flatMap(_.isMaster).getOrElse(false)
@@ -43,22 +42,20 @@ object Article {
 
   def getBodyHtml(content: Content): String = {
 
-    def isTypeText(e: BlockElement): Boolean =
-      e.`type` == ElementType.Text
-
     val blocks = content.blocks
-    val bodyBlocks: Seq[Block] = blocks.flatMap(_.body).getOrElse(Nil)
-    val bodyBlocksElements: Seq[BlockElement] = bodyBlocks.flatMap(_.elements)
-    val textElemField: Seq[String] = bodyBlocksElements.flatMap(_.textTypeData.flatMap(_.html))
-    val noOpt = textElemField.mkString
-    noOpt
+    val bodyBlocks = blocks.flatMap(_.body).getOrElse(Nil)
+    // TODO what if bodyBlocks.length < blocks.totalBodyBlocks ?
+    val bodyElements = bodyBlocks.flatMap(_.elements).filter(_.`type` == ElementType.Text)
+    val htmlBlocks = bodyElements.flatMap(_.textTypeData.flatMap(_.html))
+    // TODO should each block be converted to an NITF block?
+    htmlBlocks.mkString
   }
 
   def apply(content: Content, index: Int): Article = {
-    val maybeSectionTag = content.tags.find(_.`type` == NewspaperBook)
+    val maybeSectionTag = content.tags.find(_.`type` == TagType.NewspaperBook)
     val maybeNewspaperDate = content.fields.flatMap(_.newspaperEditionDate)
 
-    val contentId = s"Content(${content.id})"
+    val contentId = s"""Content(id="${content.id}")"""
     require(content.fields.nonEmpty, s"$contentId retrieved without fields")
     require(maybeSectionTag.nonEmpty, s"$contentId doesn't have a NewspaperBook")
     require(maybeNewspaperDate.nonEmpty, s"$contentId doesn't have a NewspaperEditionDate")
@@ -78,6 +75,7 @@ object Article {
       pubDate = newspaperDate,
       byline = fields.byline.getOrElse(""),
       articleAbstract = fields.standfirst.getOrElse(""),
+      // TODO handle non-text articles (e.g. cartoons)
       content = getBodyHtml(content),
       imageUrl = getImageUrl(content),
       fileId = index
