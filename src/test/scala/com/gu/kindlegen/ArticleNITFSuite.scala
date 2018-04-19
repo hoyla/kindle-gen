@@ -1,9 +1,10 @@
 package com.gu.kindlegen
 
-import org.scalatest.FunSuite
 import org.junit.runner.RunWith
+import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import DateUtils._
+
+import com.gu.kindlegen.DateUtils._
 
 @RunWith(classOf[JUnitRunner])
 class ArticleNITFSuite extends FunSuite {
@@ -19,8 +20,7 @@ class ArticleNITFSuite extends FunSuite {
       byline = "my name",
       articleAbstract = "article abstract",
       content = "content",
-      imageUrl = None,
-      fileId = 0
+      imageUrl = None
     )
 
     val expectedOutput =

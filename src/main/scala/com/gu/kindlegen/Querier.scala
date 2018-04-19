@@ -13,7 +13,7 @@ import com.gu.contentapi.client.model.v1.{Content, SearchResponse}
 import com.gu.contentapi.client.model.v1.TagType.NewspaperBook
 
 // TODO: Move elsewhere
-case class ArticleImage(articleId: Int, fileExtension: String, data: Array[Byte])
+case class ArticleImage(articleId: String, fileExtension: String, data: Array[Byte])
 
 object Querier {
   class PrintSentContentClient(settings: Settings) extends GuardianContentClient(settings.contentApiKey) {
@@ -38,20 +38,18 @@ class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: Execution
       ensuring(response => response.results.length == response.total, "fetchResponse returned partial (paginated) results!")
   ).results
 
-  def sortContentByPageAndSection(response: Seq[Content]): Seq[Content] = {
-    response.sortBy(content => (content.fields.flatMap(_.newspaperPageNumber), content.tags.find(_.`type` == NewspaperBook).map(_.id)))
+  def sortArticlesByPageAndSection(articles: Seq[Article]): Seq[Article] = {
+    articles.sortBy(article => (article.newspaperPageNumber, article.sectionId))
   }
 
   // TODO: handle the possibility of there being no content in the fetchPrintSentResponse method above
   // TODO: This isn't to do with querying the API so we should move it somewhere else.
-  def responseToArticles(response: Seq[Content]): Seq[Article] = {
-    val sortedContent = sortContentByPageAndSection(response)
-    val contentWithIndex = sortedContent.view.zipWithIndex.toList
-    contentWithIndex.map { case (content, index) => Try(Article(content, index)) }.collect {
+  def responseToArticles(response: Seq[Content]): Seq[Article] = sortArticlesByPageAndSection(
+    response.map { content => Try(Article(content)) }.collect {
       case Success(article) => article
       // TODO log the issue in the case of failure
     }
-  }
+  )
 
   // This will probably only be called only when sending the files to Amazon because the images can be stored in memory until they are written to the ftp server. Will use the Article.fileID to name the retrieved image byte[].
 
@@ -64,7 +62,7 @@ class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: Execution
     article.imageUrl.map(url => {
       val extension = url.substring(url.lastIndexOf('.') + 1)
       val future = getImageData(url)
-      future.map(bytes => ArticleImage(articleId = article.fileId, fileExtension = extension, data = bytes))
+      future.map(bytes => ArticleImage(articleId = article.fileName, fileExtension = extension, data = bytes))
     })
   }
 

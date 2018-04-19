@@ -24,9 +24,9 @@ class QuerierSpec extends FlatSpec {
   // TODO: Find a way to override the source file to a sample.conf version
 
   val capiDate = exampleDate
-  val testcontent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0).toContent
+  val testcontent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "", None).toContent
   val capiResponse = List(testcontent)
-  val testArticle = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0)
+  val testArticle = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None)
 
   ".responseToArticles" should "convert a capi response (Seq[Content) to a Seq[Article])" in {
     val toArticles = querier.responseToArticles(capiResponse)
@@ -36,7 +36,7 @@ class QuerierSpec extends FlatSpec {
 
   ".sortContentByPageAndSection" should "sort content according to page number then book section" in {
 
-    val contents: Seq[Content] = {
+    val articles =
       Seq(
         ("theguardian/mainsection/topstories", 4),
         ("theguardian/mainsection/international", 1),
@@ -45,10 +45,8 @@ class QuerierSpec extends FlatSpec {
         ("theguardian/mainsection/topstories", 3),
         ("theguardian/mainsection/international", 3)
       ).map {
-
           case (l, m) => testArticle.copy(testArticleNewspaperBook = l, testArticlePageNumber = m).toContent
-        }
-    }
+      }.map(Article.apply)
 
     val mappedSortedContents: Seq[(String, Int)] = {
       Seq(
@@ -60,10 +58,8 @@ class QuerierSpec extends FlatSpec {
         ("theguardian/mainsection/topstories", 4)
       )
     }
-    val mappedResult: Seq[(String, Int)] = querier.sortContentByPageAndSection(contents).map(content => (content.tags.find(_.`type` == NewspaperBook).get.id, content.fields.flatMap(_.newspaperPageNumber).get))
-    println(contents.head)
-    println(mappedResult)
-    assert(mappedResult == mappedSortedContents)
+    val sortedResults: Seq[(String, Int)] = querier.sortArticlesByPageAndSection(articles).map(article => (article.sectionId, article.newspaperPageNumber))
+    assert(sortedResults == mappedSortedContents)
   }
 
   "fetchPrintSentResponse" should "initiate a proper search query" in {

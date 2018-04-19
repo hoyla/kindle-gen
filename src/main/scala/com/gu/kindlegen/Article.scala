@@ -13,12 +13,12 @@ case class Article(
     byline: String,
     articleAbstract: String,
     content: String,
-    imageUrl: Option[String],
-    fileId: Int
+    imageUrl: Option[String]
 ) {
   // TODO: TEST THIS
+  // TODO move this method to another class (ArticleNITF?)
   def fileName: String = {
-    s"${fileId}_${docId.replace('/', '_')}.nitf"
+    docId.replace('/', '_') + ".nitf"
   }
 }
 
@@ -49,7 +49,7 @@ object Article {
     htmlBlocks.mkString
   }
 
-  def apply(content: Content, index: Int): Article = {
+  def apply(content: Content): Article = {
     val maybeSectionTag = content.tags.find(_.`type` == TagType.NewspaperBook)
     val maybeNewspaperDate = content.fields.flatMap(_.newspaperEditionDate)
 
@@ -58,10 +58,10 @@ object Article {
     require(maybeSectionTag.nonEmpty, s"$contentId doesn't have a NewspaperBook")
     require(maybeNewspaperDate.nonEmpty, s"$contentId doesn't have a NewspaperEditionDate")
 
-    apply(content, index, maybeNewspaperDate.get, content.fields.get, maybeSectionTag.get)
+    apply(content, maybeNewspaperDate.get, content.fields.get, maybeSectionTag.get)
   }
 
-  def apply(content: Content, index: Int, newspaperDate: CapiDateTime, fields: ContentFields, sectionTag: Tag): Article = {
+  def apply(content: Content, newspaperDate: CapiDateTime, fields: ContentFields, sectionTag: Tag): Article = {
     Article(
       sectionId = sectionTag.id,
       sectionName = sectionTag.webTitle,
@@ -73,8 +73,7 @@ object Article {
       articleAbstract = fields.standfirst.getOrElse(""),
       // TODO handle non-text articles (e.g. cartoons)
       content = getBodyHtml(content),
-      imageUrl = getImageUrl(content),
-      fileId = index
+      imageUrl = getImageUrl(content)
     )
   }
 }

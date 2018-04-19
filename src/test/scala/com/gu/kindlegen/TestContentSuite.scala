@@ -9,7 +9,7 @@ import DateUtils._
 class TestContentSuite extends FunSuite {
 
   val capiDate = exampleDate
-  val ta = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0)
+  val ta = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None)
 
   test("TestContent.toContent") {
     assert(ta.toContent.id === "")

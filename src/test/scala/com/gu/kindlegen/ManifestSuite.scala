@@ -3,12 +3,13 @@ package com.gu.kindlegen
 import java.time.Instant
 
 import org.scalatest.FlatSpec
-import DateUtils._
+
+import com.gu.kindlegen.DateUtils._
 
 class SectionsManifestSpec extends FlatSpec {
 
   val capiDate = exampleDate
-  val ta = Article(TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0).toContent, 0)
+  val ta = Article(TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None).toContent)
 
   val articles = {
     Seq(

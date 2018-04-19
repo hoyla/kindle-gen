@@ -1,15 +1,16 @@
 package com.gu.kindlegen
 
-import org.scalatest.FunSuite
 import org.junit.runner.RunWith
+import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
-import DateUtils._
+
+import com.gu.kindlegen.DateUtils._
 
 @RunWith(classOf[JUnitRunner])
 class BookSectionPageSuite extends FunSuite {
 
   val capiDate = exampleDate
-  val ta = Article(TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None, 0).toContent, 0)
+  val ta = Article(TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None).toContent)
 
   val articles: List[Article] = List(1, 1, 2, 2, 3).map(n => ta.copy(newspaperPageNumber = n))
 

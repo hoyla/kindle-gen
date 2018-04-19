@@ -21,8 +21,10 @@ class KindleGenerator(settings: Settings, editionStart: LocalDate) {
       120.seconds
     )
 
-    val files = articles.map(articleToFile) ++ images.map(articleImageToFile)
-    files
+    def toFiles[T](items: Seq[T], itemToFile: (T, Int) => File): Seq[File] =
+      items.zipWithIndex.map { case (article, index) => itemToFile(article, index) }
+
+    toFiles(articles, articleToFile) ++ toFiles(images, articleImageToFile)
   }
 
   def getNitfBundleToDisk(outputDirectory: Path): Unit = {
@@ -38,17 +40,17 @@ class KindleGenerator(settings: Settings, editionStart: LocalDate) {
     Files.write(filePath, data)
   }
 
-  private def articleToFile(article: Article): File = {
+  private def articleToFile(article: Article, index: Int): File = {
     val nitf = ArticleNITF(article)
     File(
-      path = article.fileName,
+      path = s"${index}_${article.fileName}",
       data = nitf.fileContents.getBytes
     )
   }
 
-  private def articleImageToFile(image: ArticleImage): File = {
+  private def articleImageToFile(image: ArticleImage, index: Int): File = {
     File(
-      path = s"${image.articleId}.${image.fileExtension}",
+      path = s"${index}_${image.articleId}.${image.fileExtension}",
       data = image.data
     )
   }

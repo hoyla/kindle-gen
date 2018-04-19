@@ -37,8 +37,7 @@ case class TestContent(
     testArticleByline: String,
     testArticleAbstract: String, // standfirst is used
     testArticleContent: String,
-    testArticleImageUrl: Option[String],
-    testArticleFileID: Int
+    testArticleImageUrl: Option[String]
 ) {
   def toContent: Content = Content(
     references = Nil,
