@@ -31,21 +31,18 @@ class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: Execution
     capiClient.getResponse(query)
   }
 
-  def getAllPagesContent: List[SearchResponse] = List(
+  def fetchAllContents(): Seq[Content] = (
     // TODO: Add error handling for failed request.
     // TODO: Await is blocking - takes ages!
     Await.result(fetchPrintSentResponse(), 5.seconds)
       ensuring(response => response.results.length == response.total, "fetchResponse returned partial (paginated) results!")
-  )
-
-  def responsesToContent(responses: List[SearchResponse]): Seq[Content] = {
-    responses.flatten(_.results)
-  }
+  ).results
 
   def sortContentByPageAndSection(response: Seq[Content]): Seq[Content] = {
     response.sortBy(content => (content.fields.flatMap(_.newspaperPageNumber), content.tags.find(_.`type` == NewspaperBook).map(_.id)))
   }
-  // TODO: handle the possibility of there being no content in the getPrintSentResponse method above
+
+  // TODO: handle the possibility of there being no content in the fetchPrintSentResponse method above
   // TODO: This isn't to do with querying the API so we should move it somewhere else.
   def responseToArticles(response: Seq[Content]): Seq[Article] = {
     val sortedContent = sortContentByPageAndSection(response)

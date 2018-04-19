@@ -14,12 +14,8 @@ class KindleGenerator(settings: Settings, editionStart: LocalDate) {
     // TODO: Wrap all these up in one method on the Querier so when
     // we use it we don't have to call all three.
     // More concise, and removes some chance of forgetting one.
-    val searchResponses = Querier.getAllPagesContent
-    val contents = Querier.responsesToContent(searchResponses)
-    val sortedContent = Querier.sortContentByPageAndSection(contents)
-
-    // TODO: Move these methods into their own classes
-    val articles = Querier.responseToArticles(sortedContent)
+    val contents = Querier.fetchAllContents()
+    val articles = Querier.responseToArticles(contents)
     val images = Await.result(
       Querier.getAllArticleImages(articles),
       120.seconds
