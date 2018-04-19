@@ -1,13 +1,15 @@
 package com.gu.kindlegen
 
-import java.time.{Instant, LocalDate}
+import java.time.LocalDate
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
+import org.scalatest.concurrent.ScalaFutures._
+import org.scalatest.time.SpanSugar._
 
-import com.gu.contentapi.client.model.v1.Content
+import com.gu.contentapi.client.model.v1.{Content, SearchResponse}
 import com.gu.contentapi.client.model.v1.TagType.NewspaperBook
 import com.gu.contentapi.client.utils.CapiModelEnrichment._
 import com.gu.kindlegen.DateUtils._
@@ -64,23 +66,28 @@ class QuerierSpec extends FlatSpec {
     assert(mappedResult == mappedSortedContents)
   }
 
-  "getPrintSentResponse" should "initiate a proper search query" in {
-    querier.fetchPrintSentResponse().total shouldEqual totalArticles
+  "fetchPrintSentResponse" should "initiate a proper search query" in {
+    withFetchResponse() { _.total shouldEqual totalArticles }
   }
 
-  "getAllPagesContent" should "handle empty responses" in {
+  "fetchPrintSentResponse" should "support empty responses" in {
     val holiday = LocalDate.of(2017, 12, 25)
-    new Querier(settings, holiday).getAllPagesContent.flatMap(_.results) should have length 0
+    withFetchResponse(new Querier(settings, holiday)) { _.results should have length 0 }
   }
 
-  "getAllPagesContent" should "extract all response pages" in {
-    val ids = querier.getAllPagesContent.flatMap(_.results).map(_.id)
+  "fetchPrintSentResponse" should "return all results - no pagination should be required" in {
+    withFetchResponse() { response =>
+      response.results should have length response.total
+    }
+  }
 
-    ids should have length totalArticles
-
-    val duplicateIds = ids.filter(id => ids.count(_ == id) > 1)
-    withClue(s"${duplicateIds.length} duplicate ids found: $duplicateIds") {
-      duplicateIds shouldBe empty
+  "fetchPrintSentResponse" should "return unique results with no duplicates" in {
+    withFetchResponse() { response =>
+      val ids = response.results.map(_.id)
+      val duplicateIds = ids.filter(id => ids.count(_ == id) > 1)
+      withClue(s"${duplicateIds.length} duplicate ids found: $duplicateIds") {
+        duplicateIds shouldBe empty
+      }
     }
   }
 
@@ -91,5 +98,13 @@ class QuerierSpec extends FlatSpec {
   "responseToArticles" should "ignore non-publishable content" in {
     val withoutTags = testcontent.copy(tags = Seq.empty)
     querier.responseToArticles(Seq(withoutTags)) shouldBe empty
+  }
+
+  private def withFetchResponse[T](querier: Querier = querier)(doSomething: SearchResponse => T): T = {
+    whenReady(
+      querier.fetchPrintSentResponse(),
+      timeout(scaled(15.seconds)),
+      interval(scaled(150.millis))
+    )(doSomething)
   }
 }

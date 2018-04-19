@@ -25,17 +25,16 @@ object Querier {
 class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: ExecutionContext) {
   import Querier._
 
-  def fetchPrintSentResponse(): SearchResponse = {
+  def fetchPrintSentResponse(): Future[SearchResponse] = {
     val capiClient = new PrintSentContentClient(settings)
     val query = KindlePublishingSearchQuery(editionDate)
-    // TODO: Add error handling with Try for failed request.
-    // TODO: Await is blocking - takes ages! One day is 26 pages.
-    val response = Await.result(capiClient.getResponse(query), 5.seconds)
-    response
+    capiClient.getResponse(query)
   }
 
   def getAllPagesContent: List[SearchResponse] = List(
-    fetchPrintSentResponse
+    // TODO: Add error handling for failed request.
+    // TODO: Await is blocking - takes ages!
+    Await.result(fetchPrintSentResponse(), 5.seconds)
       ensuring(response => response.results.length == response.total, "fetchResponse returned partial (paginated) results!")
   )
 
