@@ -15,8 +15,6 @@ class ArticleNITFSuite extends FunSuite {
       newspaperPageNumber = 2,
       title = "my title",
       docId = "section/date/title",
-      issueDate = exampleDate,
-      releaseDate = exampleDate,
       pubDate = exampleDate,
       byline = "my name",
       articleAbstract = "article abstract",

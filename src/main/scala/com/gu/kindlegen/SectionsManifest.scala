@@ -34,7 +34,7 @@ case class SectionsManifest(
 object SectionsManifest {
   def apply(articles: Seq[Article], buildDate: Instant = Instant.now): SectionsManifest = {
     SectionsManifest(
-      publicationDate = articles.head.issueDate,
+      publicationDate = articles.head.pubDate,
       buildDate = buildDate,
       sections = toSectionHeading(articles)
     )

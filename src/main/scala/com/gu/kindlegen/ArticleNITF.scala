@@ -15,8 +15,8 @@ object ArticleNITF {
      |<docdata management-status="usable">
      |<doc-id id-string="${article.docId}" />
      |<urgency ed-urg="2" />
-     |<date.issue norm="${formatDate(article.issueDate)}" />
-     |<date.release norm="${formatDate(article.releaseDate)}" />
+     |<date.issue norm="${formatDate(article.pubDate)}" />
+     |<date.release norm="${formatDate(article.pubDate)}" />
      |<doc.copyright holder="guardian.co.uk" />
      |</docdata>
      |<pubdata type="print" date.publication="${formatDate(article.pubDate)}" />

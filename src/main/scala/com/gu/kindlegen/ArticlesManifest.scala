@@ -35,7 +35,7 @@ object ArticlesManifest {
     ArticlesManifest(
       // this is the chunk we are creating the contents for
       title = articles.head.sectionId,
-      publicationDate = articles.head.issueDate,
+      publicationDate = articles.head.pubDate,
       buildDate = buildDate,
       articles = toArticleHeading(articles)
     )
