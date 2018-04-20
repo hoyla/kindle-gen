@@ -6,12 +6,25 @@ import java.time.LocalDate
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
+
+object KindleGenerator {
+  val MinArticlesPerEdition = 30
+}
+
 class KindleGenerator(settings: Settings, editionStart: LocalDate) {
   import scala.concurrent.ExecutionContext.Implicits.global
+
+  import KindleGenerator._
   val Querier = new Querier(settings, editionStart)
 
   def fetchNitfBundle: Seq[File] = {
-    val fArticles = Querier.fetchAllArticles()
+    val fArticles = Querier.fetchAllArticles().flatMap { results =>
+      if (results.length >= MinArticlesPerEdition)
+        Future.successful(results)
+      else
+        Future.failed(new RuntimeException(s"${results.length} articles is not enough to generate an edition!"))
+    }
+
     val fMaybeImages = fArticles.flatMap(Future.traverse(_)(Querier.downloadArticleImage))
 
     val files = fArticles.zip(fMaybeImages).map { case (articles, maybeImages) =>
