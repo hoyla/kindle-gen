@@ -29,7 +29,7 @@ class QuerierSpec extends FlatSpec {
   val testArticle = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None)
 
   ".responseToArticles" should "convert a capi response (Seq[Content) to a Seq[Article])" in {
-    val toArticles = querier.responseToArticles(capiResponse)
+    val toArticles = querier.sortedArticles(capiResponse)
 
     assert(toArticles.head.newspaperPageNumber === 3)
   }
@@ -88,12 +88,12 @@ class QuerierSpec extends FlatSpec {
   }
 
   "responseToArticles" should "convert publishable content" in {
-    querier.responseToArticles(Seq(testcontent)) should not be empty
+    querier.sortedArticles(Seq(testcontent)) should not be empty
   }
 
   "responseToArticles" should "ignore non-publishable content" in {
     val withoutTags = testcontent.copy(tags = Seq.empty)
-    querier.responseToArticles(Seq(withoutTags)) shouldBe empty
+    querier.sortedArticles(Seq(withoutTags)) shouldBe empty
   }
 
   private def withFetchResponse[T](querier: Querier = querier)(doSomething: SearchResponse => T): T = {

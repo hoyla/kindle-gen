@@ -17,7 +17,7 @@ class KindleGeneratorSpec extends FunSpec {
       val outputDir = Files.createDirectories(tmp.resolve(editionDate.toString))
 
       val kindleGenerator = new KindleGenerator(settings, editionDate)
-      kindleGenerator.getNitfBundleToDisk(outputDir)
+      kindleGenerator.writeNitfBundleToDisk(outputDir)
 
       val generatedFiles = Files.list(outputDir).iterator.asScala.toList
       generatedFiles should not be empty

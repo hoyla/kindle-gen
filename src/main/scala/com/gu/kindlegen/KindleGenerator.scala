@@ -3,24 +3,29 @@ package com.gu.kindlegen
 import java.nio.file.{Files, Path}
 import java.time.LocalDate
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
 class KindleGenerator(settings: Settings, editionStart: LocalDate) {
   import scala.concurrent.ExecutionContext.Implicits.global
   val Querier = new Querier(settings, editionStart)
 
-  def getNitfBundle: Seq[File] = {
-    val articles = Querier.fetchAllArticles()
+  def fetchNitfBundle: Seq[File] = {
+    val fArticles = Querier.fetchAllArticles()
+    val fMaybeImages = fArticles.flatMap(Future.traverse(_)(Querier.downloadArticleImage))
 
-    articles.zipWithIndex.flatMap { case (article, index) =>
-      Some(articleToFile(article, index)) ++
-        Querier.getArticleImage(article).map(Await.result(_, 15.seconds)).map(articleImageToFile(_, index))
+    val files = fArticles.zip(fMaybeImages).map { case (articles, maybeImages) =>
+      articles.zip(maybeImages).zipWithIndex.flatMap { case ((article, maybeImage), index) =>
+        Some(articleToFile(article, index)) ++
+          maybeImage.map(articleImageToFile(_, index))
+      }
     }
+
+    Await.result(files, 2.minutes)
   }
 
-  def getNitfBundleToDisk(outputDirectory: Path): Unit = {
-    getNitfBundle.foreach(file => {
+  def writeNitfBundleToDisk(outputDirectory: Path): Unit = {
+    fetchNitfBundle.foreach(file => {
       val data = file.data
       val fileName = file.path
       bytesToFile(data, fileName, outputDirectory)

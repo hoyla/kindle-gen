@@ -30,8 +30,14 @@ object Querier {
 class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: ExecutionContext) {
   import Querier._
 
-  def fetchAllArticles(): Seq[Article] =
-    responseToArticles(fetchAllContents())
+  def fetchAllArticles(): Future[Seq[Article]] =
+    fetchPrintSentResponse().andThen {
+      case Success(response) =>
+        // TODO log an error; exceptions in the call to `andThen` do not stop processing
+        assert(response.results.length == response.total, "fetchResponse returned partial (paginated) results!")
+    }.map { response =>
+      sortedArticles(response.results)
+    }
 
   def fetchPrintSentResponse(): Future[SearchResponse] = {
     val capiClient = new PrintSentContentClient(settings)
@@ -39,37 +45,21 @@ class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: Execution
     capiClient.getResponse(query)
   }
 
-  def fetchAllContents(): Seq[Content] = (
-    // TODO: Add error handling for failed request.
-    // TODO: Await is blocking - takes ages!
-    Await.result(fetchPrintSentResponse(), 5.seconds)
-      ensuring(response => response.results.length == response.total, "fetchResponse returned partial (paginated) results!")
-  ).results
-
   def sortArticlesByPageAndSection(articles: Seq[Article]): Seq[Article] = {
     articles.sortBy(article => (article.newspaperPageNumber, article.sectionId))
   }
 
-  // TODO: handle the possibility of there being no content in the fetchPrintSentResponse method above
-  // TODO: This isn't to do with querying the API so we should move it somewhere else.
-  def responseToArticles(response: Seq[Content]): Seq[Article] = sortArticlesByPageAndSection(
-    response.map { content => Try(Article(content)) }.collect {
+  def sortedArticles(results: Seq[Content]): Seq[Article] = sortArticlesByPageAndSection(
+    results.map { content => Try(Article(content)) }.collect {
       case Success(article) => article
       // TODO log the issue in the case of failure
     }
   )
 
-  // This will probably only be called only when sending the files to Amazon because the images can be stored in memory until they are written to the ftp server. Will use the Article.fileID to name the retrieved image byte[].
-
-  def getAllArticleImages(articles: Seq[Article]): Future[Seq[ImageData]] = {
-    val futures = articles.flatMap(getArticleImage)
-    Future.sequence(futures)
-  }
-
-  def getArticleImage(article: Article): Option[Future[ImageData]] = {
-    article.mainImage.map { image =>
+  def downloadArticleImage(article: Article): Future[Option[ImageData]] = {
+    Future.traverse(article.mainImage.toList) { image =>
       download(image.url).map(bytes => ImageData(image, bytes))
-    }
+    }.map(_.headOption)
   }
 
   def download(url: String): Future[Array[Byte]] = Future {
