@@ -1,17 +1,38 @@
 package com.gu.kindlegen
 
+import scala.collection.breakOut
+
 /**
- * Each Book (eg Guardian or Observer) contains many sections (eg G2, Top Stories, Finance) each of which will have a number of Pages. Each Page can then contain one or more articles
+ * Each Book (eg Guardian or Observer) contains many sections (eg G2, Top Stories, Finance)
  */
-case class BookSection(bookSectionId: String, bookSectionTitle: String, pages: List[BookSectionPage]) {
-  def minPage = pages.map(_.pageNum).min
-  def maxPage = pages.map(_.pageNum).max
-  def numPages = pages.size
-  def numArticles = pages.flatMap(_.articles).size
+case class BookSection(id: String, title: String, articles: Seq[Article]) {
+  private val pageNumbers: Seq[Int] = articles.map(_.newspaperPageNumber)
+  val firstPageNumber: Int = pageNumbers.min
+  val lastPageNumber: Int = pageNumbers.max
+
+  def publicationDate = articles.map(_.pubDate).minBy(_.dateTime)
+  def fileName: String = s"${id.replace('/', '_')}.xml"
 }
 
 object BookSection {
+  /** Groups articles into book sections, sorted according to each section's articles' page number */
+  def fromArticles(articles: Seq[Article]): Seq[BookSection] = {
+    articles.groupBy(_.sectionId)
+      .values.map(apply)(breakOut)
+      .sortBy(section => (section.firstPageNumber, section.lastPageNumber, section.title))
+  }
 
-  def groupPagesIntoSections(bookSectionPages: List[BookSectionPage]): Seq[List[BookSectionPage]] =
-    bookSectionPages.groupBy(_.bookSectionId).values.toSeq
+  /** Creates a book section from a collection of articles that all belong to the same section */
+  def apply(articles: Seq[Article]): BookSection = {
+    require(articles.nonEmpty, "A book section must have at least one article!")
+
+    val anArticle = articles.head
+    val sectionId = anArticle.sectionId
+    val sectionName = anArticle.sectionName
+
+    require(articles.forall(a => a.sectionId == sectionId && a.sectionName == sectionName),
+      s"All articles must belong to the same section! Found ${articles.map(_.sectionId).distinct}.")
+
+    BookSection(id = sectionId, title = sectionName, articles)
+  }
 }

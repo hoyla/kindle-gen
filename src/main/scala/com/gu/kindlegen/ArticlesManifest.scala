@@ -3,7 +3,7 @@ package com.gu.kindlegen
 import java.time.Instant
 
 import com.gu.contentapi.client.model.v1.CapiDateTime
-import DateUtils._
+import com.gu.kindlegen.DateUtils._
 
 // This will be called/used with a subsection of articles that have been chunked by section.
 // OR it will be the first thing to be called/applied...
@@ -16,7 +16,7 @@ case class ArticlesManifest(
   val formattedPublicationDate: String = formatDate(publicationDate)
   val formattedBuildDate: String = dtFormatter.format(buildDate)
   val sectionsString: String = articles.map(_.toArticleHeadingString).mkString("")
-  def toSubsectionContentsPage: String = {
+  def toManifestContentsPage: String = {
     s"""
        |<?xml version="1.0" encoding="UTF-8" ?>
        |<rss version="2.0">
@@ -31,13 +31,13 @@ case class ArticlesManifest(
 }
 
 object ArticlesManifest {
-  def apply(articles: Seq[Article], buildDate: Instant = Instant.now): ArticlesManifest = {
+  def apply(section: BookSection, buildDate: Instant = Instant.now): ArticlesManifest = {
     ArticlesManifest(
       // this is the chunk we are creating the contents for
-      title = articles.head.sectionId,
-      publicationDate = articles.head.pubDate,
+      title = section.title,
+      publicationDate = section.publicationDate,
       buildDate = buildDate,
-      articles = toArticleHeading(articles)
+      articles = toArticleHeading(section.articles)
     )
   }
 
@@ -47,15 +47,11 @@ object ArticlesManifest {
   }
 }
 
-case class ArticleHeading(
-    title: String,
-    titleLink: String
-) {
+case class ArticleHeading(title: String, fileName: String) {
   def toArticleHeadingString: String = {
-    val convertedTitleLink = titleLink.replace("/", "_")
     s"""<item>
        | <title>$title</title>
-       | <link>$convertedTitleLink.xml</link>
+       | <link>$fileName</link>
        |</item>
        |""".stripMargin
   }
@@ -64,7 +60,7 @@ case class ArticleHeading(
 object ArticleHeading {
   def apply(article: Article): ArticleHeading = ArticleHeading(
     title = article.title,
-    titleLink = article.fileName
+    fileName = article.fileName
   )
 }
 

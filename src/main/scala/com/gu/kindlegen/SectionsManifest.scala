@@ -3,7 +3,7 @@ package com.gu.kindlegen
 import java.time.Instant
 
 import com.gu.contentapi.client.model.v1.CapiDateTime
-import DateUtils._
+import com.gu.kindlegen.DateUtils._
 
 case class SectionsManifest(
     publicationDate: CapiDateTime,
@@ -32,41 +32,31 @@ case class SectionsManifest(
 }
 
 object SectionsManifest {
-  def apply(articles: Seq[Article], buildDate: Instant = Instant.now): SectionsManifest = {
+  def apply(sections: Seq[BookSection], buildDate: Instant = Instant.now): SectionsManifest = {
     SectionsManifest(
-      publicationDate = articles.head.pubDate,
+      publicationDate = sections.head.publicationDate,
       buildDate = buildDate,
-      sections = toSectionHeading(articles)
+      sections = sections.map(SectionHeading.apply)
     )
-  }
-
-  def toSectionHeading(articles: Seq[Article]): Seq[SectionHeading] = {
-    val allHeadings = articles.map(article =>
-      SectionHeading(article))
-    allHeadings.distinct
   }
 
   // TODO: Write to files/folders structure
 }
 
-case class SectionHeading(
-    title: String,
-    titleLink: String
-) {
+case class SectionHeading(title: String, fileName: String) {
   def toSectionString: String = {
-    val convertedTitleLink = titleLink.replace("/", "_")
     s"""<item>
        | <title>$title</title>
-       | <link>$convertedTitleLink.xml</link>
+       | <link>$fileName</link>
        |</item>
        |""".stripMargin
   }
 }
 
 object SectionHeading {
-  def apply(article: Article): SectionHeading = SectionHeading(
-    title = article.sectionName,
-    titleLink = article.sectionId
+  def apply(section: BookSection): SectionHeading = SectionHeading(
+    title = section.title,
+    fileName = section.fileName
   )
 }
 

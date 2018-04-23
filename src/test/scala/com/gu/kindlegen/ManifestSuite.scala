@@ -25,34 +25,23 @@ class SectionsManifestSpec extends FlatSpec {
       }
   }
 
+  val sections = BookSection.fromArticles(articles)
+
   private val time = Instant.now()
 
-  "SectionManifest.apply" should "convert a sequence of articles to a section Manifest (Contents page)" in {
-
-    assert(SectionsManifest(articles, time) === SectionsManifest(
+  "SectionManifest.apply" should "convert a sequence of sections to a section Manifest (Contents page)" in {
+    assert(SectionsManifest(sections, time) === SectionsManifest(
       publicationDate = exampleDate,
       buildDate = time,
-      sections = List(SectionHeading("International", "theguardian/mainsection/international"), SectionHeading("Top Stories", "theguardian/mainsection/topstories"))
+      sections = List(
+        SectionHeading("International", fileName = "theguardian_mainsection_international.xml"),
+        SectionHeading("Top Stories", fileName = "theguardian_mainsection_topstories.xml"))
     ))
   }
 
-  it should "use default datetime `now` if buildDate not passed" in {
-    val sectionManifest = SectionsManifest(articles)
-    assert(sectionManifest.sections ===
-      List(
-        SectionHeading("International", "theguardian/mainsection/international"),
-        SectionHeading("Top Stories", "theguardian/mainsection/topstories")
-      ))
-
-  }
-  val sectionHeadingList = SectionsManifest.toSectionHeading(articles)
-  val manifest = SectionsManifest(
-    publicationDate = exampleDate,
-    buildDate = time,
-    sections = SectionsManifest.toSectionHeading(articles)
-  )
-
   ".toManifestContentsPage" should "create xml hierachical-title-manifest" in {
+    val manifest = SectionsManifest(sections, time)
+
     val expectedOutput =
       s"""
          |<?xml version="1.0" encoding="UTF-8" ?>
@@ -77,20 +66,8 @@ class SectionsManifestSpec extends FlatSpec {
     assert(manifest.toManifestContentsPage === expectedOutput)
   }
 
-  ".toSectionHeading" should "filter out duplicate sections" in {
-    val expectedOutput =
-      List(
-        SectionHeading("International", "theguardian/mainsection/international"),
-        SectionHeading(
-          "Top Stories",
-          "theguardian/mainsection/topstories"
-        )
-      )
-    assert(SectionsManifest.toSectionHeading(articles) === expectedOutput)
-  }
-
   ".toSectionString" should "add `.xml` and change slash to underscore in titleLink" in {
-    val sectionHeading = SectionHeading(articles.head)
+    val sectionHeading = SectionHeading(BookSection(Seq(articles.head)))
 
     val expectedOutput = {
       """<item>
