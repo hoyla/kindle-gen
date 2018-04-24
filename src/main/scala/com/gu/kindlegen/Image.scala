@@ -4,7 +4,7 @@ import com.gu.contentapi.client.model.v1.{Asset, Content, Element, ElementType}
 
 
 case class Image(id: String,
-                 url: String,
+                 link: Link,
                  altText: Option[String],
                  caption: Option[String],
                  credit: Option[String])
@@ -23,10 +23,11 @@ object Image {
       masterAsset <- mainImage.assets.find(isMasterAsset)
       metadata <- masterAsset.typeData
       url <- metadata.secureFile
+      absoluteUrl <- Link.AbsoluteURL(url).toOption
     } yield
       Image(
         id = mainImage.id,
-        url = url,
+        link = absoluteUrl,
         altText = metadata.altText,
         caption = metadata.caption,
         credit = if (metadata.displayCredit.getOrElse(true)) metadata.credit else None

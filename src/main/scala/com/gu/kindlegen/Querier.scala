@@ -13,7 +13,7 @@ import com.gu.io.IOUtils._
 
 // TODO: Move elsewhere
 case class ImageData(metadata: Image, data: Array[Byte]) {
-  def fileExtension: String = IOUtils.fileExtension(metadata.url)
+  def fileExtension: String = IOUtils.fileExtension(metadata.link.source)
 }
 
 object Querier {
@@ -55,7 +55,7 @@ class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: Execution
 
   def downloadArticleImage(article: Article): Future[Option[ImageData]] = {
     Future.traverse(article.mainImage.toList) { image =>
-      download(image.url).map(bytes => ImageData(image, bytes))
+      download(image.link.source).map(bytes => ImageData(image, bytes))
     }.map(_.headOption)
   }
 }
