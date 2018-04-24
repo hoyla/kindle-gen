@@ -41,16 +41,17 @@ class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: Execution
     capiClient.getResponse(query)
   }
 
-  def sortArticlesByPageAndSection(articles: Seq[Article]): Seq[Article] = {
-    articles.sortBy(article => (article.newspaperPageNumber, article.sectionId))
-  }
-
-  def sortedArticles(results: Seq[Content]): Seq[Article] = sortArticlesByPageAndSection(
-    results.map { content => Try(Article(content)) }.collect {
+  def sortedArticles(results: Seq[Content]): Seq[Article] = {
+    val articles = results.map { content => Try(Article(content)) }.collect {
       case Success(article) => article
       // TODO log the issue in the case of failure
     }
-  )
+    sortArticlesByPageAndSection(articles)
+  }
+
+  private def sortArticlesByPageAndSection(articles: Seq[Article]): Seq[Article] = {
+    articles.sortBy(article => (article.newspaperPageNumber, article.sectionId))
+  }
 
   def downloadArticleImage(article: Article): Future[Option[ImageData]] = {
     Future.traverse(article.mainImage.toList) { image =>

@@ -6,15 +6,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import org.scalatest.concurrent.ScalaFutures._
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.SpanSugar._
 
-import com.gu.contentapi.client.model.v1.{Content, SearchResponse}
-import com.gu.contentapi.client.model.v1.TagType.NewspaperBook
+import com.gu.contentapi.client.model.v1.SearchResponse
 import com.gu.contentapi.client.utils.CapiModelEnrichment._
 import com.gu.kindlegen.DateUtils._
 
-class QuerierSpec extends FlatSpec {
+class QuerierSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
   val settings = Settings.load.get
   val querier = new Querier(settings, exampleDate.toOffsetDateTime.toLocalDate)
 
@@ -24,9 +24,8 @@ class QuerierSpec extends FlatSpec {
   // TODO: Find a way to override the source file to a sample.conf version
 
   val capiDate = exampleDate
-  val testcontent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "", None).toContent
-  val capiResponse = List(testcontent)
-  val testArticle = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None)
+  val testContent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "", None)
+  val capiResponse = List(testContent.toContent)
 
   ".responseToArticles" should "convert a capi response (Seq[Content) to a Seq[Article])" in {
     val toArticles = querier.sortedArticles(capiResponse)
@@ -34,7 +33,7 @@ class QuerierSpec extends FlatSpec {
     assert(toArticles.head.newspaperPageNumber === 3)
   }
 
-  ".sortContentByPageAndSection" should "sort content according to page number then book section" in {
+  ".sortedArticles" should "sort content according to page number then book section" in {
 
     val articles =
       Seq(
@@ -45,8 +44,8 @@ class QuerierSpec extends FlatSpec {
         ("theguardian/mainsection/topstories", 3),
         ("theguardian/mainsection/international", 3)
       ).map {
-          case (l, m) => testArticle.copy(testArticleNewspaperBook = l, testArticlePageNumber = m).toContent
-      }.map(Article.apply)
+          case (l, m) => testContent.copy(testArticleNewspaperBook = l, testArticlePageNumber = m).toContent
+      }
 
     val mappedSortedContents: Seq[(String, Int)] = {
       Seq(
@@ -58,7 +57,7 @@ class QuerierSpec extends FlatSpec {
         ("theguardian/mainsection/topstories", 4)
       )
     }
-    val sortedResults: Seq[(String, Int)] = querier.sortArticlesByPageAndSection(articles).map(article => (article.sectionId, article.newspaperPageNumber))
+    val sortedResults: Seq[(String, Int)] = querier.sortedArticles(articles).map(article => (article.sectionId, article.newspaperPageNumber))
     assert(sortedResults == mappedSortedContents)
   }
 
@@ -87,20 +86,16 @@ class QuerierSpec extends FlatSpec {
     }
   }
 
-  "responseToArticles" should "convert publishable content" in {
-    querier.sortedArticles(Seq(testcontent)) should not be empty
+  "sortedArticles" should "convert publishable content" in {
+    querier.sortedArticles(Seq(testContent.toContent)) should not be empty
   }
 
-  "responseToArticles" should "ignore non-publishable content" in {
-    val withoutTags = testcontent.copy(tags = Seq.empty)
+  "sortedArticles" should "ignore non-publishable content" in {
+    val withoutTags = testContent.toContent.copy(tags = Seq.empty)
     querier.sortedArticles(Seq(withoutTags)) shouldBe empty
   }
 
   private def withFetchResponse[T](querier: Querier = querier)(doSomething: SearchResponse => T): T = {
-    whenReady(
-      querier.fetchPrintSentResponse(),
-      timeout(scaled(15.seconds)),
-      interval(scaled(150.millis))
-    )(doSomething)
+    whenReady(querier.fetchPrintSentResponse())(doSomething)
   }
 }
