@@ -30,7 +30,9 @@ libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 libraryDependencies += "junit" % "junit" % "4.12" % "test"
 libraryDependencies += "com.github.andyglow" %% "scala-xml-diff" % "2.0.3" % "test"
+libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.25" % "test"
 Test / logBuffered := false  // enjoy ScalaTest's built-in event buffering algorithm
+Test / parallelExecution := false  // avoid exhausting the global execution context in tests opening many connections
 Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oI")   // show reminder of failed and canceled tests without stack traces
 
 /*deps for simple client*/
