@@ -2,22 +2,18 @@ package com.gu.kindlegen
 
 import java.time.LocalDate
 
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Success, Try}
-
-import scalaj.http._
 
 import com.gu.contentapi.client._
 import com.gu.contentapi.client.model.v1.{Content, SearchResponse}
+import com.gu.io.IOUtils
+import com.gu.io.IOUtils._
 
 
 // TODO: Move elsewhere
 case class ImageData(metadata: Image, data: Array[Byte]) {
-  def fileExtension: String = {
-    val url = metadata.url
-    url.substring(url.lastIndexOf('.') + 1)
-  }
+  def fileExtension: String = IOUtils.fileExtension(metadata.url)
 }
 
 object Querier {
@@ -60,11 +56,6 @@ class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: Execution
     Future.traverse(article.mainImage.toList) { image =>
       download(image.url).map(bytes => ImageData(image, bytes))
     }.map(_.headOption)
-  }
-
-  def download(url: String): Future[Array[Byte]] = Future {
-    val response: HttpRequest = Http(url)
-    response.asBytes.body
   }
 }
 
