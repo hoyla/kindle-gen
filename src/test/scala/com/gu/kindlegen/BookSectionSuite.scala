@@ -8,7 +8,7 @@ import org.scalatest.Matchers._
 class BookSectionSuite extends FlatSpec {
   private def article(sectionId: String, sectionName: String, pageNum: Int) =
     Article(section = section(sectionId, sectionName), newspaperPageNumber = pageNum,
-      "", "", DateUtils.exampleDate, "", "", Nil, None)
+      "", "", Link.DataURI.from("data:,"), DateUtils.exampleDate, "", "", Nil, None)
 
   private def section(sectionId: String, sectionName: String) =
     Section(id = sectionId, title = sectionName, link = null)

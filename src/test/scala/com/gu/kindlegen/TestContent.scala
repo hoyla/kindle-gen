@@ -73,7 +73,7 @@ case class TestContent(
       activeSponsorships = None,
       sectionId = None
     )),
-    webUrl = "",
+    webUrl = s"https://theguardian.com/$testArticleId",
     fields = Option(ContentFields(
       wordcount = None,
       liveBloggingNow = None,

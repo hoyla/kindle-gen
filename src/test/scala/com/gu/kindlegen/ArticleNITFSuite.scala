@@ -15,6 +15,7 @@ class ArticleNITFSuite extends FunSuite {
       newspaperPageNumber = 2,
       title = "my title",
       docId = "section/date/title",
+      link = Link.DataURI.from("data:,"),
       pubDate = exampleDate,
       byline = "my name",
       articleAbstract = "article abstract",
