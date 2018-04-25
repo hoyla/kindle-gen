@@ -11,7 +11,7 @@ object KindleGenerator {
   val MinArticlesPerEdition = 30
 }
 
-class KindleGenerator(settings: Settings, editionStart: LocalDate) {
+class KindleGenerator(settings: ContentApiSettings, editionStart: LocalDate) {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   import KindleGenerator._

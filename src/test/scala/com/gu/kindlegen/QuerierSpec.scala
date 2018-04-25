@@ -15,7 +15,7 @@ import com.gu.contentapi.client.utils.CapiModelEnrichment._
 import com.gu.kindlegen.DateUtils._
 
 class QuerierSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
-  val settings = Settings.load.get
+  val settings = Settings.load.get.contentApi
   val querier = new Querier(settings, exampleDate.toOffsetDateTime.toLocalDate)
 
   val totalArticles = 96  // on exampleDate = 2017-07-24

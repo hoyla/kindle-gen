@@ -12,7 +12,7 @@ import com.gu.kindlegen.KindleGenerator._
 
 
 class KindleGeneratorSpec extends FunSpec {
-  private val settings = Settings.load.get
+  private val settings = Settings.load.get.contentApi
   private def newInstance(editionDate: LocalDate) = new KindleGenerator(settings, editionDate)
 
   describe("fetchNitfBundle") {

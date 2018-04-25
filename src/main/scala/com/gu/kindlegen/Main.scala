@@ -12,7 +12,7 @@ object Main extends App {
   }
 
   private def run(settings: Settings): Unit = {
-    val kindleGenerator = new KindleGenerator(settings, LocalDate.now)
+    val kindleGenerator = new KindleGenerator(settings.contentApi, LocalDate.now)
     kindleGenerator.writeNitfBundleToDisk(Files.createDirectories(Paths.get("tmp")))
     println("Done!")
     // Why does the program not exit here?

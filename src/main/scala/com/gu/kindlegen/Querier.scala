@@ -17,13 +17,13 @@ case class ImageData(metadata: Image, data: Array[Byte]) {
 }
 
 object Querier {
-  class PrintSentContentClient(settings: Settings) extends GuardianContentClient(settings.contentApiKey) {
+  class PrintSentContentClient(settings: ContentApiSettings) extends GuardianContentClient(settings.apiKey) {
 
-    override val targetUrl: String = settings.contentApiTargetUrl
+    override val targetUrl: String = settings.targetUrl
   }
 }
 
-class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: ExecutionContext) {
+class Querier(settings: ContentApiSettings, editionDate: LocalDate)(implicit ec: ExecutionContext) {
   import Querier._
 
   def fetchAllArticles(): Future[Seq[Article]] =
