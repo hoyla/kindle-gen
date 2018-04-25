@@ -1,6 +1,5 @@
 package com.gu.kindlegen
 
-import java.nio.file.{Files, Paths}
 import java.time.LocalDate
 
 import scala.util.{Failure, Success}
@@ -12,8 +11,8 @@ object Main extends App {
   }
 
   private def run(settings: Settings): Unit = {
-    val kindleGenerator = KindleGenerator(settings.contentApi, LocalDate.now)
-    kindleGenerator.writeNitfBundleToDisk(Files.createDirectories(Paths.get("tmp")))
+    val kindleGenerator = KindleGenerator(settings, LocalDate.now)
+    kindleGenerator.writeNitfBundleToDisk()
     println("Done!")
     // Why does the program not exit here?
   }

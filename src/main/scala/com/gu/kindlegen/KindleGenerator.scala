@@ -11,16 +11,16 @@ import com.gu.kindlegen.Querier.PrintSentContentClient
 object KindleGenerator {
   val MinArticlesPerEdition = 30
 
-  def apply(settings: ContentApiSettings, editionDate: LocalDate): KindleGenerator = {
+  def apply(settings: Settings, editionDate: LocalDate): KindleGenerator = {
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    val capiClient = new PrintSentContentClient(settings)
+    val capiClient = new PrintSentContentClient(settings.contentApi)
     val querier = new Querier(capiClient, editionDate)
-    new KindleGenerator(querier)
+    new KindleGenerator(querier, settings.publishing)
   }
 }
 
-class KindleGenerator(querier: Querier)(implicit ec: ExecutionContext) {
+class KindleGenerator(querier: Querier, publishingSettings: PublishingSettings)(implicit ec: ExecutionContext) {
   import KindleGenerator._
 
   def fetchNitfBundle: Seq[File] = {
@@ -43,15 +43,18 @@ class KindleGenerator(querier: Querier)(implicit ec: ExecutionContext) {
     Await.result(files, 2.minutes)
   }
 
-  def writeNitfBundleToDisk(outputDirectory: Path): Unit = {
-    fetchNitfBundle.foreach(file => {
+  def writeNitfBundleToDisk(): Seq[Path] = {
+    val outputDir = publishingSettings.outputDir
+    Files.createDirectories(outputDir)
+
+    fetchNitfBundle.map(file => {
       val data = file.data
       val fileName = file.path
-      bytesToFile(data, fileName, outputDirectory)
+      bytesToFile(data, fileName, outputDir)
     })
   }
 
-  def bytesToFile(data: Array[Byte], fileName: String, outputDirectory: Path): Unit = {
+  def bytesToFile(data: Array[Byte], fileName: String, outputDirectory: Path): Path = {
     val filePath = outputDirectory.resolve(fileName)
     Files.write(filePath, data)
   }

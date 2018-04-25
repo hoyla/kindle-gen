@@ -1,18 +1,18 @@
 package com.gu.kindlegen
 
-import java.nio.file.{Files, Paths}
+import java.nio.file.Files
 import java.time.LocalDate
 
-import scala.collection.JavaConverters._
-
 import org.scalatest.FunSpec
+import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
 
 import com.gu.kindlegen.KindleGenerator._
+import com.gu.scalatest.PathMatchers._
 
 
 class KindleGeneratorSpec extends FunSpec {
-  private val settings = Settings.load.get.contentApi
+  private val settings = Settings.load.get
   private def newInstance(editionDate: LocalDate) = KindleGenerator(settings, editionDate)
 
   describe("fetchNitfBundle") {
@@ -29,15 +29,15 @@ class KindleGeneratorSpec extends FunSpec {
     }
   }
 
-  private val tmpDir = Files.createDirectories(Paths.get("target", "tmp"))
   private def writeFilesFor(editionDate: LocalDate) = {
-    val outputDir = Files.createDirectories(tmpDir.resolve(editionDate.toString))
-
     val kindleGenerator = newInstance(editionDate)
-    kindleGenerator.writeNitfBundleToDisk(outputDir)
+    val generatedFiles = kindleGenerator.writeNitfBundleToDisk()
 
-    val generatedFiles = Files.list(outputDir).iterator.asScala.toList
     generatedFiles should not be empty
+    forAll(generatedFiles) { path =>
+      path should beAChildOf(settings.publishing.outputDir)
+      withClue(path) { Files.readAllBytes(path) should not be empty }
+    }
   }
 
   describe("writeNitfBundleToDisk") {
