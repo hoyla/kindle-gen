@@ -9,8 +9,6 @@ import scala.concurrent.duration._
 import com.gu.kindlegen.Querier.PrintSentContentClient
 
 object KindleGenerator {
-  val MinArticlesPerEdition = 30
-
   def apply(settings: Settings, editionDate: LocalDate): KindleGenerator = {
     import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -21,11 +19,9 @@ object KindleGenerator {
 }
 
 class KindleGenerator(querier: Querier, publishingSettings: PublishingSettings)(implicit ec: ExecutionContext) {
-  import KindleGenerator._
-
   def fetchNitfBundle: Seq[File] = {
     val fArticles = querier.fetchAllArticles().flatMap { results =>
-      if (results.length >= MinArticlesPerEdition)
+      if (results.length >= publishingSettings.minArticlesPerEdition)
         Future.successful(results)
       else
         Future.failed(new RuntimeException(s"${results.length} articles is not enough to generate an edition!"))

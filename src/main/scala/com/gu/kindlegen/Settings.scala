@@ -10,7 +10,10 @@ import com.typesafe.config.{Config, ConfigFactory}
 final case class Settings(contentApi: ContentApiSettings, publishing: PublishingSettings)
 
 final case class ContentApiSettings(apiKey: String, targetUrl: String)
-final case class PublishingSettings(downloadImages: Boolean, outputDir: Path, publicationName: String)
+final case class PublishingSettings(minArticlesPerEdition: Int,
+                                    downloadImages: Boolean,
+                                    outputDir: Path,
+                                    publicationName: String)
 
 object Settings {
   def load: Try[Settings] = {
@@ -52,14 +55,16 @@ object PublishingSettings extends SettingsFactory[PublishingSettings]("publishin
   def apply(config: Config): Try[PublishingSettings] = {
     for {
       downloadImages <- Try(config.getBoolean(DownloadImages))
+      minArticles <- Try(config.getInt(MinArticlesPerEdition))
       outputDir <- Try(config.getString(OutputDir)).map(Paths.get(_))
       publicationName <- Try(config.getString(PublicationName))
     } yield {
-      PublishingSettings(downloadImages, outputDir, publicationName)
+      PublishingSettings(minArticles, downloadImages, outputDir, publicationName)
     }
   }
 
   private final val DownloadImages = "images.download"
+  private final val MinArticlesPerEdition = "minArticlesPerEdition"
   private final val OutputDir = "outputDir"
   private final val PublicationName = "publicationName"
 }

@@ -7,7 +7,6 @@ import org.scalatest.FunSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
 
-import com.gu.kindlegen.KindleGenerator._
 import com.gu.scalatest.PathMatchers._
 
 
@@ -21,7 +20,7 @@ class KindleGeneratorSpec extends FunSpec {
     lazy val paths = files.map(_.path)
 
     it("returns some NITF files") {
-      atLeast(MinArticlesPerEdition, paths) should endWith(".nitf")
+      atLeast(settings.publishing.minArticlesPerEdition, paths) should endWith(".nitf")
     }
 
     it("returns some image files") {
