@@ -9,6 +9,7 @@ import com.gu.contentapi.client._
 import com.gu.contentapi.client.model.v1.{Content, SearchResponse}
 import com.gu.io.IOUtils
 import com.gu.io.IOUtils._
+import com.gu.kindlegen.Querier.PrintSentContentClient
 
 
 // TODO: Move elsewhere
@@ -18,14 +19,11 @@ case class ImageData(metadata: Image, data: Array[Byte]) {
 
 object Querier {
   class PrintSentContentClient(settings: ContentApiSettings) extends GuardianContentClient(settings.apiKey) {
-
     override val targetUrl: String = settings.targetUrl
   }
 }
 
-class Querier(settings: ContentApiSettings, editionDate: LocalDate)(implicit ec: ExecutionContext) {
-  import Querier._
-
+class Querier(capiClient: PrintSentContentClient, editionDate: LocalDate)(implicit ec: ExecutionContext) {
   def fetchAllArticles(): Future[Seq[Article]] =
     fetchPrintSentResponse().andThen {
       case Success(response) =>
@@ -36,7 +34,6 @@ class Querier(settings: ContentApiSettings, editionDate: LocalDate)(implicit ec:
     }
 
   def fetchPrintSentResponse(): Future[SearchResponse] = {
-    val capiClient = new PrintSentContentClient(settings)
     val query = KindlePublishingSearchQuery(editionDate)
     capiClient.getResponse(query)
   }

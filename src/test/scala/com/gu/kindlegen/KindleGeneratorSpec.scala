@@ -13,7 +13,7 @@ import com.gu.kindlegen.KindleGenerator._
 
 class KindleGeneratorSpec extends FunSpec {
   private val settings = Settings.load.get.contentApi
-  private def newInstance(editionDate: LocalDate) = new KindleGenerator(settings, editionDate)
+  private def newInstance(editionDate: LocalDate) = KindleGenerator(settings, editionDate)
 
   describe("fetchNitfBundle") {
     val arbitraryDate = LocalDate.of(2018, 4, 1)

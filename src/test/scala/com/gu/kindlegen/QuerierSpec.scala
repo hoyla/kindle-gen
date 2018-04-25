@@ -7,16 +7,16 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.time.SpanSugar._
 
 import com.gu.contentapi.client.model.v1.SearchResponse
 import com.gu.contentapi.client.utils.CapiModelEnrichment._
 import com.gu.kindlegen.DateUtils._
+import com.gu.kindlegen.Querier.PrintSentContentClient
 
 class QuerierSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
   val settings = Settings.load.get.contentApi
-  val querier = new Querier(settings, exampleDate.toOffsetDateTime.toLocalDate)
+  val capiClient = new PrintSentContentClient(settings) // we can mock this for local testing
+  val querier = new Querier(capiClient, exampleDate.toOffsetDateTime.toLocalDate)
 
   val totalArticles = 96  // on exampleDate = 2017-07-24
 
@@ -67,7 +67,7 @@ class QuerierSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
 
   "fetchPrintSentResponse" should "support empty responses" in {
     val holiday = LocalDate.of(2017, 12, 25)
-    withFetchResponse(new Querier(settings, holiday)) { _.results should have length 0 }
+    withFetchResponse(new Querier(capiClient, holiday)) { _.results should have length 0 }
   }
 
   "fetchPrintSentResponse" should "return all results - no pagination should be required" in {

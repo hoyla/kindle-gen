@@ -3,29 +3,35 @@ package com.gu.kindlegen
 import java.nio.file.{Files, Path}
 import java.time.LocalDate
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 
+import com.gu.kindlegen.Querier.PrintSentContentClient
 
 object KindleGenerator {
   val MinArticlesPerEdition = 30
+
+  def apply(settings: ContentApiSettings, editionDate: LocalDate): KindleGenerator = {
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    val capiClient = new PrintSentContentClient(settings)
+    val querier = new Querier(capiClient, editionDate)
+    new KindleGenerator(querier)
+  }
 }
 
-class KindleGenerator(settings: ContentApiSettings, editionStart: LocalDate) {
-  import scala.concurrent.ExecutionContext.Implicits.global
-
+class KindleGenerator(querier: Querier)(implicit ec: ExecutionContext) {
   import KindleGenerator._
-  val Querier = new Querier(settings, editionStart)
 
   def fetchNitfBundle: Seq[File] = {
-    val fArticles = Querier.fetchAllArticles().flatMap { results =>
+    val fArticles = querier.fetchAllArticles().flatMap { results =>
       if (results.length >= MinArticlesPerEdition)
         Future.successful(results)
       else
         Future.failed(new RuntimeException(s"${results.length} articles is not enough to generate an edition!"))
     }
 
-    val fMaybeImages = fArticles.flatMap(Future.traverse(_)(Querier.downloadArticleImage))
+    val fMaybeImages = fArticles.flatMap(Future.traverse(_)(querier.downloadArticleImage))
 
     val files = fArticles.zip(fMaybeImages).map { case (articles, maybeImages) =>
       articles.zip(maybeImages).zipWithIndex.flatMap { case ((article, maybeImage), index) =>
