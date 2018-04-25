@@ -2,10 +2,13 @@ package com.gu.io
 
 import java.nio.file.Files
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 import org.scalatest.FunSpec
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import scala.concurrent.ExecutionContext.Implicits.global
+
+import com.gu.scalatest.PathMatchers._
 
 class IOUtilsSpec extends FunSpec with ScalaFutures with IntegrationPatience {
   import IOUtils._
@@ -51,7 +54,7 @@ class IOUtilsSpec extends FunSpec with ScalaFutures with IntegrationPatience {
 
       val downloadedFile = downloadAs(tempFile, sampleUrl).futureValue
 
-      Files.isSameFile(downloadedFile, tempFile) shouldBe true
+      downloadedFile should beTheSameFileAs(tempFile)
       Files.readAllBytes(downloadedFile) shouldBe sampleContents
     }
   }

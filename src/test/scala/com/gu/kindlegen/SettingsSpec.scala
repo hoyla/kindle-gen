@@ -7,6 +7,7 @@ import scala.collection.JavaConverters._
 import com.typesafe.config._
 import org.scalatest.FunSpec
 import org.scalatest.Matchers._
+import com.gu.scalatest.PathMatchers._
 
 
 object SettingsSpec {
@@ -52,7 +53,7 @@ class SettingsSpec extends FunSpec {
       publishingSettings.downloadImages shouldBe true
       publishingSettings.publicationName shouldBe publishingValues("publicationName")
 
-      Files.isSameFile(publishingSettings.outputDir, Paths.get(publishingValues("outputDir").toString)) shouldBe true
+      publishingSettings.outputDir should beTheSameFileAs(Paths.get(publishingValues("outputDir").toString))
     }
   }
 }
