@@ -14,7 +14,7 @@ object BookSectionPage {
 
   def chunksToBSP(chunks: List[List[Article]]): List[BookSectionPage] = {
     chunks.map(lst => {
-      BookSectionPage(bookSectionId = Option(lst.head.sectionId).getOrElse(""), pageNum = Option(lst.head.newspaperPageNumber).getOrElse(0), articles = lst)
+      BookSectionPage(bookSectionId = Option(lst.head.section.id).getOrElse(""), pageNum = Option(lst.head.newspaperPageNumber).getOrElse(0), articles = lst)
     })
   }
 }

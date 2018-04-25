@@ -61,7 +61,7 @@ case class TestContent(
       r2ContributorId = None,
       firstName = None,
       twitterHandle = None,
-      webUrl = "",
+      webUrl = s"https://theguardian.com/$testArticleNewspaperBook/$testArticleSectionName",
       bylineImageUrl = None,
       lastName = None,
       description = None,

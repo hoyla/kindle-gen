@@ -7,8 +7,11 @@ import org.scalatest.Matchers._
 
 class BookSectionSuite extends FlatSpec {
   private def article(sectionId: String, sectionName: String, pageNum: Int) =
-    Article(sectionId = sectionId, sectionName = sectionName, newspaperPageNumber = pageNum,
+    Article(section = section(sectionId, sectionName), newspaperPageNumber = pageNum,
       "", "", DateUtils.exampleDate, "", "", Nil, None)
+
+  private def section(sectionId: String, sectionName: String) =
+    Section(id = sectionId, title = sectionName, link = null)
 
   private val articlesInZ = (1 to 4).map(pageNum => article("z", "Z", pageNum))
   private val articlesInX = (1 to 4).map(pageNum => article("x", "X", pageNum))
@@ -17,9 +20,9 @@ class BookSectionSuite extends FlatSpec {
 
   ".fromArticles" should "return list of list of BookSectionPages grouped by bookSectionId" in {
     val expected = List(  // sorted by page number then by section id
-      BookSection("x", "X", articlesInX),
-      BookSection("z", "Z", articlesInZ),
-      BookSection("a", "A", articlesInA)
+      BookSection(section("x", "X"), articlesInX),
+      BookSection(section("z", "Z"), articlesInZ),
+      BookSection(section("a", "A"), articlesInA)
     )
 
     BookSection.fromArticles(allArticles) should contain theSameElementsInOrderAs expected

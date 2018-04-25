@@ -4,8 +4,7 @@ import com.gu.contentapi.client.model.v1._
 
 
 case class Article(
-    sectionId: String,
-    sectionName: String,
+    section: Section,
     newspaperPageNumber: Int,
     title: String,
     docId: String,
@@ -45,8 +44,7 @@ object Article {
 
   def apply(content: Content, newspaperDate: CapiDateTime, fields: ContentFields, sectionTag: Tag): Article = {
     Article(
-      sectionId = sectionTag.id,
-      sectionName = sectionTag.webTitle,
+      section = Section(sectionTag),
       newspaperPageNumber = fields.newspaperPageNumber.getOrElse(0),
       title = content.webTitle,
       docId = content.id,

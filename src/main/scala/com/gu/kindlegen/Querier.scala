@@ -50,7 +50,7 @@ class Querier(settings: Settings, editionDate: LocalDate)(implicit ec: Execution
   }
 
   private def sortArticlesByPageAndSection(articles: Seq[Article]): Seq[Article] = {
-    articles.sortBy(article => (article.newspaperPageNumber, article.sectionId))
+    articles.sortBy(article => (article.newspaperPageNumber, article.section))
   }
 
   def downloadArticleImage(article: Article): Future[Option[ImageData]] = {

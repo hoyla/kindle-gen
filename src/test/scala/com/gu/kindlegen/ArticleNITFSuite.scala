@@ -11,8 +11,7 @@ class ArticleNITFSuite extends FunSuite {
 
   test("ArticleNITF apply") {
     val article = Article(
-      sectionId = "theguardian/mainsection/international",
-      sectionName = "International",
+      section = Section(id = "theguardian/mainsection/international", title = "International", link = null),
       newspaperPageNumber = 2,
       title = "my title",
       docId = "section/date/title",

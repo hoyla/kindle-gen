@@ -57,7 +57,7 @@ class QuerierSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
         ("theguardian/mainsection/topstories", 4)
       )
     }
-    val sortedResults: Seq[(String, Int)] = querier.sortedArticles(articles).map(article => (article.sectionId, article.newspaperPageNumber))
+    val sortedResults: Seq[(String, Int)] = querier.sortedArticles(articles).map(article => (article.section.id, article.newspaperPageNumber))
     assert(sortedResults == mappedSortedContents)
   }
 

@@ -20,8 +20,8 @@ class SectionsManifestSpec extends FlatSpec {
       ("Top Stories", "theguardian/mainsection/topstories", 4),
       ("Top Stories", "theguardian/mainsection/topstories", 4)
     ).map {
-
-        case (l, m, n) => ta.copy(sectionName = l, sectionId = m, newspaperPageNumber = n)
+        case (title, id, page) => ta.copy(newspaperPageNumber = page,
+          section = Section(id = id, title = title, link = null))
       }
   }
 
