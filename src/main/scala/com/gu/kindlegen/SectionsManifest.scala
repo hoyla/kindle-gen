@@ -6,6 +6,7 @@ import com.gu.contentapi.client.model.v1.CapiDateTime
 import com.gu.kindlegen.DateUtils._
 
 case class SectionsManifest(
+    title: String,
     publicationDate: CapiDateTime,
     buildDate: Instant,
     sections: Seq[SectionHeading]
@@ -20,7 +21,7 @@ case class SectionsManifest(
        |<?xml version="1.0" encoding="UTF-8" ?>
        |<rss version="2.0">
        |<channel>
-       |<title>The Guardian / The Observer</title>
+       |<title>$title</title>
        |<link>http://www.guardian.co.uk/</link>
        |<pubDate>$formattedPublicationDate</pubDate>
        |<lastBuildDate>$formattedBuildDate</lastBuildDate>
@@ -32,8 +33,9 @@ case class SectionsManifest(
 }
 
 object SectionsManifest {
-  def apply(sections: Seq[BookSection], buildDate: Instant = Instant.now): SectionsManifest = {
+  def apply(title: String, sections: Seq[BookSection], buildDate: Instant = Instant.now): SectionsManifest = {
     SectionsManifest(
+      title = title,
       publicationDate = sections.head.publicationDate,
       buildDate = buildDate,
       sections = sections.map(SectionHeading.apply)

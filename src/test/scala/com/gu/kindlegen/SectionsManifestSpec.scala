@@ -30,7 +30,8 @@ class SectionsManifestSpec extends FlatSpec {
   private val time = Instant.now()
 
   "SectionManifest.apply" should "convert a sequence of sections to a section Manifest (Contents page)" in {
-    assert(SectionsManifest(sections, time) === SectionsManifest(
+    assert(SectionsManifest("", sections, time) === SectionsManifest(
+      "",
       publicationDate = exampleDate,
       buildDate = time,
       sections = List(
@@ -40,7 +41,7 @@ class SectionsManifestSpec extends FlatSpec {
   }
 
   ".toManifestContentsPage" should "create xml hierachical-title-manifest" in {
-    val manifest = SectionsManifest(sections, time)
+    val manifest = SectionsManifest("The Guardian / The Observer", sections, time)
 
     val expectedOutput =
       s"""
