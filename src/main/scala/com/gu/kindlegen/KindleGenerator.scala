@@ -6,6 +6,7 @@ import java.time.LocalDate
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 
+import com.gu.kindlegen.Link.PathLink
 import com.gu.kindlegen.Querier.PrintSentContentClient
 
 object KindleGenerator {
@@ -19,7 +20,9 @@ object KindleGenerator {
 }
 
 class KindleGenerator(querier: Querier, publishingSettings: PublishingSettings)(implicit ec: ExecutionContext) {
-  def fetchNitfBundle: Seq[File] = {
+  private val outputDirectory = publishingSettings.outputDir
+
+  def fetchNitfBundle(): Future[Seq[Article]] = {
     val fArticles = querier.fetchAllArticles().flatMap { results =>
       if (results.length >= publishingSettings.minArticlesPerEdition)
         Future.successful(results)
@@ -27,46 +30,55 @@ class KindleGenerator(querier: Querier, publishingSettings: PublishingSettings)(
         Future.failed(new RuntimeException(s"${results.length} articles is not enough to generate an edition!"))
     }
 
-    val fMaybeImages = fArticles.flatMap(Future.traverse(_)(querier.downloadArticleImage))
-
-    val files = fArticles.zip(fMaybeImages).map { case (articles, maybeImages) =>
-      articles.zip(maybeImages).zipWithIndex.flatMap { case ((article, maybeImage), index) =>
-        Some(articleToFile(article, index)) ++
-          maybeImage.map(articleImageToFile(_, index))
-      }
-    }
-
-    Await.result(files, 2.minutes)
+    fArticles
   }
 
   def writeNitfBundleToDisk(): Seq[Path] = {
-    val outputDir = publishingSettings.outputDir
-    Files.createDirectories(outputDir)
+    Files.createDirectories(outputDirectory)
 
-    fetchNitfBundle.map(file => {
-      val data = file.data
-      val fileName = file.path
-      bytesToFile(data, fileName, outputDir)
-    })
+    val fArticlesOnDisk = fetchNitfBundle().flatMap { articles =>
+      Future.sequence(articles.zipWithIndex.map { case (article, index) =>
+        downloadMainImage(article, index)
+          .map(writeToFile(_, index))
+      })
+    }
+
+    Await.result(fArticlesOnDisk, 5.minutes)
+      .flatMap { article =>
+        Some(article.link) ++ article.mainImage.map(_.link)
+      }.collect {
+        case link: PathLink => link.toPath
+      }
+    // TODO write manifests
   }
 
-  def bytesToFile(data: Array[Byte], fileName: String, outputDirectory: Path): Path = {
+  private def downloadMainImage(article: Article, fileNameIndex: Int): Future[Article] = {
+    if (publishingSettings.downloadImages) {
+      querier.downloadArticleImage(article).map { maybeImageData =>
+        article.copy(mainImage =
+          maybeImageData.map(writeToFile(_, fileNameIndex))
+        )
+      }
+    } else {
+      Future.successful(article)  // with image sources as URLs
+    }
+  }
+
+  private def writeToFile(image: ImageData, fileNameIndex: Int): Image = {
+    val fileName = s"${fileNameIndex}_${image.metadata.id}.${image.fileExtension}"
+    val path = writeToFile(image.data, fileName)
+    image.metadata.copy(link = Link.AbsolutePath.from(path.toRealPath()))
+  }
+
+  private def writeToFile(article: Article, fileNameIndex: Int): Article = {
+    val nitf = ArticleNITF(article)
+    val fileName = s"${fileNameIndex}_${article.fileName}"
+    val path = writeToFile(nitf.fileContents.getBytes("UTF-8"), fileName)
+    article.copy(link = Link.AbsolutePath.from(path.toRealPath()))
+  }
+
+  private def writeToFile(data: Array[Byte], fileName: String): Path = {
     val filePath = outputDirectory.resolve(fileName)
     Files.write(filePath, data)
-  }
-
-  private def articleToFile(article: Article, index: Int): File = {
-    val nitf = ArticleNITF(article)
-    File(
-      path = s"${index}_${article.fileName}",
-      data = nitf.fileContents.getBytes
-    )
-  }
-
-  private def articleImageToFile(image: ImageData, index: Int): File = {
-    File(
-      path = s"${index}_${image.metadata.id}.${image.fileExtension}",
-      data = image.data
-    )
   }
 }

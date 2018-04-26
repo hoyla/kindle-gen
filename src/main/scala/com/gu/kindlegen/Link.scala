@@ -18,12 +18,15 @@ object Link {
   sealed case class AbsoluteURL  protected[Link](source: String) extends Link
   final       class DataURI      protected[Link](source: String) extends AbsoluteURL(source)
 
-  final case class  AbsolutePath protected[Link](source: String) extends Link {
+  sealed trait PathLink extends Link { def toPath: Path }
+
+  final case class  AbsolutePath protected[Link](source: String) extends PathLink {
     def toPath: Path = Paths.get(source)
     def isEquivalentTo(that: AbsolutePath): Boolean = Files.isSameFile(this.toPath, that.toPath)
   }
 
-  final case class  RelativePath protected[Link](source: String, relativeTo: AbsolutePath) extends Link {
+  final case class  RelativePath protected[Link](source: String, relativeTo: AbsolutePath) extends PathLink {
+    def toPath: Path = toAbsolutePath.toPath
     def toAbsolutePath: AbsolutePath = AbsolutePath.from(relativeTo.toPath.resolve(source))
   }
 

@@ -14,10 +14,9 @@ class KindleGeneratorSpec extends FunSpec {
   private val settings = Settings.load.get
   private def newInstance(editionDate: LocalDate) = KindleGenerator(settings, editionDate)
 
-  describe("fetchNitfBundle") {
+  describe("writeNitfBundle") {
     val arbitraryDate = LocalDate.of(2018, 4, 1)
-    lazy val files = newInstance(arbitraryDate).fetchNitfBundle
-    lazy val paths = files.map(_.path)
+    lazy val paths = newInstance(arbitraryDate).writeNitfBundleToDisk.map(_.toString)
 
     it("returns some NITF files") {
       atLeast(settings.publishing.minArticlesPerEdition, paths) should endWith(".nitf")
