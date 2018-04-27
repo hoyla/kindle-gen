@@ -4,13 +4,15 @@ import java.time.Instant
 
 import com.gu.contentapi.client.model.v1.CapiDateTime
 import com.gu.kindlegen.DateUtils._
+import com.gu.kindlegen.Link.PathLink
 
 case class SectionsManifest(
     title: String,
     publicationDate: CapiDateTime,
     buildDate: Instant,
-    sections: Seq[SectionHeading]
-) {
+    link: PathLink,
+    sections: Seq[SectionHeading]) extends Linkable {
+
   val formattedPublicationDate: String = formatDate(publicationDate)
   val formattedBuildDate: String = dtFormatter.format(buildDate)
   // TODO: filter for unique sections
@@ -33,9 +35,10 @@ case class SectionsManifest(
 }
 
 object SectionsManifest {
-  def apply(title: String, sections: Seq[BookSection], buildDate: Instant = Instant.now): SectionsManifest = {
+  def apply(title: String, link: PathLink, sections: Seq[BookSection], buildDate: Instant = Instant.now): SectionsManifest = {
     SectionsManifest(
       title = title,
+      link = link,
       publicationDate = sections.head.publicationDate,
       buildDate = buildDate,
       sections = sections.map(SectionHeading.apply)
@@ -58,7 +61,7 @@ case class SectionHeading(title: String, fileName: String) {
 object SectionHeading {
   def apply(section: BookSection): SectionHeading = SectionHeading(
     title = section.title,
-    fileName = section.fileName
+    fileName = section.link.source
   )
 }
 

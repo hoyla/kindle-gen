@@ -8,17 +8,17 @@ import org.scalatest.Matchers._
 class BookSectionSuite extends FlatSpec {
   private def article(sectionId: String, sectionName: String, pageNum: Int) =
     Article(section = section(sectionId, sectionName), newspaperPageNumber = pageNum,
-      "", "", Link.DataURI.from("data:,"), DateUtils.exampleDate, "", "", Nil, None)
+      "", "", TestContent.ExampleLink, DateUtils.exampleDate, "", "", Nil, None)
 
   private def section(sectionId: String, sectionName: String) =
-    Section(id = sectionId, title = sectionName, link = null)
+    Section(id = sectionId, title = sectionName, link = TestContent.ExampleLink)
 
   private val articlesInZ = (1 to 4).map(pageNum => article("z", "Z", pageNum))
   private val articlesInX = (1 to 4).map(pageNum => article("x", "X", pageNum))
   private val articlesInA = (4 to 5).map(pageNum => article("a", "A", pageNum))
   private val allArticles = articlesInA ++ articlesInX ++ articlesInZ
 
-  ".fromArticles" should "return list of list of BookSectionPages grouped by bookSectionId" in {
+  ".fromArticles" should "return list of BookSections grouped by bookSectionId sorted by page number" in {
     val expected = List(  // sorted by page number then by section id
       BookSection(section("x", "X"), articlesInX),
       BookSection(section("z", "Z"), articlesInZ),

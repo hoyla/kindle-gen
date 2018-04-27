@@ -9,6 +9,7 @@ import com.gu.kindlegen.DateUtils._
 // OR it will be the first thing to be called/applied...
 case class ArticlesManifest(
     title: String,
+    link: Link,
     publicationDate: CapiDateTime,
     buildDate: Instant,
     articles: Seq[ArticleHeading]
@@ -37,6 +38,7 @@ object ArticlesManifest {
       title = section.title,
       publicationDate = section.publicationDate,
       buildDate = buildDate,
+      link = section.link,
       articles = toArticleHeading(section.articles)
     )
   }

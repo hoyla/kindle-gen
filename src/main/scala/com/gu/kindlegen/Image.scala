@@ -7,7 +7,7 @@ case class Image(id: String,
                  link: Link,
                  altText: Option[String],
                  caption: Option[String],
-                 credit: Option[String])
+                 credit: Option[String]) extends Linkable
 
 object Image {
   def mainMaster(content: Content): Option[Image] = {

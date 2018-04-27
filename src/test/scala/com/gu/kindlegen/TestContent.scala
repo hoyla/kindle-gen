@@ -1,7 +1,15 @@
 package com.gu.kindlegen
 
+import java.nio.file.Paths
+
 import com.gu.contentapi.client.model.v1._
 import com.gu.contentapi.client.model.v1.TagType.NewspaperBook
+
+
+object TestContent {
+  val ExampleLink = Link.AbsoluteURL.from("https://www.example.com")
+  val ExamplePath = Link.AbsolutePath.from(Paths.get("target", "tmp").toRealPath())
+}
 
 /*
  * This class is to be used as a method for creating article content of type Content for use in tests (ie unit tests that don't hit the API).

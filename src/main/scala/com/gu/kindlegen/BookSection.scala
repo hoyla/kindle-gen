@@ -5,16 +5,16 @@ import scala.collection.breakOut
 /**
  * Each Book (eg Guardian or Observer) contains many sections (eg G2, Top Stories, Finance)
  */
-case class BookSection(section: Section, articles: Seq[Article]) {
+case class BookSection(section: Section, articles: Seq[Article]) extends Linkable {
   private val pageNumbers: Seq[Int] = articles.map(_.newspaperPageNumber)
   val firstPageNumber: Int = pageNumbers.min
   val lastPageNumber: Int = pageNumbers.max
 
   def id: String = section.id
   def title: String = section.title
+  def link: Link = section.link
 
   def publicationDate = articles.map(_.pubDate).minBy(_.dateTime)
-  def fileName: String = s"${id.replace('/', '_')}.xml"
 }
 
 object BookSection {

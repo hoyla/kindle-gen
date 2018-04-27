@@ -13,7 +13,7 @@ case class Article(
     byline: String,
     articleAbstract: String,
     bodyBlocks: Seq[String],
-    mainImage: Option[Image])
+    mainImage: Option[Image]) extends Linkable
 
 object Article {
   def getBodyBlocks(content: Content): Seq[String] = {

@@ -11,11 +11,11 @@ class ArticleNITFSuite extends FunSuite {
 
   test("ArticleNITF apply") {
     val article = Article(
-      section = Section(id = "theguardian/mainsection/international", title = "International", link = null),
+      section = Section(id = "theguardian/mainsection/international", title = "International", link = TestContent.ExampleLink),
       newspaperPageNumber = 2,
       title = "my title",
       docId = "section/date/title",
-      link = Link.DataURI.from("data:,"),
+      link = TestContent.ExampleLink,
       pubDate = exampleDate,
       byline = "my name",
       articleAbstract = "article abstract",

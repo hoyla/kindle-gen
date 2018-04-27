@@ -6,6 +6,8 @@ import java.nio.file.{Files, Path, Paths}
 import scala.util.Try
 
 
+trait Linkable { def link: Link }
+
 sealed trait Link {
   /** The link to use to reach this item.
     *
