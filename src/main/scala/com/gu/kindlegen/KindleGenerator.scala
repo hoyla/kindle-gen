@@ -21,7 +21,8 @@ object KindleGenerator {
 }
 
 class KindleGenerator(querier: Querier, publishingSettings: PublishingSettings)(implicit ec: ExecutionContext) {
-  private val outputDirectory = publishingSettings.outputDir
+  private lazy val outputDirectory: Path = Files.createDirectories(publishingSettings.outputDir).toRealPath()
+  private lazy val outputDirLink: Link.AbsolutePath = Link.AbsolutePath.from(outputDirectory)
 
   def fetchNitfBundle(): Future[Seq[Article]] = {
     val fArticles = querier.fetchAllArticles().flatMap { results =>
@@ -35,8 +36,6 @@ class KindleGenerator(querier: Querier, publishingSettings: PublishingSettings)(
   }
 
   def writeNitfBundleToDisk(): Seq[Path] = {
-    Files.createDirectories(outputDirectory)
-
     val fArticlesOnDisk = fetchNitfBundle().flatMap { articles =>
       Future.sequence(articles.zipWithIndex.map { case (article, index) =>
         downloadMainImage(article, index)
@@ -44,13 +43,19 @@ class KindleGenerator(querier: Querier, publishingSettings: PublishingSettings)(
       })
     }
 
-    Await.result(fArticlesOnDisk, 5.minutes)
-      .flatMap { article =>
-        Some(article.link) ++ article.mainImage.map(_.link)
-      }.collect {
-        case link: PathLink => link.toPath
-      }
-    // TODO write manifests
+    val articlesOnDisk = Await.result(fArticlesOnDisk, 5.minutes)  // TODO move the waiting time to configuration
+
+    val sections = BookSection.fromArticles(articlesOnDisk).map(writeToFile)
+    val rootManifest = writeToFile(SectionsManifest.apply(
+      title = publishingSettings.publicationName,
+      link = Link.AbsolutePath.from(publishingSettings.outputDir.toRealPath()),
+      sections = sections
+    ))
+
+    (articlesOnDisk ++ articlesOnDisk.flatMap(_.mainImage) ++ sections :+ rootManifest)
+      .map(_.link).collect {
+      case link: PathLink => link.toPath
+    }
   }
 
   private def downloadMainImage(article: Article, fileNameIndex: Int): Future[Article] = {
@@ -67,18 +72,37 @@ class KindleGenerator(querier: Querier, publishingSettings: PublishingSettings)(
 
   private def writeToFile(image: ImageData, fileNameIndex: Int): Image = {
     val fileName = s"${fileNameIndex}_${image.metadata.id}.${image.fileExtension}"
-    val path = writeToFile(image.data, fileName)
-    image.metadata.copy(link = Link.AbsolutePath.from(path.toRealPath()))
+    image.metadata.copy(link = writeToFile(image.data, fileName))
   }
 
   private def writeToFile(article: Article, fileNameIndex: Int): Article = {
     val nitf = ArticleNITF(article)
     val fileName = s"${fileNameIndex}_${asFileName(article.docId)}.nitf"
-    val path = writeToFile(nitf.fileContents.getBytes("UTF-8"), fileName)
-    article.copy(link = Link.AbsolutePath.from(path.toRealPath()))
+    article.copy(link = writeToFile(nitf.fileContents, fileName))
   }
 
-  private def writeToFile(data: Array[Byte], fileName: String): Path = {
+  private def writeToFile(bookSection: BookSection): BookSection = {
+    val fileName = asFileName(bookSection.id) + ".xml"
+    val manifest = ArticlesManifest(bookSection).toManifestContentsPage
+    bookSection.copy(section = bookSection.section.copy(link = writeToFile(manifest, fileName)))
+  }
+
+  private def writeToFile(sectionsManifest: SectionsManifest): SectionsManifest = {
+    val fileName = "hierarchical-title-manifest.xml"
+    val manifest = sectionsManifest.toManifestContentsPage
+    sectionsManifest.copy(link = writeToFile(manifest, fileName))
+  }
+
+  private def writeToFile(content: String, fileName: String): Link.RelativePath =
+    writeToFile(content.trim.getBytes("UTF-8"), fileName)
+
+  private def writeToFile(content: Array[Byte], fileName: String): Link.RelativePath = {
+    val path = write(content, fileName)
+    val relativePath = outputDirectory.relativize(path)
+    Link.RelativePath.from(relativePath, outputDirLink)
+  }
+
+  private def write(data: Array[Byte], fileName: String): Path = {
     val filePath = outputDirectory.resolve(fileName)
     Files.write(filePath, data)
   }
