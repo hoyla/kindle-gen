@@ -8,6 +8,10 @@ import scala.util.Try
 import scalaj.http._
 
 object IOUtils {
+  def asFileName(str: String): String = {
+    str.replaceAll(raw"[:/\\?&#]", "_")
+  }
+
   def fileExtension(pathOrUrl: String): String = {
     pathOrUrl.substring(pathOrUrl.lastIndexOf('.') + 1)
   }

@@ -13,6 +13,12 @@ import com.gu.scalatest.PathMatchers._
 class IOUtilsSpec extends FunSpec with ScalaFutures with IntegrationPatience {
   import IOUtils._
 
+  describe("asFileName") {
+    it("converts invalid filename characters to underscores") {
+      asFileName(raw"http://example.com\file?a=0&i=9#anchor") shouldBe "http___example.com_file_a=0_i=9_anchor"
+    }
+  }
+
   describe("fileExtension") {
     it("can process an empty string") { fileExtension("") shouldBe "" }
     it("extracts a 3-chars extension") { fileExtension("image.png") shouldBe "png" }

@@ -6,6 +6,7 @@ import java.time.LocalDate
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 
+import com.gu.io.IOUtils._
 import com.gu.kindlegen.Link.PathLink
 import com.gu.kindlegen.Querier.PrintSentContentClient
 
@@ -72,7 +73,7 @@ class KindleGenerator(querier: Querier, publishingSettings: PublishingSettings)(
 
   private def writeToFile(article: Article, fileNameIndex: Int): Article = {
     val nitf = ArticleNITF(article)
-    val fileName = s"${fileNameIndex}_${article.fileName}"
+    val fileName = s"${fileNameIndex}_${asFileName(article.docId)}.nitf"
     val path = writeToFile(nitf.fileContents.getBytes("UTF-8"), fileName)
     article.copy(link = Link.AbsolutePath.from(path.toRealPath()))
   }

@@ -13,13 +13,7 @@ case class Article(
     byline: String,
     articleAbstract: String,
     bodyBlocks: Seq[String],
-    mainImage: Option[Image]) {
-  // TODO: TEST THIS
-  // TODO move this method to another class (ArticleNITF?)
-  def fileName: String = {
-    docId.replace('/', '_') + ".nitf"
-  }
-}
+    mainImage: Option[Image])
 
 object Article {
   def getBodyBlocks(content: Content): Seq[String] = {

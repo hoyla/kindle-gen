@@ -60,7 +60,7 @@ case class ArticleHeading(title: String, fileName: String) {
 object ArticleHeading {
   def apply(article: Article): ArticleHeading = ArticleHeading(
     title = article.title,
-    fileName = article.fileName
+    fileName = article.link.source
   )
 }
 
