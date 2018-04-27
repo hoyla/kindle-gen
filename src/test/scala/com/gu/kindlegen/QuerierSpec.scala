@@ -27,38 +27,20 @@ class QuerierSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
   val testContent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "", None)
   val capiResponse = List(testContent.toContent)
 
-  ".responseToArticles" should "convert a capi response (Seq[Content) to a Seq[Article])" in {
-    val toArticles = querier.sortedArticles(capiResponse)
+  "articles" should "convert a capi response (Seq[Content) to a Seq[Article])" in {
+    val articles = querier.articles(capiResponse)
 
-    assert(toArticles.head.newspaperPageNumber === 3)
+    assert(articles.nonEmpty)
+    assert(articles.head.newspaperPageNumber === 3)
   }
 
-  ".sortedArticles" should "sort content according to page number then book section" in {
+  "articles" should "convert publishable content" in {
+    querier.articles(Seq(testContent.toContent)) should not be empty
+  }
 
-    val articles =
-      Seq(
-        ("theguardian/mainsection/topstories", 4),
-        ("theguardian/mainsection/international", 1),
-        ("theguardian/mainsection/finance", 1),
-        ("theguardian/mainsection/international", 2),
-        ("theguardian/mainsection/topstories", 3),
-        ("theguardian/mainsection/international", 3)
-      ).map {
-          case (l, m) => testContent.copy(testArticleNewspaperBook = l, testArticlePageNumber = m).toContent
-      }
-
-    val mappedSortedContents: Seq[(String, Int)] = {
-      Seq(
-        ("theguardian/mainsection/finance", 1),
-        ("theguardian/mainsection/international", 1),
-        ("theguardian/mainsection/international", 2),
-        ("theguardian/mainsection/international", 3),
-        ("theguardian/mainsection/topstories", 3),
-        ("theguardian/mainsection/topstories", 4)
-      )
-    }
-    val sortedResults: Seq[(String, Int)] = querier.sortedArticles(articles).map(article => (article.section.id, article.newspaperPageNumber))
-    assert(sortedResults == mappedSortedContents)
+  "articles" should "ignore non-publishable content" in {
+    val withoutTags = testContent.toContent.copy(tags = Seq.empty)
+    querier.articles(Seq(withoutTags)) shouldBe empty
   }
 
   "fetchPrintSentResponse" should "initiate a proper search query" in {
@@ -84,15 +66,6 @@ class QuerierSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
         duplicateIds shouldBe empty
       }
     }
-  }
-
-  "sortedArticles" should "convert publishable content" in {
-    querier.sortedArticles(Seq(testContent.toContent)) should not be empty
-  }
-
-  "sortedArticles" should "ignore non-publishable content" in {
-    val withoutTags = testContent.toContent.copy(tags = Seq.empty)
-    querier.sortedArticles(Seq(withoutTags)) shouldBe empty
   }
 
   private def withFetchResponse[T](querier: Querier = querier)(doSomething: SearchResponse => T): T = {

@@ -35,6 +35,6 @@ object BookSection {
     require(articles.forall(a => a.section == section),
       s"All articles must belong to the same section! Found ${articles.map(_.section).distinct}.")
 
-    BookSection(section, articles)
+    BookSection(section, articles.sortBy(_.newspaperPageNumber))
   }
 }

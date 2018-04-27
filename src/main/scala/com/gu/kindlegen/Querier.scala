@@ -30,7 +30,7 @@ class Querier(capiClient: PrintSentContentClient, editionDate: LocalDate)(implic
         // TODO log an error; exceptions in the call to `andThen` do not stop processing
         assert(response.results.length == response.total, "fetchResponse returned partial (paginated) results!")
     }.map { response =>
-      sortedArticles(response.results)
+      articles(response.results)
     }
 
   def fetchPrintSentResponse(): Future[SearchResponse] = {
@@ -38,16 +38,12 @@ class Querier(capiClient: PrintSentContentClient, editionDate: LocalDate)(implic
     capiClient.getResponse(query)
   }
 
-  def sortedArticles(results: Seq[Content]): Seq[Article] = {
+  def articles(results: Seq[Content]): Seq[Article] = {
     val articles = results.map { content => Try(Article(content)) }.collect {
       case Success(article) => article
       // TODO log the issue in the case of failure
     }
-    sortArticlesByPageAndSection(articles)
-  }
-
-  private def sortArticlesByPageAndSection(articles: Seq[Article]): Seq[Article] = {
-    articles.sortBy(article => (article.newspaperPageNumber, article.section))
+    articles
   }
 
   def downloadArticleImage(article: Article): Future[Option[ImageData]] = {
