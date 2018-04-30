@@ -42,6 +42,37 @@ class IOUtilsSpec extends FunSpec with ScalaFutures with IntegrationPatience wit
     }
   }
 
+  describe("deleteRecursively") {
+    def testDelete(path: Path, testNested: Path => Unit = _ => ()): Unit = {
+      testNested(path)
+      deleteRecursively(path) shouldBe true
+      Files.exists(path) shouldBe false
+    }
+
+    it("deletes a file") {
+      testDelete(newTempFile)
+    }
+
+    it("deletes an empty directory") {
+      testDelete(newTempDir)
+    }
+
+    it("deletes nested empty directories") {
+      testDelete(newTempDir, newTempDir(_))
+    }
+
+    it("deletes full directories") {
+      testDelete(newTempDir, parent => {
+        newTempFile(parent)
+        newTempFile(newTempDir(parent))
+      })
+    }
+
+    it("fails gracefully if the file doesn't exist") {
+      deleteRecursively(newTempDir.resolve("non-existent")) shouldBe false
+    }
+  }
+
   describe("download") {
     // this is, effectively, an integration test
 

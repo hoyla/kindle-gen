@@ -15,6 +15,14 @@ object IOUtils {
     pathOrUrl.substring(pathOrUrl.lastIndexOf('.') + 1)
   }
 
+  /** Deletes files and directories */
+  def deleteRecursively(path: Path): Boolean = {
+    import Files._
+    if (isDirectory(path))
+      walk(path).filter(_ != path).forEach(deleteRecursively)
+    deleteIfExists(path)
+  }
+
   def download(url: String)(implicit ec: ExecutionContext): Future[Array[Byte]] = {
     val request = Http(url)
     Future {
