@@ -14,7 +14,7 @@ import com.gu.kindlegen.Querier.PrintSentContentClient
 
 // TODO: Move elsewhere
 case class ImageData(metadata: Image, data: Array[Byte]) {
-  def fileExtension: String = IOUtils.fileExtension(metadata.link.source)
+  def source: String = metadata.link.source
 }
 
 object Querier {

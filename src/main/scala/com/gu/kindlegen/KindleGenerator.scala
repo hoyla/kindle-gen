@@ -71,7 +71,7 @@ class KindleGenerator(querier: Querier, publishingSettings: PublishingSettings)(
   }
 
   private def writeToFile(image: ImageData, fileNameIndex: Int): Image = {
-    val fileName = s"${fileNameIndex}_${image.metadata.id}.${image.fileExtension}"
+    val fileName = s"${fileNameIndex}_${image.metadata.id}.${fileExtension(image.source)}"
     image.metadata.copy(link = writeToFile(image.data, fileName))
   }
 
