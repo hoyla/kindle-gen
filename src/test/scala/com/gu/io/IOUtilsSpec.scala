@@ -10,7 +10,8 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
 import com.gu.scalatest.PathMatchers._
 
-class IOUtilsSpec extends FunSpec with ScalaFutures with IntegrationPatience {
+
+class IOUtilsSpec extends FunSpec with ScalaFutures with IntegrationPatience with TempFiles {
   import IOUtils._
 
   describe("asFileName") {
@@ -56,7 +57,7 @@ class IOUtilsSpec extends FunSpec with ScalaFutures with IntegrationPatience {
     }
 
     it("downloads data from a URL into a file") {
-      val tempFile = Files.createTempFile(null, null)
+      val tempFile = newTempFile
 
       val downloadedFile = downloadAs(tempFile, sampleUrl).futureValue
 
