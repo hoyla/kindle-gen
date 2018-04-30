@@ -3,7 +3,6 @@ package com.gu.io
 import java.nio.file.{Files, Path}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 import scalaj.http._
 
@@ -28,10 +27,12 @@ object IOUtils {
     * Creates the parent directory if it doesn't exist and overwrites the file if it exists.
     */
   def downloadAs(path: Path, url: String)(implicit ec: ExecutionContext): Future[Path] = {
-    Future.fromTry(Try(
-      Option(path.toRealPath().getParent).foreach(Files.createDirectories(_))
-    )).flatMap { _ =>
-      download(url).map(bytes => Files.write(path, bytes))
+    Future {
+      val absolutePath = path.toAbsolutePath
+      val directory = Files.createDirectories(absolutePath.getParent)
+      directory.resolve(absolutePath.getFileName)
+    }.flatMap { downloadPath =>
+      download(url).map(bytes => Files.write(downloadPath, bytes))
     }
   }
 }

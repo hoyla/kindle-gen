@@ -1,6 +1,6 @@
 package com.gu.io
 
-import java.nio.file.Files
+import java.nio.file.{Files, Path}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -56,13 +56,23 @@ class IOUtilsSpec extends FunSpec with ScalaFutures with IntegrationPatience wit
       download(sampleUrl).futureValue shouldBe sampleContents
     }
 
-    it("downloads data from a URL into a file") {
-      val tempFile = newTempFile
-
+    def testDownloadAs(tempFile: Path) = {
       val downloadedFile = downloadAs(tempFile, sampleUrl).futureValue
 
       downloadedFile should beTheSameFileAs(tempFile)
       Files.readAllBytes(downloadedFile) shouldBe sampleContents
+    }
+
+    it("downloads data from a URL into a file") {
+      testDownloadAs(newTempFile)
+    }
+
+    it("downloads data from a URL into a file in a new directory") {
+      val tempDir = newTempDir
+      val newDir = tempDir.resolve("newdir")
+      val newFile = newDir.resolve("newfile")
+
+      testDownloadAs(newFile)
     }
   }
 }
