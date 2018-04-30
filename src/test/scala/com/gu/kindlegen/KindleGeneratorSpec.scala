@@ -3,6 +3,7 @@ package com.gu.kindlegen
 import java.nio.file.Files
 import java.time.LocalDate
 
+import com.typesafe.config.ConfigFactory
 import org.scalatest.FunSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
@@ -14,9 +15,12 @@ class KindleGeneratorSpec extends FunSpec {
   private val settings = Settings.load.get
   private def newInstance(editionDate: LocalDate) = KindleGenerator(settings, editionDate)
 
+  private val conf = ConfigFactory.load.getConfig("KindleGeneratorSpec")
+  private val deleteGeneratedFiles = conf.getBoolean("deleteGeneratedFiles")
+
   describe("writeNitfBundle") {
     val arbitraryDate = LocalDate.of(2018, 4, 1)
-    lazy val paths = newInstance(arbitraryDate).writeNitfBundleToDisk.map(_.toString)
+    lazy val paths = newInstance(arbitraryDate).writeNitfBundleToDisk().map(_.toString)
 
     it("returns some NITF files") {
       atLeast(settings.publishing.minArticlesPerEdition, paths) should endWith(".nitf")
@@ -36,6 +40,8 @@ class KindleGeneratorSpec extends FunSpec {
       path should beAChildOf(settings.publishing.outputDir)
       withClue(path) { Files.readAllBytes(path) should not be empty }
     }
+
+    if (deleteGeneratedFiles) generatedFiles.foreach(Files.delete)
   }
 
   describe("writeNitfBundleToDisk") {
