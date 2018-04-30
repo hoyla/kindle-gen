@@ -1,11 +1,11 @@
 package com.gu.kindlegen
 
 import org.scalatest.FlatSpec
-import DateUtils._
+import com.gu.kindlegen.TestContent.ExampleDate
 
 class ArticleSuite extends FlatSpec {
 
-  val capiDate = exampleDate
+  val capiDate = ExampleDate
   val ta = TestContent("", "", 2, "", "", capiDate, capiDate, capiDate, "", "", "", None)
 
   ".apply" should "apply method with content as parameter" in {

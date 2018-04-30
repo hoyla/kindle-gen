@@ -1,12 +1,15 @@
 package com.gu.kindlegen
 
 import java.nio.file.Paths
+import java.time.{OffsetDateTime, ZoneOffset}
 
 import com.gu.contentapi.client.model.v1._
 import com.gu.contentapi.client.model.v1.TagType.NewspaperBook
+import com.gu.contentapi.client.utils.CapiModelEnrichment._
 
 
 object TestContent {
+  val ExampleDate = OffsetDateTime.of(2017, 7, 24, 0, 0, 0, 0, ZoneOffset.UTC).toCapiDateTime
   val ExampleLink = Link.AbsoluteURL.from("https://www.example.com")
   val ExamplePath = Link.AbsolutePath.from(Paths.get("target", "tmp").toRealPath())
 }

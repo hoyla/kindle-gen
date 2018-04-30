@@ -4,7 +4,7 @@ import org.junit.runner.RunWith
 import org.scalatest.FunSuite
 import org.scalatest.junit.JUnitRunner
 
-import com.gu.kindlegen.DateUtils._
+import com.gu.kindlegen.TestContent.ExampleDate
 
 @RunWith(classOf[JUnitRunner])
 class ArticleNITFSuite extends FunSuite {
@@ -16,7 +16,7 @@ class ArticleNITFSuite extends FunSuite {
       title = "my title",
       docId = "section/date/title",
       link = TestContent.ExampleLink,
-      pubDate = exampleDate,
+      pubDate = ExampleDate,
       byline = "my name",
       articleAbstract = "article abstract",
       bodyBlocks = Seq("content"),

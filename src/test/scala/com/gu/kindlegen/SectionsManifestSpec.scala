@@ -6,10 +6,11 @@ import org.scalatest.FlatSpec
 
 import com.gu.kindlegen.DateUtils._
 import com.gu.kindlegen.Link.RelativePath
+import com.gu.kindlegen.TestContent.ExampleDate
 
 class SectionsManifestSpec extends FlatSpec {
 
-  val capiDate = exampleDate
+  val capiDate = ExampleDate
   val ta = Article(TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None).toContent)
 
   val articles = {
@@ -36,7 +37,7 @@ class SectionsManifestSpec extends FlatSpec {
     assert(SectionsManifest("", TestContent.ExamplePath, sections, time) === SectionsManifest(
       title = "",
       link = TestContent.ExamplePath,
-      publicationDate = exampleDate,
+      publicationDate = ExampleDate,
       buildDate = time,
       sections = Seq(
         SectionHeading("International", fileName = "theguardian_mainsection_international.xml"),

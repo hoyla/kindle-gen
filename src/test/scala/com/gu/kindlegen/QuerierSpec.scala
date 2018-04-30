@@ -10,20 +10,20 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
 import com.gu.contentapi.client.model.v1.SearchResponse
 import com.gu.contentapi.client.utils.CapiModelEnrichment._
-import com.gu.kindlegen.DateUtils._
 import com.gu.kindlegen.Querier.PrintSentContentClient
+import com.gu.kindlegen.TestContent.ExampleDate
 
 class QuerierSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
   val settings = Settings.load.get.contentApi
   val capiClient = new PrintSentContentClient(settings) // we can mock this for local testing
-  val querier = new Querier(capiClient, exampleDate.toOffsetDateTime.toLocalDate)
+  val querier = new Querier(capiClient, ExampleDate.toOffsetDateTime.toLocalDate)
 
   val totalArticles = 96  // on exampleDate = 2017-07-24
 
   // TODO: Find a way to test printSentResponse, extract the edition dates etc
   // TODO: Find a way to override the source file to a sample.conf version
 
-  val capiDate = exampleDate
+  val capiDate = ExampleDate
   val testContent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "", None)
   val capiResponse = List(testContent.toContent)
 

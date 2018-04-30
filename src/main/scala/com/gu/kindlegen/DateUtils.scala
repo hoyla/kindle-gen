@@ -13,6 +13,4 @@ object DateUtils {
 
   // formatter for use with parseDateTime to convert an isoDateTime: String to isoDateTime: DateTime
   def formatDate(capiDate: CapiDateTime): String = formatter.format(capiDate.toOffsetDateTime)
-
-  val exampleDate = OffsetDateTime.of(2017, 7, 24, 0, 0, 0, 0, ZoneOffset.UTC).toCapiDateTime
 }
