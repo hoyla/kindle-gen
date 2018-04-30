@@ -6,7 +6,7 @@ import org.scalatest.FlatSpec
 
 import com.gu.kindlegen.DateUtils._
 import com.gu.kindlegen.Link.RelativePath
-import com.gu.kindlegen.TestContent.ExampleDate
+import com.gu.kindlegen.TestContent._
 
 class SectionsManifestSpec extends FlatSpec {
 
@@ -46,7 +46,7 @@ class SectionsManifestSpec extends FlatSpec {
   }
 
   ".toManifestContentsPage" should "create xml hierachical-title-manifest" in {
-    val manifest = SectionsManifest("The Guardian / The Observer", TestContent.ExamplePath, sections, time)
+    val manifest = SectionsManifest("The Guardian / The Observer", ExampleLink, sections, time)
 
     val expectedOutput =
       s"""
@@ -54,7 +54,7 @@ class SectionsManifestSpec extends FlatSpec {
          |<rss version="2.0">
          |<channel>
          |<title>The Guardian / The Observer</title>
-         |<link>http://www.guardian.co.uk/</link>
+         |<link>${ExampleLink.source}</link>
          |<pubDate>20170724</pubDate>
          |<lastBuildDate>${dtFormatter.format(time)}</lastBuildDate>
          |<item>

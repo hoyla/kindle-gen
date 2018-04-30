@@ -4,13 +4,12 @@ import java.time.Instant
 
 import com.gu.contentapi.client.model.v1.CapiDateTime
 import com.gu.kindlegen.DateUtils._
-import com.gu.kindlegen.Link.PathLink
 
 case class SectionsManifest(
     title: String,
     publicationDate: CapiDateTime,
     buildDate: Instant,
-    link: PathLink,
+    link: Link,
     sections: Seq[SectionHeading]) extends Linkable {
 
   val formattedPublicationDate: String = formatDate(publicationDate)
@@ -24,7 +23,7 @@ case class SectionsManifest(
        |<rss version="2.0">
        |<channel>
        |<title>$title</title>
-       |<link>http://www.guardian.co.uk/</link>
+       |<link>${link.source}</link>
        |<pubDate>$formattedPublicationDate</pubDate>
        |<lastBuildDate>$formattedBuildDate</lastBuildDate>
        |$sectionsString</channel>
@@ -35,7 +34,7 @@ case class SectionsManifest(
 }
 
 object SectionsManifest {
-  def apply(title: String, link: PathLink, sections: Seq[BookSection], buildDate: Instant = Instant.now): SectionsManifest = {
+  def apply(title: String, link: Link, sections: Seq[BookSection], buildDate: Instant = Instant.now): SectionsManifest = {
     SectionsManifest(
       title = title,
       link = link,

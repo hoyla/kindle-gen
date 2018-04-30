@@ -46,9 +46,9 @@ class KindleGenerator(querier: Querier, publishingSettings: PublishingSettings)(
     val articlesOnDisk = Await.result(fArticlesOnDisk, 5.minutes)  // TODO move the waiting time to configuration
 
     val sections = BookSection.fromArticles(articlesOnDisk).map(writeToFile)
-    val rootManifest = writeToFile(SectionsManifest.apply(
+    val rootManifest = writeToFile(SectionsManifest(
       title = publishingSettings.publicationName,
-      link = Link.AbsolutePath.from(publishingSettings.outputDir.toRealPath()),
+      link = Link.AbsoluteURL.from(publishingSettings.publicationLink),
       sections = sections
     ))
 

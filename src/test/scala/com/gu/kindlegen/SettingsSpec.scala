@@ -27,6 +27,7 @@ class SettingsSpec extends FunSpec {
   val publishingValues = Map(
     "minArticlesPerEdition" -> 10,
     "publicationName" -> "My Publication",
+    "publicationLink" -> "http://example.com",
     "outputDir" -> "/home/me",
     "images" -> Map("download" -> "on").toConfigObj
   )
@@ -54,6 +55,7 @@ class SettingsSpec extends FunSpec {
       publishingSettings.downloadImages shouldBe true
       publishingSettings.minArticlesPerEdition shouldBe publishingValues("minArticlesPerEdition")
       publishingSettings.publicationName shouldBe publishingValues("publicationName")
+      publishingSettings.publicationLink shouldBe publishingValues("publicationLink")
 
       publishingSettings.outputDir should beTheSameFileAs(Paths.get(publishingValues("outputDir").toString))
     }

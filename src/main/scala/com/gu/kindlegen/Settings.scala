@@ -13,7 +13,8 @@ final case class ContentApiSettings(apiKey: String, targetUrl: String)
 final case class PublishingSettings(minArticlesPerEdition: Int,
                                     downloadImages: Boolean,
                                     outputDir: Path,
-                                    publicationName: String)
+                                    publicationName: String,
+                                    publicationLink: String)
 
 object Settings {
   def load: Try[Settings] = {
@@ -58,8 +59,9 @@ object PublishingSettings extends SettingsFactory[PublishingSettings]("publishin
       minArticles <- Try(config.getInt(MinArticlesPerEdition))
       outputDir <- Try(config.getString(OutputDir)).map(Paths.get(_))
       publicationName <- Try(config.getString(PublicationName))
+      publicationLink <- Try(config.getString(PublicationLink))
     } yield {
-      PublishingSettings(minArticles, downloadImages, outputDir, publicationName)
+      PublishingSettings(minArticles, downloadImages, outputDir, publicationName, publicationLink)
     }
   }
 
@@ -67,4 +69,5 @@ object PublishingSettings extends SettingsFactory[PublishingSettings]("publishin
   private final val MinArticlesPerEdition = "minArticlesPerEdition"
   private final val OutputDir = "outputDir"
   private final val PublicationName = "publicationName"
+  private final val PublicationLink = "publicationLink"
 }
