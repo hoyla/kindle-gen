@@ -19,7 +19,8 @@ object Article {
   def getBodyBlocks(content: Content): Seq[String] = {
     val blocks = content.blocks
     val bodyBlocks = blocks.flatMap(_.body).getOrElse(Nil)
-    // TODO what if bodyBlocks.length < blocks.totalBodyBlocks ?
+      .ensuring(bodies => blocks.flatMap(_.totalBodyBlocks).forall(_ == bodies.length))
+
     val bodyElements = bodyBlocks.flatMap(_.elements).filter(_.`type` == ElementType.Text)
     val htmlBlocks = bodyElements.flatMap(_.textTypeData.flatMap(_.html))
     htmlBlocks
@@ -40,7 +41,7 @@ object Article {
   def apply(content: Content, newspaperDate: CapiDateTime, fields: ContentFields, sectionTag: Tag): Article = {
     Article(
       section = Section(sectionTag),
-      newspaperPageNumber = fields.newspaperPageNumber.getOrElse(0),
+      newspaperPageNumber = fields.newspaperPageNumber.getOrElse(Int.MaxValue),  // move to the end of the section
       title = content.webTitle,
       docId = content.id,
       link = Link.AbsoluteURL.from(content.webUrl),
