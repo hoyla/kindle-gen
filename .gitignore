@@ -23,3 +23,6 @@ response1.text
 response10.text
 sample.conf
 tmp
+
+# Commit reference.conf and let the developer customise application.conf locally
+application.conf
