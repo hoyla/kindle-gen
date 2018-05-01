@@ -4,7 +4,6 @@ import java.nio.file.Paths
 import java.time.{OffsetDateTime, ZoneOffset}
 
 import com.gu.contentapi.client.model.v1._
-import com.gu.contentapi.client.model.v1.TagType.NewspaperBook
 import com.gu.contentapi.client.utils.CapiModelEnrichment._
 
 
@@ -12,6 +11,8 @@ object TestContent {
   val ExampleDate = OffsetDateTime.of(2017, 7, 24, 0, 0, 0, 0, ZoneOffset.UTC).toCapiDateTime
   val ExampleLink = Link.AbsoluteURL.from("https://www.example.com")
   val ExamplePath = Link.AbsolutePath.from(Paths.get("target", "tmp").toRealPath())
+
+  val ExampleQuerySettings = QuerySettings(TagType.Type)
 }
 
 /*
@@ -50,6 +51,8 @@ case class TestContent(
     testArticleContent: String,
     testArticleImageUrl: Option[String]
 ) {
+  import TestContent._
+
   def toContent: Content = Content(
     references = Nil,
     section = None,
@@ -63,7 +66,7 @@ case class TestContent(
       paidContentType = None,
       bio = None,
       paidContentCampaignColour = None,
-      `type` = NewspaperBook,
+      `type` = ExampleQuerySettings.sectionTagType,
       entityIds = None,
       emailAddress = None,
       apiUrl = "",

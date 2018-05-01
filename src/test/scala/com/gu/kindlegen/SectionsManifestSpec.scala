@@ -10,10 +10,14 @@ import com.gu.kindlegen.TestContent._
 
 class SectionsManifestSpec extends FlatSpec {
 
-  val capiDate = ExampleDate
-  val ta = Article(TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None).toContent)
+  private val capiDate = ExampleDate
+  private val time = Instant.now()
 
-  val articles = {
+  private val content = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None).toContent
+  private val article = Article(content, ExampleQuerySettings.sectionTagType)
+
+  private lazy val sections = BookSection.fromArticles(articles)
+  private val articles = {
     Seq(
       ("International", "theguardian/mainsection/international", 1),
       ("International", "theguardian/mainsection/international", 2),
@@ -22,16 +26,12 @@ class SectionsManifestSpec extends FlatSpec {
       ("Top Stories", "theguardian/mainsection/topstories", 4),
       ("Top Stories", "theguardian/mainsection/topstories", 4)
     ).map {
-        case (title, id, page) => ta.copy(newspaperPageNumber = page,
+        case (title, id, page) => article.copy(newspaperPageNumber = page,
           section = Section(id = id, title = title,
             link = RelativePath.from(id.replace('/', '_') + ".xml", null))
         )
       }
   }
-
-  val sections = BookSection.fromArticles(articles)
-
-  private val time = Instant.now()
 
   "SectionManifest.apply" should "convert a sequence of sections to a section Manifest (Contents page)" in {
     assert(SectionsManifest("", TestContent.ExamplePath, sections, time) === SectionsManifest(

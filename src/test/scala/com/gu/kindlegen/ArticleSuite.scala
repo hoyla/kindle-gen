@@ -1,7 +1,8 @@
 package com.gu.kindlegen
 
 import org.scalatest.FlatSpec
-import com.gu.kindlegen.TestContent.ExampleDate
+
+import com.gu.kindlegen.TestContent._
 
 class ArticleSuite extends FlatSpec {
 
@@ -10,7 +11,7 @@ class ArticleSuite extends FlatSpec {
 
   ".apply" should "apply method with content as parameter" in {
     val content = ta.toContent
-    val a = Article(content)
+    val a = Article(content, ExampleQuerySettings.sectionTagType)
     assert(a.newspaperPageNumber === 2)
   }
 }

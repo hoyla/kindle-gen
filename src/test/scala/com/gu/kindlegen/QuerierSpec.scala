@@ -11,12 +11,14 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import com.gu.contentapi.client.model.v1.SearchResponse
 import com.gu.contentapi.client.utils.CapiModelEnrichment._
 import com.gu.kindlegen.Querier.PrintSentContentClient
-import com.gu.kindlegen.TestContent.ExampleDate
+import com.gu.kindlegen.TestContent._
 
 class QuerierSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
   val settings = Settings.load.get.contentApi
   val capiClient = new PrintSentContentClient(settings) // we can mock this for local testing
-  val querier = new Querier(capiClient, ExampleDate.toOffsetDateTime.toLocalDate)
+
+  private def querier: Querier = querier(ExampleDate.toOffsetDateTime.toLocalDate)
+  private def querier(editionDate: LocalDate) = new Querier(capiClient, ExampleQuerySettings, editionDate)
 
   val totalArticles = 96  // on exampleDate = 2017-07-24
 
@@ -49,7 +51,7 @@ class QuerierSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
 
   "fetchPrintSentResponse" should "support empty responses" in {
     val holiday = LocalDate.of(2017, 12, 25)
-    withFetchResponse(new Querier(capiClient, holiday)) { _.results should have length 0 }
+    withFetchResponse(querier(holiday)) { _.results should have length 0 }
   }
 
   "fetchPrintSentResponse" should "return all results - no pagination should be required" in {

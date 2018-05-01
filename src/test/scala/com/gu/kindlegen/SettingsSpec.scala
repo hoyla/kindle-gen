@@ -1,12 +1,14 @@
 package com.gu.kindlegen
 
-import java.nio.file.{Files, Paths}
+import java.nio.file.Paths
 
 import scala.collection.JavaConverters._
 
 import com.typesafe.config._
 import org.scalatest.FunSpec
 import org.scalatest.Matchers._
+
+import com.gu.contentapi.client.model.v1.TagType
 import com.gu.scalatest.PathMatchers._
 
 
@@ -20,11 +22,12 @@ object SettingsSpec {
 class SettingsSpec extends FunSpec {
   import SettingsSpec._
 
-  val contentApiValues = Map(
+  private val contentApiValues = Map(
     "key" -> "My API key",
     "url" -> "https://example.com"
   )
-  val publishingValues = Map(
+
+  private val publishingValues = Map(
     "minArticlesPerEdition" -> 10,
     "publicationName" -> "My Publication",
     "publicationLink" -> "http://example.com",
@@ -32,12 +35,19 @@ class SettingsSpec extends FunSpec {
     "images" -> Map("download" -> "on").toConfigObj
   )
 
+  private val sectionTagType = TagType.Keyword
+  private val queryValues = Map(
+    "sectionTagType" -> sectionTagType.name
+  )
+
   private def settingsConfig = Map(
     "content-api" -> contentApiConfig,
-    "publishing" -> publishingConfig
+    "publishing" -> publishingConfig,
+    "query" -> queryConfig,
   ).toConfig
   private def contentApiConfig = contentApiValues.toConfigObj
   private def publishingConfig = publishingValues.toConfigObj
+  private def queryConfig = queryValues.toConfigObj
 
   describe("Settings factory") {
     val settings = Settings(settingsConfig).get
@@ -58,6 +68,12 @@ class SettingsSpec extends FunSpec {
       publishingSettings.publicationLink shouldBe publishingValues("publicationLink")
 
       publishingSettings.outputDir should beTheSameFileAs(Paths.get(publishingValues("outputDir").toString))
+    }
+
+    it("parses QuerySettings correctly") {
+      val querySettings = settings.query
+
+      querySettings.sectionTagType shouldBe sectionTagType
     }
   }
 }

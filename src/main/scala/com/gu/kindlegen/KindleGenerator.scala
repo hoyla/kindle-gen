@@ -15,7 +15,7 @@ object KindleGenerator {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     val capiClient = new PrintSentContentClient(settings.contentApi)
-    val querier = new Querier(capiClient, editionDate)
+    val querier = new Querier(capiClient, settings.query, editionDate)
     new KindleGenerator(querier, settings.publishing)
   }
 }

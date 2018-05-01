@@ -6,15 +6,20 @@ import scala.util.Try
 
 import com.typesafe.config.{Config, ConfigFactory}
 
+import com.gu.contentapi.client.model.v1.TagType
+
 /** Encapsulates the settings of this application */
-final case class Settings(contentApi: ContentApiSettings, publishing: PublishingSettings)
+final case class Settings(contentApi: ContentApiSettings, publishing: PublishingSettings, query: QuerySettings)
 
 final case class ContentApiSettings(apiKey: String, targetUrl: String)
+
 final case class PublishingSettings(minArticlesPerEdition: Int,
                                     downloadImages: Boolean,
                                     outputDir: Path,
                                     publicationName: String,
                                     publicationLink: String)
+
+final case class QuerySettings(sectionTagType: TagType)
 
 object Settings {
   def load: Try[Settings] = {
@@ -25,8 +30,9 @@ object Settings {
     for {
       contentApi <- ContentApiSettings.fromRootConfig(config)
       publishing <- PublishingSettings.fromRootConfig(config)
+      query <- QuerySettings.fromRootConfig(config)
     } yield {
-      Settings(contentApi, publishing)
+      Settings(contentApi, publishing, query)
     }
   }
 }
@@ -70,4 +76,17 @@ object PublishingSettings extends SettingsFactory[PublishingSettings]("publishin
   private final val OutputDir = "outputDir"
   private final val PublicationName = "publicationName"
   private final val PublicationLink = "publicationLink"
+}
+
+object QuerySettings extends SettingsFactory[QuerySettings]("query") {
+  def apply(config: Config): Try[QuerySettings] = {
+    for {
+      sectionTagTypeName <- Try(config.getString(SectionTagType))
+      sectionTagType <- Try(TagType.valueOf(sectionTagTypeName).get)
+    } yield {
+      QuerySettings(sectionTagType)
+    }
+  }
+
+  private final val SectionTagType = "sectionTagType"
 }

@@ -7,7 +7,6 @@ import scala.util.{Success, Try}
 
 import com.gu.contentapi.client._
 import com.gu.contentapi.client.model.v1.{Content, SearchResponse}
-import com.gu.io.IOUtils
 import com.gu.io.IOUtils._
 import com.gu.kindlegen.Querier.PrintSentContentClient
 
@@ -23,7 +22,9 @@ object Querier {
   }
 }
 
-class Querier(capiClient: PrintSentContentClient, editionDate: LocalDate)(implicit ec: ExecutionContext) {
+class Querier(capiClient: PrintSentContentClient,
+              settings: QuerySettings,
+              editionDate: LocalDate)(implicit ec: ExecutionContext) {
   def fetchAllArticles(): Future[Seq[Article]] =
     fetchPrintSentResponse().andThen {
       case Success(response) =>
@@ -34,12 +35,12 @@ class Querier(capiClient: PrintSentContentClient, editionDate: LocalDate)(implic
     }
 
   def fetchPrintSentResponse(): Future[SearchResponse] = {
-    val query = KindlePublishingSearchQuery(editionDate)
+    val query = KindlePublishingSearchQuery(editionDate, responseTagTypes = Seq(settings.sectionTagType))
     capiClient.getResponse(query)
   }
 
   def articles(results: Seq[Content]): Seq[Article] = {
-    val articles = results.map { content => Try(Article(content)) }.collect {
+    val articles = results.map { content => Try(Article(content, settings.sectionTagType)) }.collect {
       case Success(article) => article
       // TODO log the issue in the case of failure
     }

@@ -25,13 +25,13 @@ object Article {
     htmlBlocks
   }
 
-  def apply(content: Content): Article = {
-    val maybeSectionTag = content.tags.find(_.`type` == TagType.NewspaperBook)
+  def apply(content: Content, sectionTagType: TagType): Article = {
+    val maybeSectionTag = content.tags.find(_.`type` == sectionTagType)
     val maybeNewspaperDate = content.fields.flatMap(_.newspaperEditionDate)
 
     val contentId = s"""Content(id="${content.id}")"""
     require(content.fields.nonEmpty, s"$contentId retrieved without fields")
-    require(maybeSectionTag.nonEmpty, s"$contentId doesn't have a NewspaperBook")
+    require(maybeSectionTag.nonEmpty, s"$contentId doesn't have a $sectionTagType")
     require(maybeNewspaperDate.nonEmpty, s"$contentId doesn't have a NewspaperEditionDate")
 
     apply(content, maybeNewspaperDate.get, content.fields.get, maybeSectionTag.get)

@@ -4,6 +4,7 @@ import java.time.{LocalDate, ZoneOffset}
 import java.time.temporal.ChronoUnit.DAYS
 
 import com.gu.contentapi.client.model.PrintSentSearchQuery
+import com.gu.contentapi.client.model.v1.TagType
 
 object KindlePublishingSearchQuery {
   // pagination is not necessary nor desired for a print-sent query
@@ -14,11 +15,11 @@ object KindlePublishingSearchQuery {
   val WhiteListedTags = Seq.empty[String]  // leave empty to get all tags
   val BlackListedTags = Seq("type/interactive")
 
-  val ResponseTags = Seq("newspaper-book", "type")
   val ResponseFields = Seq("byline", "newspaper-edition-date", "newspaper-page-number", "standfirst")
 
   def apply(date: LocalDate,
             publishingZone: ZoneOffset = ZoneOffset.UTC,
+            responseTagTypes: Seq[TagType] = Nil,
             whiteListedTags: Seq[String] = WhiteListedTags,
             blackListedTags: Seq[String] = BlackListedTags): PrintSentSearchQuery = {
     val startOfDay = date.atStartOfDay.toInstant(publishingZone)
@@ -31,7 +32,7 @@ object KindlePublishingSearchQuery {
       .useDate("newspaper-edition")
       .showBlocks("body")
       .showElements("image")
-      .showTags(combineParams(ResponseTags))
+      .showTags(combineParams(responseTagTypes.map(_.id)))
       .showFields(combineParams(ResponseFields))
       .pageSize(AllResultsPageSize)
   }
