@@ -1,6 +1,10 @@
 package com.gu.kindlegen
 
+import java.time.LocalDate
+
 import scala.collection.breakOut
+
+import com.gu.contentapi.client.utils.CapiModelEnrichment._
 
 /**
  * Each Book (eg Guardian or Observer) contains many sections (eg G2, Top Stories, Finance)
@@ -13,8 +17,9 @@ case class BookSection(section: Section, articles: Seq[Article]) extends Linkabl
   def id: String = section.id
   def title: String = section.title
   def link: Link = section.link
+  lazy val publicationDate: LocalDate = articles.map(_.pubDate).minBy(_.dateTime).toOffsetDateTime.toLocalDate
 
-  def publicationDate = articles.map(_.pubDate).minBy(_.dateTime)
+  def withLink(newLink: Link): BookSection = copy(section = section.copy(link = newLink))
 }
 
 object BookSection {

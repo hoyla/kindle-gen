@@ -4,10 +4,12 @@ import java.nio.file.{Files, Path}
 import java.time.LocalDate
 
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.xml.Elem
 
 import com.gu.io.IOUtils._
 import com.gu.kindlegen.Link.PathLink
 import com.gu.kindlegen.Querier.PrintSentContentClient
+import com.gu.xml._
 
 object KindleGenerator {
   def apply(settings: Settings, editionDate: LocalDate): KindleGenerator = {
@@ -48,11 +50,7 @@ class KindleGenerator(querier: Querier,
     val articlesOnDisk = Await.result(fArticlesOnDisk, querySettings.downloadTimeout)
 
     val sections = BookSection.fromArticles(articlesOnDisk).map(writeToFile)
-    val rootManifest = writeToFile(SectionsManifest(
-      title = publishingSettings.publicationName,
-      link = Link.AbsoluteURL.from(publishingSettings.publicationLink),
-      sections = sections
-    ))
+    val rootManifest = writeToFile(sections)
 
     (articlesOnDisk ++ articlesOnDisk.flatMap(_.mainImage) ++ sections :+ rootManifest)
       .map(_.link).collect {
@@ -85,15 +83,22 @@ class KindleGenerator(querier: Querier,
 
   private def writeToFile(bookSection: BookSection): BookSection = {
     val fileName = asFileName(bookSection.id) + "." + fileSettings.rssExtension
-    val manifest = ArticlesManifest(bookSection).toManifestContentsPage
-    bookSection.copy(section = bookSection.section.copy(link = writeToFile(manifest, fileName)))
+    val manifest = ArticlesManifest(bookSection)
+    bookSection.withLink(writeToFile(manifest.rss, fileName))
   }
 
-  private def writeToFile(sectionsManifest: SectionsManifest): SectionsManifest = {
+  private def writeToFile(sections: Seq[BookSection]): RssManifest = {
     val fileName = fileSettings.rootManifestFileName
-    val manifest = sectionsManifest.toManifestContentsPage
-    sectionsManifest.copy(link = writeToFile(manifest, fileName))
+    val manifest = SectionsManifest(
+      title = publishingSettings.publicationName,
+      link = Link.AbsoluteURL.from(publishingSettings.publicationLink),
+      books = sections
+    )
+    manifest.copy(link = writeToFile(manifest.rss, fileName))
   }
+
+  private def writeToFile(content: Elem, fileName: String): Link.RelativePath =
+    writeToFile(content.toXmlBytes(fileSettings.encoding), fileName)
 
   private def writeToFile(content: String, fileName: String): Link.RelativePath =
     writeToFile(content.trim.getBytes(fileSettings.encoding), fileName)

@@ -108,6 +108,11 @@ object `package` {
       elem.child.adaptPartitions(!matches(_),
         adaptMatching = wrappables => elem.copy(child = wrappables)
       )
+
+    def toXmlBytes(encoding: String = "UTF-8"): Array[Byte] = toXmlString(encoding).getBytes(encoding)
+    def toXmlString(encoding: String = "UTF-8"): String =
+      s"""<?xml version="1.0" encoding="UTF-8"?>\n""" +  // s"" required to evaluate "\n" as a newline
+        Utility.serialize(elem)
   }
 
   implicit class RichSeqOfNodes(val nodes: Seq[Node]) extends AnyVal {
