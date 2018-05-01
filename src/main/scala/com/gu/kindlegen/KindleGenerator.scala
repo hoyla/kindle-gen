@@ -16,11 +16,13 @@ object KindleGenerator {
 
     val capiClient = new PrintSentContentClient(settings.contentApi)
     val querier = new Querier(capiClient, settings.query, editionDate)
-    new KindleGenerator(querier, settings.publishing)
+    new KindleGenerator(querier, settings.publishing, settings.query)
   }
 }
 
-class KindleGenerator(querier: Querier, publishingSettings: PublishingSettings)(implicit ec: ExecutionContext) {
+class KindleGenerator(querier: Querier,
+                      publishingSettings: PublishingSettings,
+                      querySettings: QuerySettings)(implicit ec: ExecutionContext) {
   private lazy val outputDirectory: Path = Files.createDirectories(publishingSettings.outputDir).toRealPath()
   private lazy val outputDirLink: Link.AbsolutePath = Link.AbsolutePath.from(outputDirectory)
 
@@ -43,7 +45,7 @@ class KindleGenerator(querier: Querier, publishingSettings: PublishingSettings)(
       })
     }
 
-    val articlesOnDisk = Await.result(fArticlesOnDisk, 5.minutes)  // TODO move the waiting time to configuration
+    val articlesOnDisk = Await.result(fArticlesOnDisk, querySettings.downloadTimeout)
 
     val sections = BookSection.fromArticles(articlesOnDisk).map(writeToFile)
     val rootManifest = writeToFile(SectionsManifest(

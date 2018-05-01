@@ -1,6 +1,7 @@
 package com.gu.kindlegen
 
 import java.nio.file.Paths
+import java.time.Duration
 
 import scala.collection.JavaConverters._
 
@@ -37,6 +38,7 @@ class SettingsSpec extends FunSpec {
 
   private val sectionTagType = TagType.Keyword
   private val queryValues = Map(
+    "downloadTimeout" -> Duration.ofSeconds(30),
     "sectionTagType" -> sectionTagType.name
   )
 
@@ -73,6 +75,7 @@ class SettingsSpec extends FunSpec {
     it("parses QuerySettings correctly") {
       val querySettings = settings.query
 
+      Duration.ofNanos(querySettings.downloadTimeout.toNanos) shouldBe queryValues("downloadTimeout")
       querySettings.sectionTagType shouldBe sectionTagType
     }
   }

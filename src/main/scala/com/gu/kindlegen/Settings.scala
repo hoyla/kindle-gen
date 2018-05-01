@@ -2,6 +2,7 @@ package com.gu.kindlegen
 
 import java.nio.file.{Path, Paths}
 
+import scala.concurrent.duration.Duration
 import scala.util.Try
 
 import com.typesafe.config.{Config, ConfigFactory}
@@ -19,7 +20,7 @@ final case class PublishingSettings(minArticlesPerEdition: Int,
                                     publicationName: String,
                                     publicationLink: String)
 
-final case class QuerySettings(sectionTagType: TagType)
+final case class QuerySettings(downloadTimeout: Duration, sectionTagType: TagType)
 
 object Settings {
   def load: Try[Settings] = {
@@ -81,12 +82,14 @@ object PublishingSettings extends SettingsFactory[PublishingSettings]("publishin
 object QuerySettings extends SettingsFactory[QuerySettings]("query") {
   def apply(config: Config): Try[QuerySettings] = {
     for {
+      downloadDuration <- Try(config.getDuration(DownloadDuration)).map(javaDuration => Duration.fromNanos(javaDuration.toNanos))
       sectionTagTypeName <- Try(config.getString(SectionTagType))
       sectionTagType <- Try(TagType.valueOf(sectionTagTypeName).get)
     } yield {
-      QuerySettings(sectionTagType)
+      QuerySettings(downloadDuration, sectionTagType)
     }
   }
 
+  private final val DownloadDuration = "downloadTimeout"
   private final val SectionTagType = "sectionTagType"
 }
