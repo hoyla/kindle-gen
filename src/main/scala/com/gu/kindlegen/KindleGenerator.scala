@@ -4,7 +4,6 @@ import java.nio.file.{Files, Path}
 import java.time.LocalDate
 
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration._
 
 import com.gu.io.IOUtils._
 import com.gu.kindlegen.Link.PathLink
@@ -23,7 +22,8 @@ object KindleGenerator {
 class KindleGenerator(querier: Querier,
                       publishingSettings: PublishingSettings,
                       querySettings: QuerySettings)(implicit ec: ExecutionContext) {
-  private lazy val outputDirectory: Path = Files.createDirectories(publishingSettings.outputDir).toRealPath()
+  private def fileSettings = publishingSettings.files
+  private lazy val outputDirectory: Path = Files.createDirectories(fileSettings.outputDir).toRealPath()
   private lazy val outputDirLink: Link.AbsolutePath = Link.AbsolutePath.from(outputDirectory)
 
   def fetchNitfBundle(): Future[Seq[Article]] = {
@@ -79,24 +79,24 @@ class KindleGenerator(querier: Querier,
 
   private def writeToFile(article: Article, fileNameIndex: Int): Article = {
     val nitf = ArticleNITF(article)
-    val fileName = s"${fileNameIndex}_${asFileName(article.docId)}.nitf"
+    val fileName = s"${fileNameIndex}_${asFileName(article.docId)}.${fileSettings.nitfExtension}"
     article.copy(link = writeToFile(nitf.fileContents, fileName))
   }
 
   private def writeToFile(bookSection: BookSection): BookSection = {
-    val fileName = asFileName(bookSection.id) + ".xml"
+    val fileName = asFileName(bookSection.id) + "." + fileSettings.rssExtension
     val manifest = ArticlesManifest(bookSection).toManifestContentsPage
     bookSection.copy(section = bookSection.section.copy(link = writeToFile(manifest, fileName)))
   }
 
   private def writeToFile(sectionsManifest: SectionsManifest): SectionsManifest = {
-    val fileName = "hierarchical-title-manifest.xml"
+    val fileName = fileSettings.rootManifestFileName
     val manifest = sectionsManifest.toManifestContentsPage
     sectionsManifest.copy(link = writeToFile(manifest, fileName))
   }
 
   private def writeToFile(content: String, fileName: String): Link.RelativePath =
-    writeToFile(content.trim.getBytes("UTF-8"), fileName)
+    writeToFile(content.trim.getBytes(fileSettings.encoding), fileName)
 
   private def writeToFile(content: Array[Byte], fileName: String): Link.RelativePath = {
     val path = write(content, fileName)

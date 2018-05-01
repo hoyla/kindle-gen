@@ -28,11 +28,18 @@ class SettingsSpec extends FunSpec {
     "url" -> "https://example.com"
   )
 
+  private val publishedFilesValues = Map(
+    "outputDir" -> "/home/me",
+    "nitfExtension" -> "nitf",
+    "rssExtension" -> "rss",
+    "rootManifestFileName" -> "something.xml"
+  )
+
   private val publishingValues = Map(
     "minArticlesPerEdition" -> 10,
     "publicationName" -> "My Publication",
     "publicationLink" -> "http://example.com",
-    "outputDir" -> "/home/me",
+    "files" -> publishedFilesValues.toConfigObj,
     "images" -> Map("download" -> "on").toConfigObj
   )
 
@@ -68,8 +75,15 @@ class SettingsSpec extends FunSpec {
       publishingSettings.minArticlesPerEdition shouldBe publishingValues("minArticlesPerEdition")
       publishingSettings.publicationName shouldBe publishingValues("publicationName")
       publishingSettings.publicationLink shouldBe publishingValues("publicationLink")
+    }
 
-      publishingSettings.outputDir should beTheSameFileAs(Paths.get(publishingValues("outputDir").toString))
+    it("parses PublishedFileSettings correctly") {
+      val fileSettings = settings.publishing.files
+
+      fileSettings.outputDir should beTheSameFileAs(Paths.get(publishedFilesValues("outputDir")))
+      fileSettings.nitfExtension shouldBe publishedFilesValues("nitfExtension")
+      fileSettings.rssExtension shouldBe publishedFilesValues("rssExtension")
+      fileSettings.rootManifestFileName shouldBe publishedFilesValues("rootManifestFileName")
     }
 
     it("parses QuerySettings correctly") {

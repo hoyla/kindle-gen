@@ -14,11 +14,18 @@ final case class Settings(contentApi: ContentApiSettings, publishing: Publishing
 
 final case class ContentApiSettings(apiKey: String, targetUrl: String)
 
+final case class PublishedFileSettings(outputDir: Path,
+                                       nitfExtension: String,
+                                       rssExtension: String,
+                                       rootManifestFileName: String) {
+  def encoding = "UTF-8"
+}
+
 final case class PublishingSettings(minArticlesPerEdition: Int,
                                     downloadImages: Boolean,
-                                    outputDir: Path,
                                     publicationName: String,
-                                    publicationLink: String)
+                                    publicationLink: String,
+                                    files: PublishedFileSettings)
 
 final case class QuerySettings(downloadTimeout: Duration, sectionTagType: TagType)
 
@@ -29,18 +36,18 @@ object Settings {
 
   def apply(config: Config): Try[Settings] = {
     for {
-      contentApi <- ContentApiSettings.fromRootConfig(config)
-      publishing <- PublishingSettings.fromRootConfig(config)
-      query <- QuerySettings.fromRootConfig(config)
+      contentApi <- ContentApiSettings.fromParentConfig(config)
+      publishing <- PublishingSettings.fromParentConfig(config)
+      query <- QuerySettings.fromParentConfig(config)
     } yield {
       Settings(contentApi, publishing, query)
     }
   }
 }
 
-abstract class SettingsFactory[T](rootConfigPath: String) {
-  def fromRootConfig(root: Config): Try[T] =
-    apply(root.getConfig(rootConfigPath))
+abstract class SettingsFactory[T](parentConfigPath: String) {
+  def fromParentConfig(root: Config): Try[T] =
+    apply(root.getConfig(parentConfigPath))
 
   def apply(config: Config): Try[T]
 }
@@ -64,19 +71,36 @@ object PublishingSettings extends SettingsFactory[PublishingSettings]("publishin
     for {
       downloadImages <- Try(config.getBoolean(DownloadImages))
       minArticles <- Try(config.getInt(MinArticlesPerEdition))
-      outputDir <- Try(config.getString(OutputDir)).map(Paths.get(_))
       publicationName <- Try(config.getString(PublicationName))
       publicationLink <- Try(config.getString(PublicationLink))
+      fileSettings <- PublishedFileSettings.fromParentConfig(config)
     } yield {
-      PublishingSettings(minArticles, downloadImages, outputDir, publicationName, publicationLink)
+      PublishingSettings(minArticles, downloadImages, publicationName, publicationLink, fileSettings)
     }
   }
 
   private final val DownloadImages = "images.download"
   private final val MinArticlesPerEdition = "minArticlesPerEdition"
-  private final val OutputDir = "outputDir"
   private final val PublicationName = "publicationName"
   private final val PublicationLink = "publicationLink"
+}
+
+object PublishedFileSettings extends SettingsFactory[PublishedFileSettings]("files") {
+  def apply(config: Config): Try[PublishedFileSettings] = {
+    for {
+      outputDir <- Try(config.getString(OutputDir)).map(Paths.get(_))
+      nitfExtension <- Try(config.getString(NitfExtension).stripPrefix("."))
+      rssExtension <- Try(config.getString(RssExtension).stripPrefix("."))
+      rootManifest <- Try(config.getString(RootManifest)).map(Paths.get(_).getFileName.toString)
+    } yield {
+      PublishedFileSettings(outputDir, nitfExtension = nitfExtension, rssExtension = rssExtension, rootManifest)
+    }
+  }
+
+  private final val OutputDir = "outputDir"
+  private final val NitfExtension = "nitfExtension"
+  private final val RssExtension = "rssExtension"
+  private final val RootManifest = "rootManifestFileName"
 }
 
 object QuerySettings extends SettingsFactory[QuerySettings]("query") {

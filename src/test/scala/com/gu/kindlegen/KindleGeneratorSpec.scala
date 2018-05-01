@@ -13,6 +13,7 @@ import com.gu.scalatest.PathMatchers._
 
 class KindleGeneratorSpec extends FunSpec {
   private val settings = Settings.load.get
+  private val fileSettings = settings.publishing.files
   private def newInstance(editionDate: LocalDate) = KindleGenerator(settings, editionDate)
 
   private val conf = ConfigFactory.load.getConfig("KindleGeneratorSpec")
@@ -20,10 +21,22 @@ class KindleGeneratorSpec extends FunSpec {
 
   describe("writeNitfBundle") {
     val arbitraryDate = LocalDate.of(2018, 4, 1)
-    lazy val paths = newInstance(arbitraryDate).writeNitfBundleToDisk().map(_.toString)
+    lazy val paths = newInstance(arbitraryDate).writeNitfBundleToDisk().map(_.getFileName.toString)
+
+    it("works") {
+      paths should not be empty  // execute the method under test inside a test case by evaluating the lazy val `paths`
+    }
 
     it("returns some NITF files") {
-      atLeast(settings.publishing.minArticlesPerEdition, paths) should endWith(".nitf")
+      atLeast(settings.publishing.minArticlesPerEdition, paths) should endWith(fileSettings.nitfExtension)
+    }
+
+    it("returns some RSS files") {
+      atLeast(3, paths) should endWith(fileSettings.rssExtension)
+    }
+
+    it("returns one root manifest file") {
+      exactly(1, paths) shouldBe fileSettings.rootManifestFileName
     }
 
     it("returns some image files") {
@@ -37,7 +50,7 @@ class KindleGeneratorSpec extends FunSpec {
 
     generatedFiles should not be empty
     forAll(generatedFiles) { path =>
-      path should beAChildOf(settings.publishing.outputDir)
+      path should beAChildOf(fileSettings.outputDir)
       withClue(path) { Files.readAllBytes(path) should not be empty }
     }
 
