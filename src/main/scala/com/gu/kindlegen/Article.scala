@@ -19,8 +19,6 @@ object Article {
   def getBodyBlocks(content: Content): Seq[String] = {
     val blocks = content.blocks
     val bodyBlocks = blocks.flatMap(_.body).getOrElse(Nil)
-      .ensuring(bodies => blocks.flatMap(_.totalBodyBlocks).forall(_ == bodies.length))
-
     val bodyElements = bodyBlocks.flatMap(_.elements).filter(_.`type` == ElementType.Text)
     val htmlBlocks = bodyElements.flatMap(_.textTypeData.flatMap(_.html))
     htmlBlocks
