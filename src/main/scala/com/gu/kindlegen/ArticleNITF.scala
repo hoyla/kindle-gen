@@ -69,11 +69,20 @@ case class ArticleNITF(article: Article) {
         <byline>{article.byline}</byline>
         <abstract>{articleAbstract}</abstract>
       </body.head>
-      <body.content>{bodyContent}</body.content>
+      <body.content>
+        {mainImage ++ bodyContent}
+      </body.content>
       <body.end/>
     </body>
   }.toElem.get)
 
   private def articleAbstract = htmlToXhtml(article.articleAbstract)
   private def bodyContent = article.bodyBlocks.map(html => <block>{htmlToXhtml(html)}</block>)
+  private def mainImage: Option[Elem] = article.mainImage.map { image =>
+    <content>
+      <img src={image.link.source}>
+        {image.caption.getOrElse("")} {image.credit.getOrElse("")}
+      </img>
+    </content>
+  }
 }
