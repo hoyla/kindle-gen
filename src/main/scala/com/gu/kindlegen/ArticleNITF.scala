@@ -3,11 +3,26 @@ package com.gu.kindlegen
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-import scala.xml.Elem
+import scala.xml.{Elem, NodeSeq, XML}
+
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document.OutputSettings.Syntax
+import org.jsoup.nodes.Entities.EscapeMode
 
 
 object ArticleNITF {
   private val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
+
+  private def htmlToXhtml(html: String): NodeSeq = {
+    val document = Jsoup.parseBodyFragment(html.trim)
+    document.outputSettings
+      .syntax(Syntax.xml)
+      .escapeMode(EscapeMode.xhtml)
+      .prettyPrint(false)  // actual pretty-printing will be applied to the XML
+
+    val xhtml = document.body.outerHtml
+    XML.loadString(xhtml).child
+  }
 }
 
 case class ArticleNITF(article: Article) {
@@ -17,7 +32,7 @@ case class ArticleNITF(article: Article) {
     <nitf version="-//IPTC//DTD NITF 3.5//EN">
       {head}
       {body}
-     </nitf>
+    </nitf>
   }
 
   private def head = {
@@ -48,6 +63,6 @@ case class ArticleNITF(article: Article) {
     </body>
   }
 
-  private def articleAbstract = scala.xml.Unparsed(article.articleAbstract)
-  private def bodyContent = article.bodyBlocks.map(scala.xml.Unparsed.apply) /* TODO convert to NITF blocks*/
+  private def articleAbstract = htmlToXhtml(article.articleAbstract)
+  private def bodyContent = article.bodyBlocks.map(htmlToXhtml) /* TODO convert to NITF blocks*/
 }

@@ -9,7 +9,7 @@ import com.gu.kindlegen.TestContent._
 import com.gu.xml.XmlUtils._
 
 
-class ArticleNITFSuite extends FunSpec {
+class ArticleNITFSpec extends FunSpec {
 
   describe("ArticleNITF") {
 
@@ -56,7 +56,7 @@ class ArticleNITFSuite extends FunSpec {
     }
 
     it("handles XHTML tags") {
-      val content = <p>abc</p> ++ <p>an <em>emphasised</em> word</p>
+      val content = <p>abc</p> ++ <p>an<em>emphasised</em>word</p>
 
       val article = simpleArticle.copy(bodyBlocks = Seq(content.mkString))
       val nitf = Utility.trim(ArticleNITF(article).nitf)

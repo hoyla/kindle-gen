@@ -57,7 +57,7 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
 
     it("generates valid NITF files") { pendingUntilFixed {
       forEvery(nitfFiles) { path => withClue(path) {
-        val nitf = XML.loadFile(path.toFile)  // fails due to unclosed <br> tags
+        val nitf = XML.loadFile(path.toFile)
         validateXml(nitf, resource("kpp-nitf-3.5.7.xsd").toURI)  // fails due to non-NITF tags (e.g. <i>)
       }}
     }}
