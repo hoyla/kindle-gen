@@ -76,9 +76,9 @@ class KindleGenerator(querier: Querier,
   }
 
   private def writeToFile(article: Article, fileNameIndex: Int): Article = {
-    val nitf = ArticleNITF(article)
+    val nitfGenerator = ArticleNITF(article)
     val fileName = s"${fileNameIndex}_${asFileName(article.docId)}.${fileSettings.nitfExtension}"
-    article.copy(link = writeToFile(nitf.fileContents, fileName))
+    article.copy(link = writeToFile(nitfGenerator.nitf, fileName))
   }
 
   private def writeToFile(bookSection: BookSection): BookSection = {

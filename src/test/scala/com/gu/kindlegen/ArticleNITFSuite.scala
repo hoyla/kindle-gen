@@ -1,54 +1,68 @@
 package com.gu.kindlegen
 
-import org.junit.runner.RunWith
-import org.scalatest.FunSuite
-import org.scalatest.junit.JUnitRunner
+import scala.xml.Utility
 
-import com.gu.kindlegen.TestContent.ExampleDate
+import org.scalatest.FunSpec
+import org.scalatest.Matchers._
 
-@RunWith(classOf[JUnitRunner])
-class ArticleNITFSuite extends FunSuite {
+import com.gu.kindlegen.TestContent._
+import com.gu.xml.XmlUtils._
 
-  test("ArticleNITF apply") {
-    val article = Article(
-      section = Section(id = "theguardian/mainsection/international", title = "International", link = TestContent.ExampleLink),
+
+class ArticleNITFSuite extends FunSpec {
+
+  describe("ArticleNITF") {
+
+    val simpleArticle = Article(
+      section = Section(id = "theguardian/mainsection/international", title = "International", link = ExampleLink),
       newspaperPageNumber = 2,
       title = "my title",
       docId = "section/date/title",
-      link = TestContent.ExampleLink,
-      pubDate = ExampleDate,
+      link = ExampleLink,
+      pubDate = ExampleOffsetDate,
       byline = "my name",
       articleAbstract = "article abstract",
       bodyBlocks = Seq("content"),
       mainImage = None
     )
 
-    val expectedOutput =
-      """
-        |<?xml version="1.0" encoding="UTF-8"?>
-        |<nitf version="-//IPTC//DTD NITF 3.3//EN">
-        |<head>
-        |<title>my title</title>
-        |<docdata management-status="usable">
-        |<doc-id id-string="section/date/title" />
-        |<urgency ed-urg="2" />
-        |<date.issue norm="20170724" />
-        |<date.release norm="20170724" />
-        |<doc.copyright holder="guardian.co.uk" />
-        |</docdata>
-        |<pubdata type="print" date.publication="20170724" />
-        |</head>
-        |<body>
-        |<body.head>
-        |<hedline><hl1>my title</hl1></hedline>
-        |<byline>my name</byline>
-        |<abstract>article abstract</abstract>
-        |</body.head>
-        |<body.content>content</body.content>
-        |<body.end />
-        |</body>
-        |</nitf>""".stripMargin
-    val aNitf = ArticleNITF(article)
-    assert(aNitf.fileContents === expectedOutput)
+    it("produces simple NITF") {
+      val expectedOutput =
+        <nitf version="-//IPTC//DTD NITF 3.5//EN">
+          <head>
+            <title>my title</title>
+            <docdata management-status="usable">
+              <doc-id id-string="section/date/title"/>
+              <urgency ed-urg="2"/>
+              <date.release norm="2017-07-24T00:00:00Z"/>
+              <doc.copyright holder="guardian.co.uk"/>
+            </docdata>
+            <pubdata type="print" date.publication="2017-07-24T00:00:00Z"/>
+          </head>
+          <body>
+            <body.head>
+              <hedline>
+                <hl1>my title</hl1>
+              </hedline>
+              <byline>my name</byline>
+              <abstract>article abstract</abstract>
+            </body.head>
+            <body.content>content</body.content>
+            <body.end/>
+          </body>
+        </nitf>
+
+      assertEquivalentXml(ArticleNITF(simpleArticle).nitf, expectedOutput)
+    }
+
+    it("handles XHTML tags") {
+      val content = <p>abc</p> ++ <p>an <em>emphasised</em> word</p>
+
+      val article = simpleArticle.copy(bodyBlocks = Seq(content.mkString))
+      val nitf = Utility.trim(ArticleNITF(article).nitf)
+      val body = (nitf \\ "body.content").head.nonEmptyChildren
+
+      body.mkString shouldBe content.mkString
+    }
   }
 }

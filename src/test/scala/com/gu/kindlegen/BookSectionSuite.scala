@@ -4,14 +4,16 @@ import org.scalatest.FlatSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
 
+import com.gu.kindlegen.TestContent._
+
 
 class BookSectionSuite extends FlatSpec {
   private def article(sectionId: String, sectionName: String, pageNum: Int) =
     Article(section = section(sectionId, sectionName), newspaperPageNumber = pageNum,
-      "", "", TestContent.ExampleLink, TestContent.ExampleDate, "", "", Nil, None)
+      "", "", ExampleLink, ExampleOffsetDate, "", "", Nil, None)
 
   private def section(sectionId: String, sectionName: String) =
-    Section(id = sectionId, title = sectionName, link = TestContent.ExampleLink)
+    Section(id = sectionId, title = sectionName, link = ExampleLink)
 
   private val articlesInZ = (1 to 4).map(pageNum => article("z", "Z", pageNum))
   private val articlesInX = (1 to 4).map(pageNum => article("x", "X", pageNum))

@@ -17,7 +17,7 @@ case class BookSection(section: Section, articles: Seq[Article]) extends Linkabl
   def id: String = section.id
   def title: String = section.title
   def link: Link = section.link
-  lazy val publicationDate: LocalDate = articles.map(_.pubDate).minBy(_.dateTime).toOffsetDateTime.toLocalDate
+  lazy val publicationDate: LocalDate = articles.map(_.pubDate).min.toLocalDate
 
   def withLink(newLink: Link): BookSection = copy(section = section.copy(link = newLink))
 }

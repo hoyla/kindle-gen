@@ -17,7 +17,7 @@ class QuerierSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
   val settings = Settings.load.get.contentApi
   val capiClient = new PrintSentContentClient(settings) // we can mock this for local testing
 
-  private def querier: Querier = querier(ExampleDate.toOffsetDateTime.toLocalDate)
+  private def querier: Querier = querier(ExampleOffsetDate.toLocalDate)
   private def querier(editionDate: LocalDate) = new Querier(capiClient, ExampleQuerySettings, editionDate)
 
   val totalArticles = 96  // on exampleDate = 2017-07-24

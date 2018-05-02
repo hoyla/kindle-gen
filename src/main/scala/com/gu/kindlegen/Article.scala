@@ -1,6 +1,9 @@
 package com.gu.kindlegen
 
+import java.time.OffsetDateTime
+
 import com.gu.contentapi.client.model.v1._
+import com.gu.contentapi.client.utils.CapiModelEnrichment._
 
 
 case class Article(
@@ -9,7 +12,7 @@ case class Article(
     title: String,
     docId: String,
     link: Link,
-    pubDate: CapiDateTime,
+    pubDate: OffsetDateTime,
     byline: String,
     articleAbstract: String,
     bodyBlocks: Seq[String],
@@ -43,7 +46,7 @@ object Article {
       title = content.webTitle,
       docId = content.id,
       link = Link.AbsoluteURL.from(content.webUrl),
-      pubDate = newspaperDate,
+      pubDate = newspaperDate.toOffsetDateTime,
       byline = fields.byline.getOrElse(""),
       articleAbstract = fields.standfirst.getOrElse(""),
       // TODO handle non-text articles (e.g. cartoons)
