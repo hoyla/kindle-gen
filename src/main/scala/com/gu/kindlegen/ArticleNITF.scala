@@ -10,6 +10,7 @@ import org.jsoup.nodes.Document.OutputSettings.Syntax
 import org.jsoup.nodes.Entities.EscapeMode
 
 import com.gu.kpp.nitf.XhtmlToNitfTransformer
+import com.gu.xml._
 
 
 object ArticleNITF {
@@ -20,7 +21,9 @@ object ArticleNITF {
     nitf.copy(scope = NamespaceBinding(null, "http://iptc.org/std/NITF/2006-10-18/", TopScope))
 
   private def htmlToXhtml(html: String): NodeSeq = {
-    val document = Jsoup.parseBodyFragment(html.trim)
+    val saferHtml = if (html.exists(_.isControl)) html.filterNot(_.isControl) else html
+
+    val document = Jsoup.parseBodyFragment(saferHtml.trim)
     document.outputSettings
       .syntax(Syntax.xml)
       .escapeMode(EscapeMode.xhtml)
@@ -57,7 +60,7 @@ case class ArticleNITF(article: Article) {
     </head>
   }
 
-  private def body = XhtmlToNitfTransformer {
+  private def body = XhtmlToNitfTransformer(Utility.trim {
     <body>
       <body.head>
         <hedline>
@@ -69,7 +72,7 @@ case class ArticleNITF(article: Article) {
       <body.content>{bodyContent}</body.content>
       <body.end/>
     </body>
-  }
+  }.toElem.get)
 
   private def articleAbstract = htmlToXhtml(article.articleAbstract)
   private def bodyContent = article.bodyBlocks.map(html => <block>{htmlToXhtml(html)}</block>)
