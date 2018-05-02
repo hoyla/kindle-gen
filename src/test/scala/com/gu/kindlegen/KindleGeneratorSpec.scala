@@ -10,10 +10,12 @@ import org.scalatest.FunSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
 
+import com.gu.io.TempFiles
 import com.gu.scalatest.PathMatchers._
+import com.gu.xml.XmlUtils._
 
 
-class KindleGeneratorSpec extends FunSpec {
+class KindleGeneratorSpec extends FunSpec with TempFiles {
   private val settings = Settings.load.get
   private val fileSettings = settings.publishing.files
   private def newInstance(editionDate: LocalDate) = KindleGenerator(settings, editionDate)
@@ -21,58 +23,67 @@ class KindleGeneratorSpec extends FunSpec {
   private val conf = ConfigFactory.load.getConfig("KindleGeneratorSpec")
   private val deleteGeneratedFiles = conf.getBoolean("deleteGeneratedFiles")
 
-  describe("writeNitfBundle") {
+  describe("writeNitfBundleToDisk") {
     val arbitraryDate = LocalDate.of(2018, 4, 1)
     lazy val paths = newInstance(arbitraryDate).writeNitfBundleToDisk()
     lazy val fileNames = paths.map(_.getFileName.toString)
-    lazy val rssFiles = pathsWithSuffix(fileSettings.rssExtension)
 
-    def pathsWithSuffix(fileNameSuffix: String) =
+    lazy val rssFiles = pathsEndingWith(fileSettings.rssExtension)
+    lazy val nitfFiles = pathsEndingWith(fileSettings.nitfExtension)
+
+    def pathsEndingWith(fileNameSuffix: String) =
       paths.filter(_.getFileName.toString.endsWith(fileNameSuffix))
 
 
-    it("works") {
-      fileNames should not be empty  // execute the method under test inside a test case by evaluating the lazy val `fileNames`
+    it("returns the generated files") {
+      // execute the method under test inside a test case by evaluating (the lazy vals) `paths` and/or `fileNames`
+      if (deleteGeneratedFiles) paths.foreach(trackTempFile)
+      fileNames should not be empty
+
+      forEvery(paths) { path =>
+        path should beAChildOf(fileSettings.outputDir)
+        path.toFile should exist
+        withClue(path) { path.toFile.length.toInt should be > 0 }  // file shouldn't be empty and shouldn't be larger than 2GB
+      }
     }
 
     if (settings.publishing.downloadImages) it("returns some image files") {
       atLeast(10, fileNames) should (endWith(".gif") or endWith(".jpg") or endWith(".jpeg") or endWith(".png"))
     }
 
-    it("returns some NITF files") {
+    it("generates some NITF files") {
       atLeast(settings.publishing.minArticlesPerEdition, fileNames) should endWith(fileSettings.nitfExtension)
     }
 
-    it("returns some RSS files") {
-      atLeast(3, fileNames) should endWith(fileSettings.rssExtension)
-      testManifests(rssFiles)
+    it("generates valid NITF files") { pendingUntilFixed {
+      forEvery(nitfFiles) { path => withClue(path) {
+        val nitf = XML.loadFile(path.toFile)
+        validateXml(nitf, resource("kpp-nitf-3.5.7.xsd").toURI)
+      }}
+    }}
 
-      val linkedArticles = rssFiles.flatMap(linkedFiles)
-      val allArticles = pathsWithSuffix(fileSettings.nitfExtension)
-      testLinkedFilesCoverAllLinkableFiles(linkedArticles, allArticles)
+    it("generates some RSS files") {
+      atLeast(3, fileNames) should endWith(fileSettings.rssExtension)
     }
 
-    it("returns one root RSS file") {
-      exactly(1, fileNames) shouldBe fileSettings.rootManifestFileName
+    it("generates RSS files linking to all articles") {
+      assertLinkedFilesCoverAllLinkableFiles(rssFiles.flatMap(linkedFiles), linkables = nitfFiles)
+    }
 
-      val rootManifestPath = pathsWithSuffix(fileSettings.rootManifestFileName).head
-      testManifests(Seq(rootManifestPath))
+    it("generates one root RSS file") {
+      exactly(1, fileNames) shouldBe fileSettings.rootManifestFileName
+    }
+
+    it("generates a root RSS file linking to all other RSS files") {
+      val rootManifestPath = pathsEndingWith(fileSettings.rootManifestFileName).head
 
       val linkedManifests = linkedFiles(rootManifestPath)
-      val otherManifests = rssFiles.filterNot(_.getFileName.toString == fileSettings.rootManifestFileName)
-      testLinkedFilesCoverAllLinkableFiles(linkedManifests, otherManifests)
+      val otherManifests = rssFiles.filterNot(_ == rootManifestPath)
+
+      assertLinkedFilesCoverAllLinkableFiles(linkedManifests, otherManifests)
     }
 
-    def testManifests(manifests: Seq[Path]) = {
-      forAll(manifests) { manifest =>
-        manifest.toFile should exist
-        forAll(linkedFiles(manifest)) { linkedFile =>
-          linkedFile.toFile should exist
-        }
-      }
-    }
-
-    def linkedFiles(manifestPath: Path) = {
+    def linkedFiles(manifestPath: Path) = { withClue(manifestPath) {
       val xml = XML.loadFile(manifestPath.toFile)
       xml.label shouldBe "rss"
 
@@ -80,32 +91,12 @@ class KindleGeneratorSpec extends FunSpec {
       items should not be empty
 
       items.map(_.text).map(manifestPath.resolveSibling)
-    }
+    }}
 
-    def testLinkedFilesCoverAllLinkableFiles(linkedFiles: Seq[Path], linkable: Seq[Path]) =
-      linkedFiles.map(_.toRealPath())  should contain theSameElementsAs linkable.map(_.toRealPath())
-  }
-
-  private def writeFilesFor(editionDate: LocalDate) = {
-    val kindleGenerator = newInstance(editionDate)
-    val generatedFiles = kindleGenerator.writeNitfBundleToDisk()
-
-    generatedFiles should not be empty
-    forAll(generatedFiles) { path =>
-      path should beAChildOf(fileSettings.outputDir)
-      withClue(path) { Files.readAllBytes(path) should not be empty }
-    }
-
-    if (deleteGeneratedFiles) generatedFiles.foreach(Files.delete)
-  }
-
-  describe("writeNitfBundleToDisk") {
-    val firstDate = LocalDate.of(2018, 4, 1)
-    val lastDate = LocalDate.of(2018, 4, 1)
-    (firstDate.toEpochDay to lastDate.toEpochDay).map(LocalDate.ofEpochDay).foreach { editionDate =>
-      it(s"writes NITF bundles to disk for date $editionDate") {
-        writeFilesFor(editionDate)
-      }
+    def assertLinkedFilesCoverAllLinkableFiles(linkedFiles: Seq[Path], linkables: Seq[Path]) = {
+      assume(linkables.forall(Files.exists(_)))
+      forEvery(linkedFiles) { _.toFile should exist }
+      linkedFiles.map(_.toRealPath()) should contain theSameElementsAs linkables.map(_.toRealPath())
     }
   }
 }

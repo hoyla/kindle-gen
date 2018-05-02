@@ -1,6 +1,6 @@
 package com.gu.kindlegen
 
-import java.time.{Instant, LocalDate, ZoneId}
+import java.time.{Instant, LocalDate, ZoneOffset}
 import java.time.format.DateTimeFormatter
 
 import scala.xml.Elem
@@ -40,5 +40,5 @@ object RssManifest {
 
   private val formatter = DateTimeFormatter
     .ofPattern("EEE, dd MMM yyyy HH:mm:ss Z")  // Tue, 01 May 2018 17:10:54 +0000
-    .withZone(ZoneId.of("UTC"))
+    .withZone(ZoneOffset.UTC)
 }
