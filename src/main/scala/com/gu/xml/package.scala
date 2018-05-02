@@ -151,7 +151,7 @@ object `package` {
   }
 
   // PrettyPrinter is stateful, so we need a new instance for each concurrent call
-  implicit def defaultPrettyPrinter: PrettyPrinter = new PrettyPrinter(width = 160, step = 3)
+  implicit def defaultPrettyPrinter: PrettyPrinter = new PrettyPrinter(width = 200, step = 3)
 
   object TrimmingPrinter extends PrettyPrinter(width = Int.MaxValue, step = 0, minimizeEmpty = true) {
     override def format(n: Node, pscope: NamespaceBinding, sb: StringBuilder): Unit =

@@ -23,8 +23,8 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
   private val deleteGeneratedFiles = conf.getBoolean("deleteGeneratedFiles")
 
   {
-    val firstDate = LocalDate.of(2018, 4, 1)
-    val lastDate = LocalDate.of(2018, 4, 1)
+    val firstDate = LocalDate.of(2018, 3, 16)
+    val lastDate = LocalDate.of(2018, 3, 17)
     (firstDate.toEpochDay to lastDate.toEpochDay).map(LocalDate.ofEpochDay).foreach(test)
   }
 
@@ -100,7 +100,7 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
       val items = xml \ "channel" \ "item" \ "link"
       items should not be empty
 
-      items.map(_.text).map(manifestPath.resolveSibling)
+      items.map(_.text.trim).map(manifestPath.resolveSibling)
     }}
 
     def assertLinkedFilesCoverAllLinkableFiles(linkedFiles: Seq[Path], linkables: Seq[Path]) = {
