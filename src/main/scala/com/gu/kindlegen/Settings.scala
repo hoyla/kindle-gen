@@ -23,6 +23,7 @@ final case class PublishedFileSettings(outputDir: Path,
 
 final case class PublishingSettings(minArticlesPerEdition: Int,
                                     downloadImages: Boolean,
+                                    prettifyXml: Boolean,
                                     publicationName: String,
                                     publicationLink: String,
                                     files: PublishedFileSettings)
@@ -70,16 +71,18 @@ object PublishingSettings extends SettingsFactory[PublishingSettings]("publishin
   def apply(config: Config): Try[PublishingSettings] = {
     for {
       downloadImages <- Try(config.getBoolean(DownloadImages))
+      prettifyXml <- Try(config.getBoolean(PrettifyXml))
       minArticles <- Try(config.getInt(MinArticlesPerEdition))
       publicationName <- Try(config.getString(PublicationName))
       publicationLink <- Try(config.getString(PublicationLink))
       fileSettings <- PublishedFileSettings.fromParentConfig(config)
     } yield {
-      PublishingSettings(minArticles, downloadImages, publicationName, publicationLink, fileSettings)
+      PublishingSettings(minArticles, downloadImages, prettifyXml, publicationName, publicationLink, fileSettings)
     }
   }
 
   private final val DownloadImages = "images.download"
+  private final val PrettifyXml = "prettifyXml"
   private final val MinArticlesPerEdition = "minArticlesPerEdition"
   private final val PublicationName = "publicationName"
   private final val PublicationLink = "publicationLink"

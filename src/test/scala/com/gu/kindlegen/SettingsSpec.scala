@@ -39,6 +39,7 @@ class SettingsSpec extends FunSpec {
     "minArticlesPerEdition" -> 10,
     "publicationName" -> "My Publication",
     "publicationLink" -> "http://example.com",
+    "prettifyXml" -> "on",
     "files" -> publishedFilesValues.toConfigObj,
     "images" -> Map("download" -> "on").toConfigObj
   )
@@ -72,6 +73,7 @@ class SettingsSpec extends FunSpec {
       val publishingSettings = settings.publishing
 
       publishingSettings.downloadImages shouldBe true
+      publishingSettings.prettifyXml shouldBe true
       publishingSettings.minArticlesPerEdition shouldBe publishingValues("minArticlesPerEdition")
       publishingSettings.publicationName shouldBe publishingValues("publicationName")
       publishingSettings.publicationLink shouldBe publishingValues("publicationLink")

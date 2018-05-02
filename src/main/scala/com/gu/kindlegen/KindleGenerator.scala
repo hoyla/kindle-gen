@@ -97,8 +97,10 @@ class KindleGenerator(querier: Querier,
     manifest.copy(link = writeToFile(manifest.rss, fileName))
   }
 
-  private def writeToFile(content: Elem, fileName: String): Link.RelativePath =
-    writeToFile(content.toXmlBytes(fileSettings.encoding), fileName)
+  private def writeToFile(content: Elem, fileName: String): Link.RelativePath = {
+    val prettifier = if (publishingSettings.prettifyXml) defaultPrettyPrinter else TrimmingPrinter
+    writeToFile(content.toXmlBytes(fileSettings.encoding)(prettifier), fileName)
+  }
 
   private def writeToFile(content: String, fileName: String): Link.RelativePath =
     writeToFile(content.trim.getBytes(fileSettings.encoding), fileName)
