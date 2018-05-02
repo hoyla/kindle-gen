@@ -109,14 +109,22 @@ object `package` {
         adaptMatching = wrappables => elem.copy(child = wrappables)
       )
 
-    def toXmlBytes(encoding: String = "UTF-8"): Array[Byte] = toXmlString(encoding).getBytes(encoding)
-    def toXmlString(encoding: String = "UTF-8"): String =
-      s"""<?xml version="1.0" encoding="UTF-8"?>\n""" +  // s"" required to evaluate "\n" as a newline
-        Utility.serialize(elem)
+    def toXmlBytes(encoding: String = "UTF-8")(implicit prettifier: PrettyPrinter): Array[Byte] =
+      toXmlString(encoding)(prettifier).getBytes(encoding)
+
+    def toXmlString(encoding: String = "UTF-8")(implicit prettifier: PrettyPrinter): String =
+      s"""<?xml version="1.1" encoding="UTF-8"?>\n""" +  // s"" required to evaluate "\n" as a newline
+        elem.prettyPrint(prettifier)
   }
 
   implicit class RichSeqOfNodes(val nodes: Seq[Node]) extends AnyVal {
     type NodeProcessor = Seq[Node] => Seq[Node]
+
+    def prettyPrint(indent: Int, maxLineWidth: Int): String =
+      prettyPrint(new PrettyPrinter(maxLineWidth, indent))
+
+    def prettyPrint(implicit prettier: PrettyPrinter): String =
+      nodes.map(prettier.format(_)).mkString("\n")
 
     def transformAll(rules: Seq[RewriteRule]): Seq[Node] =
       new RuleTransformer(rules: _*).transform(nodes)
@@ -140,6 +148,13 @@ object `package` {
         adaptUnlessEmpty(middle, adaptMatching) ++
         adaptUnlessEmpty(after, _.adaptPartitions(matches, adaptMatching = adaptMatching, adaptUnmatching = adaptUnmatching))
     }
+  }
 
+  // PrettyPrinter is stateful, so we need a new instance for each concurrent call
+  implicit def defaultPrettyPrinter: PrettyPrinter = new PrettyPrinter(width = 160, step = 3)
+
+  object TrimmingPrinter extends PrettyPrinter(width = Int.MaxValue, step = 0, minimizeEmpty = true) {
+    override def format(n: Node, pscope: NamespaceBinding, sb: StringBuilder): Unit =
+      sb.append(NodeSeq.fromSeq(Utility.trimProper(n)).toString)
   }
 }

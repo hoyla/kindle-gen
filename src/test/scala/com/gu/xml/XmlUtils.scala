@@ -1,6 +1,5 @@
 package com.gu.xml
 
-import java.io.StringReader
 import java.net.{URI, URL}
 import java.nio.file.{Files, Path, Paths}
 
@@ -27,12 +26,7 @@ object XmlUtils {
   }
 
   def prettify(xml: Node): Elem = {
-    XML.load(new StringReader(prettyPrint(xml)))
-  }
-
-  def prettyPrint(n: Seq[Node], maxLineWidth: Int = 200): String = {
-    val printer = new PrettyPrinter(maxLineWidth, 2)
-    n.map(printer.format(_)).mkString("\n")
+    XML.loadString(xml.prettyPrint)
   }
 
   def assertEquivalentXml(actual: Node, expected: Node): Unit = {
@@ -46,7 +40,7 @@ object XmlUtils {
     val schemaPath = Paths.get(schemaURI)
     val xsdSources = Seq(schemaPath.resolveSibling("xml.xsd"), schemaPath).map(XmlSchemaValidator.xmlSource)
 
-    withClue(prettyPrint(xmlContents) + "\n") {
+    withClue(xmlContents.prettyPrint + "\n") {
       val validationResult = XmlSchemaValidator.validateXml(xmlContents, xsdSources: _*)
       withClue(validationResult.issues.mkString("\n")) {
         validationResult shouldBe 'successful
