@@ -6,10 +6,12 @@ import java.nio.file.{Path, Paths}
 import scala.xml._
 
 import org.scalatest.FunSpec
+import org.scalatest.Matchers._
 
 import com.gu.kpp.nitf.XhtmlToNitfTransformer
 import com.gu.xml._
 import com.gu.xml.XmlUtils._
+
 
 class XhtmlToNitfTransformationSpec extends FunSpec {
   import XhtmlToNitfTransformationSpec._
@@ -25,6 +27,9 @@ class XhtmlToNitfTransformationSpec extends FunSpec {
           try {
             val xml = loadAndTransform(nitfFilePath.toFile)
             validateXml(xml, resource("kpp-nitf-3.5.7.xsd").toURI)
+
+            // the transformer should be idempotent: applying the transformation to valid NITF should do nothing
+            XhtmlToNitfTransformer(xml) shouldBe xml
           } catch {
             case e: org.xml.sax.SAXParseException =>
               e.printStackTrace()

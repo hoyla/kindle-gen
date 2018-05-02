@@ -5,14 +5,13 @@ import scala.xml._
 import com.gu.xml._
 
 object XhtmlToNitfTransformer {
-  /** Transforms the <body> of an XHTML document into valid NITF <body.content>.
+  /** Transforms an XHTML document into valid NITF <body.content>.
     *
-    * @param xhtmlBody an element representing the <body> of an XHTML document
-    * @return an element representing the <body.content> of an equivalent NITF document
+    * @param xhtml an element representing an XHTML document
+    * @return the element transformed to match NITF specs
     */
-  def apply(xhtmlBody: Elem): Elem = {
-    val xhtml = if (xhtmlBody.label == "body") xhtmlBody.copy(label = "body.content") else xhtmlBody
-    xhtml.transform(transformationRules).toElem()
+  def apply(xhtml: Elem): Elem = {
+    xhtml.transform(transformationRules).asInstanceOf[Elem]//.toElem()
   }
 
   private def transformationRules = Seq(
@@ -47,8 +46,8 @@ object XhtmlToNitfTransformer {
   }
 
   private val convertOrRemoveTags = {
-    val mappings = Map("b" -> "strong", "h2" -> "hl2", "i" -> "em", "u" -> "em")  // apparently, Amazon handles some of these
-    val unsupportedTags = Set("figure", "span", "sub", "sup")  // TODO should we format such text? (sub and sup can be in <num>)
+    val mappings = Map("b" -> "strong", "h2" -> "hl2", "i" -> "em", "u" -> "em")
+    val unsupportedTags = Set("figure", "span", "sub", "sup")
     val unwantedTags = Set("s", "strike")  // tags that should be removed along with their content
     val nonEmptyTags = Set("note", "abstract", "dl", "fn", "ol", "tr", "ul")  // tags that must contain something
     rewriteRule("Convert or remove tags") {

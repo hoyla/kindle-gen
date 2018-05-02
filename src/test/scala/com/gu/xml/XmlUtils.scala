@@ -32,7 +32,8 @@ object XmlUtils {
   def assertEquivalentXml(actual: Node, expected: Node): Unit = {
     val diff = expected =#= actual
     withClue(diff.toString + "\n" + diff.errorMessage + "\n") {
-      prettify(actual) should beXml(prettify(expected), ignoreWhitespace = true)
+      // swap expected and actual because `beXml` v2.0.3 reports results in the opposite order
+      prettify(expected) should beXml(prettify(actual), ignoreWhitespace = true)
     }
   }
 

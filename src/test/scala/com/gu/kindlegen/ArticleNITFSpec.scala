@@ -27,8 +27,8 @@ class ArticleNITFSpec extends FunSpec {
     )
 
     it("produces simple NITF") {
-      val expectedOutput =
-        <nitf version="-//IPTC//DTD NITF 3.5//EN">
+      val expectedOutput = ArticleNITF.qualify(
+        <nitf version={ArticleNITF.Version}>
           <head>
             <title>my title</title>
             <docdata management-status="usable">
@@ -45,14 +45,18 @@ class ArticleNITFSpec extends FunSpec {
                 <hl1>my title</hl1>
               </hedline>
               <byline>my name</byline>
-              <abstract>article abstract</abstract>
+              <abstract><p>article abstract</p></abstract>
             </body.head>
-            <body.content>content</body.content>
+            <body.content>
+              <block><p>content</p></block>
+            </body.content>
             <body.end/>
           </body>
         </nitf>
+      )
 
-      assertEquivalentXml(ArticleNITF(simpleArticle).nitf, expectedOutput)
+      val generated = ArticleNITF(simpleArticle).nitf
+      assertEquivalentXml(generated, expectedOutput)
     }
 
     it("handles XHTML tags") {
@@ -62,7 +66,7 @@ class ArticleNITFSpec extends FunSpec {
       val nitf = Utility.trim(ArticleNITF(article).nitf)
       val body = (nitf \\ "body.content").head.nonEmptyChildren
 
-      body.mkString shouldBe content.mkString
+      body.mkString shouldBe <block>{content}</block>.mkString
     }
   }
 }

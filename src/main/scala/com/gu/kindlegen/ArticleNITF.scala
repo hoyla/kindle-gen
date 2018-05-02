@@ -3,15 +3,21 @@ package com.gu.kindlegen
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-import scala.xml.{Elem, NodeSeq, XML}
+import scala.xml._
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document.OutputSettings.Syntax
 import org.jsoup.nodes.Entities.EscapeMode
 
+import com.gu.kpp.nitf.XhtmlToNitfTransformer
+
 
 object ArticleNITF {
+  val Version = "-//IPTC//DTD NITF 3.5//EN"
   private val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
+
+  def qualify(nitf: Elem): Elem =
+    nitf.copy(scope = NamespaceBinding(null, "http://iptc.org/std/NITF/2006-10-18/", TopScope))
 
   private def htmlToXhtml(html: String): NodeSeq = {
     val document = Jsoup.parseBodyFragment(html.trim)
@@ -19,6 +25,8 @@ object ArticleNITF {
       .syntax(Syntax.xml)
       .escapeMode(EscapeMode.xhtml)
       .prettyPrint(false)  // actual pretty-printing will be applied to the XML
+
+    // TODO remove external links and unwanted tags
 
     val xhtml = document.body.outerHtml
     XML.loadString(xhtml).child
@@ -28,8 +36,8 @@ object ArticleNITF {
 case class ArticleNITF(article: Article) {
   import ArticleNITF._
 
-  def nitf: Elem = {
-    <nitf version="-//IPTC//DTD NITF 3.5//EN">
+  def nitf: Elem = qualify {
+    <nitf version={Version}>
       {head}
       {body}
     </nitf>
@@ -49,7 +57,7 @@ case class ArticleNITF(article: Article) {
     </head>
   }
 
-  private def body = {
+  private def body = XhtmlToNitfTransformer {
     <body>
       <body.head>
         <hedline>
@@ -64,5 +72,5 @@ case class ArticleNITF(article: Article) {
   }
 
   private def articleAbstract = htmlToXhtml(article.articleAbstract)
-  private def bodyContent = article.bodyBlocks.map(htmlToXhtml) /* TODO convert to NITF blocks*/
+  private def bodyContent = article.bodyBlocks.map(html => <block>{htmlToXhtml(html)}</block>)
 }

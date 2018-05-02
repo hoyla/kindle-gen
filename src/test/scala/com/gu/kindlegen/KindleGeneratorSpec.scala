@@ -18,13 +18,23 @@ import com.gu.xml.XmlUtils._
 class KindleGeneratorSpec extends FunSpec with TempFiles {
   private val settings = Settings.load.get
   private val fileSettings = settings.publishing.files
-  private def newInstance(editionDate: LocalDate) = KindleGenerator(settings, editionDate)
 
   private val conf = ConfigFactory.load.getConfig("KindleGeneratorSpec")
   private val deleteGeneratedFiles = conf.getBoolean("deleteGeneratedFiles")
 
-  describe("writeNitfBundleToDisk") {
-    val arbitraryDate = LocalDate.of(2018, 4, 1)
+  {
+    val firstDate = LocalDate.of(2018, 4, 1)
+    val lastDate = LocalDate.of(2018, 4, 1)
+    (firstDate.toEpochDay to lastDate.toEpochDay).map(LocalDate.ofEpochDay).foreach(test)
+  }
+
+  def test(arbitraryDate: LocalDate): Unit = describe(s"writeNitfBundleToDisk($arbitraryDate)") {
+    def newInstance(editionDate: LocalDate) = {
+      val customSettings = settings.copy(publishing = settings.publishing.copy(files = fileSettings.copy(
+        outputDir = fileSettings.outputDir.resolve(arbitraryDate.toString))))
+      KindleGenerator(customSettings, editionDate)
+    }
+
     lazy val paths = newInstance(arbitraryDate).writeNitfBundleToDisk()
     lazy val fileNames = paths.map(_.getFileName.toString)
 
@@ -55,12 +65,12 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
       atLeast(settings.publishing.minArticlesPerEdition, fileNames) should endWith(fileSettings.nitfExtension)
     }
 
-    it("generates valid NITF files") { pendingUntilFixed {
+    it("generates valid NITF files") {
       forEvery(nitfFiles) { path => withClue(path) {
         val nitf = XML.loadFile(path.toFile)
-        validateXml(nitf, resource("kpp-nitf-3.5.7.xsd").toURI)  // fails due to non-NITF tags (e.g. <i>)
+        validateXml(nitf, resource("kpp-nitf-3.5.7.xsd").toURI)
       }}
-    }}
+    }
 
     it("generates some RSS files") {
       atLeast(3, fileNames) should endWith(fileSettings.rssExtension)
