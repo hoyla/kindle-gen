@@ -11,7 +11,7 @@ object XhtmlToNitfTransformer {
     * @return the element transformed to match NITF specs
     */
   def apply(xhtml: Elem): Elem = {
-    xhtml.transform(transformationRules).asInstanceOf[Elem]//.toElem()
+    xhtml.transform(transformationRules).toElem()
   }
 
   private def transformationRules = Seq(
