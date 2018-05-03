@@ -53,5 +53,3 @@ class Querier(capiClient: PrintSentContentClient,
     }.map(_.headOption)
   }
 }
-
-// TODO: create a fileStructure model class with paths and file names.

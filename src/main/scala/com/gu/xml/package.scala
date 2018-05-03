@@ -104,7 +104,7 @@ object `package` {
       * @param matches a predicate that identifies which children are to be extracted
       * @return a sequence of nodes that either match the condition or are a ''parent'' themselves
       */
-    def unwrapChildren(matches: Node => Boolean): Seq[Node] =
+    def unwrapChildren(matches: Node => Boolean): NodeSeq =
       elem.child.adaptPartitions(!matches(_),
         adaptMatching = wrappables => elem.copy(child = wrappables)
       )

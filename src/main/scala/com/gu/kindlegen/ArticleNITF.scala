@@ -3,11 +3,13 @@ package com.gu.kindlegen
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
+import scala.util.{Failure, Try}
 import scala.xml._
 
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document.OutputSettings.Syntax
 import org.jsoup.nodes.Entities.EscapeMode
+import org.jsoup.safety.{Cleaner, Whitelist}
 
 import com.gu.kpp.nitf.XhtmlToNitfTransformer
 import com.gu.xml._
@@ -17,22 +19,29 @@ object ArticleNITF {
   val Version = "-//IPTC//DTD NITF 3.5//EN"
   private val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
 
+  private val cleaner = new Cleaner(Whitelist.relaxed  // TODO remove unwanted tags
+    .addProtocols("a", "href", "#")
+    .removeProtocols("a", "href", "ftp", "http", "https", "mailto")
+  )
+
   def qualify(nitf: Elem): Elem =
     nitf.copy(scope = NamespaceBinding(null, "http://iptc.org/std/NITF/2006-10-18/", TopScope))
 
   private def htmlToXhtml(html: String): NodeSeq = {
     val saferHtml = if (html.exists(_.isControl)) html.filterNot(_.isControl) else html
 
-    val document = Jsoup.parseBodyFragment(saferHtml.trim)
+    val document = cleaner.clean(Jsoup.parseBodyFragment(saferHtml.trim))
     document.outputSettings
       .syntax(Syntax.xml)
       .escapeMode(EscapeMode.xhtml)
       .prettyPrint(false)  // actual pretty-printing will be applied to the XML
 
-    // TODO remove external links and unwanted tags
 
     val xhtml = document.body.outerHtml
-    XML.loadString(xhtml).child
+    Try(NodeSeq.fromSeq(XML.loadString(xhtml).child)).recoverWith {
+      case e: org.xml.sax.SAXParseException =>
+        Failure(new RuntimeException(s"Failed to parse XHTML: $e\n$xhtml", e))
+    }.get
   }
 }
 
@@ -81,7 +90,7 @@ case class ArticleNITF(article: Article) {
   private def mainImage: Option[Elem] = article.mainImage.map { image =>
     <content>
       <img src={image.link.source}>
-        {image.caption.getOrElse("")} {image.credit.getOrElse("")}
+        {image.caption.getOrElse("")} {image.credit.getOrElse("")}  {/* TODO should we show article.trailText? */}
       </img>
     </content>
   }

@@ -19,6 +19,7 @@ object XhtmlToNitfTransformer {
     convertOrRemoveTags,
     convertMisplacedLists,
     removeUnsupportedAttributes,
+    removeTagsMissingRequiredAttributes,
     wrapBlockContentText,
     wrapSpecialElements,
     unwrapBlockContentParents
@@ -46,6 +47,7 @@ object XhtmlToNitfTransformer {
   }
 
   private val convertOrRemoveTags = {
+    // TODO how about <div> -> <block>, <cite>, <code> -> <pre>, <small>, <caption>, tables?
     val mappings = Map("b" -> "strong", "h2" -> "hl2", "i" -> "em", "u" -> "em")
     val unsupportedTags = Set("figure", "span", "sub", "sup")
     val unwantedTags = Set("s", "strike")  // tags that should be removed along with their content
@@ -86,6 +88,15 @@ object XhtmlToNitfTransformer {
     rewriteRule("Remove unsupported attributes") {
       case e: Elem if !e.attributeKeys.forall(supportedAttributes) =>
         e.withoutAttributes((e.attributeKeys.toSet -- supportedAttributes).toSeq: _*)
+    }
+  }
+
+  /** Remove the tags that are useless without their attributes (e.g. an anchor whose link has been removed) */
+  private val removeTagsMissingRequiredAttributes = {
+    val tags = Set("a")
+    rewriteRule("Remove tags missing required attributes") {
+      case e: Elem if tags.contains(e.label) && e.attributes.isEmpty =>
+        e.unwrapChildren(_ => true)
     }
   }
 
