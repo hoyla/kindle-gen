@@ -19,7 +19,8 @@ Parameters:
   DeployBucket:
     Description: Bucket where RiffRaff uploads artifacts on deploy
     Type: String
-    Default: CHANGE_ME-dist
+    Default: content-api-dist
+
 Resources:
   ExecutionRole:
     Type: AWS::IAM::Role
