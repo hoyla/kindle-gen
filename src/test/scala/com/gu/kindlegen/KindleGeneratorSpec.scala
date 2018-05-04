@@ -30,8 +30,9 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
 
   def test(arbitraryDate: LocalDate): Unit = describe(s"writeNitfBundleToDisk($arbitraryDate)") {
     def newInstance(editionDate: LocalDate) = {
-      val customSettings = settings.copy(publishing = settings.publishing.copy(files = fileSettings.copy(
-        outputDir = fileSettings.outputDir.resolve(arbitraryDate.toString))))
+      import scala.concurrent.ExecutionContext.Implicits.global
+      val customSettings = settings.withPublishingFiles(fileSettings.copy(
+        outputDir = fileSettings.outputDir.resolve(arbitraryDate.toString)))
       KindleGenerator(customSettings, editionDate)
     }
 

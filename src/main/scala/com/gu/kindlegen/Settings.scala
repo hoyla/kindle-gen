@@ -10,7 +10,10 @@ import com.typesafe.config.{Config, ConfigFactory}
 import com.gu.contentapi.client.model.v1.TagType
 
 /** Encapsulates the settings of this application */
-final case class Settings(contentApi: ContentApiSettings, publishing: PublishingSettings, query: QuerySettings)
+final case class Settings(contentApi: ContentApiSettings, publishing: PublishingSettings, query: QuerySettings) {
+  def withPublishingFiles(files: PublishedFileSettings): Settings =
+    copy(publishing = publishing.copy(files = files))
+}
 
 final case class ContentApiSettings(apiKey: String, targetUrl: String)
 

@@ -12,9 +12,7 @@ import com.gu.kindlegen.Querier.PrintSentContentClient
 import com.gu.xml._
 
 object KindleGenerator {
-  def apply(settings: Settings, editionDate: LocalDate): KindleGenerator = {
-    import scala.concurrent.ExecutionContext.Implicits.global
-
+  def apply(settings: Settings, editionDate: LocalDate)(implicit ec: ExecutionContext): KindleGenerator = {
     val capiClient = new PrintSentContentClient(settings.contentApi)
     val querier = new Querier(capiClient, settings.query, editionDate)
     new KindleGenerator(querier, settings.publishing, settings.query)

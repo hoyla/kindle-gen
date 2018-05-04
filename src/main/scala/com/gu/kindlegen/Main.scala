@@ -11,6 +11,7 @@ object Main extends App {
   }
 
   private def run(settings: Settings): Unit = {
+    import scala.concurrent.ExecutionContext.Implicits.global
     val kindleGenerator = KindleGenerator(settings, LocalDate.now)
     kindleGenerator.writeNitfBundleToDisk()
     println("Done!")
