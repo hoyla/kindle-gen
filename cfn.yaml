@@ -1,10 +1,12 @@
-AWSTemplateFormatVersion: 2010-09-09
-Description: Converting content to NITF format
+AWSTemplateFormatVersion: '2010-09-09'
+#Transform: AWS::Serverless-2016-10-31
+Description: Converting print-sent content to Amazon's KPP NITF format
+
 Parameters:
   Stack:
     Description: Stack name
     Type: String
-    Default: CHANGE_ME
+    Default: content-api-kindle-gen
   App:
     Description: Application name
     Type: String
@@ -70,19 +72,19 @@ Resources:
       Runtime: java8
       Timeout: 60
 
-  DailyEvent:
-    Type: AWS::Events::Rule
-    Properties:
-      Description: Event sent to process the previous day of data
-      ScheduleExpression: cron(14 3 * * ? *)
-      Targets:
-        - Id: Lambda
-          Arn: !GetAtt Lambda.Arn
-
-  DailyEventLambdaPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt Lambda.Arn
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt DailyEvent.Arn
+#  DailyEvent:
+#    Type: AWS::Events::Rule
+#    Properties:
+#      Description: Event sent to process the previous day of data
+#      ScheduleExpression: cron(30 1 * * ? *)  # Run at 01:30 AM every day
+#      Targets:
+#        - Id: Lambda
+#          Arn: !GetAtt Lambda.Arn
+#
+#  DailyEventLambdaPermission:
+#    Type: AWS::Lambda::Permission
+#    Properties:
+#      Action: lambda:InvokeFunction
+#      FunctionName: !GetAtt Lambda.Arn
+#      Principal: events.amazonaws.com
+#      SourceArn: !GetAtt DailyEvent.Arn
