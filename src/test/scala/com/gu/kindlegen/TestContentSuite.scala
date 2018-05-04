@@ -1,11 +1,8 @@
 package com.gu.kindlegen
 
 import org.scalatest.FunSuite
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import com.gu.kindlegen.TestContent._
 
-@RunWith(classOf[JUnitRunner])
 class TestContentSuite extends FunSuite {
 
   val capiDate = ExampleDate

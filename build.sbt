@@ -26,9 +26,7 @@ libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0"
 /*deps for CAPI client*/
 libraryDependencies += "com.gu" %% "content-api-client-default" % "12.0"
 /* deps required to use junit test and test watch */
-libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.5"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
-libraryDependencies += "junit" % "junit" % "4.12" % "test"
 libraryDependencies += "com.github.andyglow" %% "scala-xml-diff" % "2.0.3" % "test"
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.25" % "test"
 Test / logBuffered := false  // enjoy ScalaTest's built-in event buffering algorithm
