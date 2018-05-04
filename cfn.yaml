@@ -82,7 +82,7 @@ Resources:
           CONTENT_API_URL: !Ref ContentApiUrl
       Description: Converting content to NITF format
       Handler: com.gu.kindlegen.Lambda::handler
-      MemorySize: 1024
+      MemorySize: 512
       Role: !GetAtt ExecutionRole.Arn
       Runtime: java8
       Timeout: 300
