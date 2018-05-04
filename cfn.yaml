@@ -63,6 +63,7 @@ Resources:
               Effect: Allow
               Action:
                 - s3:PutObject
+                - s3:ListAllMyBuckets  # AWScala uses it to find the bucket
               Resource: !Sub "arn:aws:s3:::kindle-gen-published-files/${Stage}/*"
   Lambda:
     Type: AWS::Lambda::Function
