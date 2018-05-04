@@ -87,19 +87,19 @@ Resources:
       Runtime: java8
       Timeout: 300
 
-#  DailyEvent:
-#    Type: AWS::Events::Rule
-#    Properties:
-#      Description: Event sent to process today's data
-#      ScheduleExpression: cron(30 1 * * ? *)  # Run at 01:30 AM every day
-#      Targets:
-#        - Id: Lambda
-#          Arn: !GetAtt Lambda.Arn
-#
-#  DailyEventLambdaPermission:
-#    Type: AWS::Lambda::Permission
-#    Properties:
-#      Action: lambda:InvokeFunction
-#      FunctionName: !GetAtt Lambda.Arn
-#      Principal: events.amazonaws.com
-#      SourceArn: !GetAtt DailyEvent.Arn
+  DailyEvent:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Event sent to process today's data
+      ScheduleExpression: cron(30 1 * * ? *)  # Run at 01:30 AM every day
+      Targets:
+        - Id: Lambda
+          Arn: !GetAtt Lambda.Arn
+
+  DailyEventLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt Lambda.Arn
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt DailyEvent.Arn
