@@ -7,7 +7,6 @@ import java.time.ZoneOffset.UTC
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 
-import com.amazonaws.regions.Regions
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 
@@ -27,11 +26,11 @@ object Lambda {
         .orElse(params.get("time").map(_.toString).map(Instant.parse(_).atZone(UTC).toLocalDate))  // scheduled event
         .getOrElse(LocalDate.now)
 
-    val stage = sys.env("Stage")  // CODE or PROD
-    val region = Regions.fromName(sys.env("AWS_REGION"))
+    val stage = sys.env.getOrElse("Stage", "CODE")  // CODE or PROD
     val bucketName = "kindle-gen-published-files"
 
-    val s3 = AmazonS3ClientBuilder.standard().withRegion(region).build()
+    val s3 = AmazonS3ClientBuilder.defaultClient()
+    // TODO should we validate the connection and permissions?
 
     Settings.load match {
       case Success(settings) =>
