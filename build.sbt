@@ -23,7 +23,6 @@ doc / exportJars := true
 /* deps for aws lambda */
 libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0"
 libraryDependencies += "com.amazonaws" % "aws-java-sdk-s3" % "1.11.321"
-libraryDependencies += "com.github.seratch" %% "awscala" % "0.6.3" exclude("com.amazonaws", "*")
 
 /*deps for CAPI client*/
 libraryDependencies += "com.gu" %% "content-api-client-default" % "12.0"
