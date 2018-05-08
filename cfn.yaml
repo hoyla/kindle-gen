@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
 Description: Converting print-sent content to Amazon's KPP NITF format
 
 Parameters:
@@ -27,51 +28,21 @@ Parameters:
     Description: Bucket where RiffRaff uploads artifacts on deploy
     Type: String
     Default: content-api-dist
+  OutputBucket:
+    Description: The bucket where the output (NITF files) should be stored
+    Type: String
+    Default: kindle-gen-published-files
 
 Resources:
-  ExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action: sts:AssumeRole
-      Path: /
-      Policies:
-        - PolicyName: logs
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - logs:CreateLogGroup
-                - logs:CreateLogStream
-                - logs:PutLogEvents
-              Resource: arn:aws:logs:*:*:*
-        - PolicyName: lambda
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - lambda:InvokeFunction
-              Resource: "*"
-        - PolicyName: publishToS3
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - s3:PutObject
-              Resource: !Sub "arn:aws:s3:::kindle-gen-published-files/${Stage}/*"
   Lambda:
-    Type: AWS::Lambda::Function
+    Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub ${App}-${Stage}
-      Code:
-        S3Bucket:
-          Ref: DeployBucket
-        S3Key: !Sub ${Stack}/${Stage}/${App}/${App}.jar
+      Description: Converting content to NITF format
+      Runtime: java8
+      Handler: com.gu.kindlegen.Lambda::handler
+      MemorySize: 512
+      Timeout: 300
       Environment:
         Variables:
           Stage: !Ref Stage
@@ -79,26 +50,18 @@ Resources:
           App: !Ref App
           CONTENT_API_KEY: !Ref ContentApiKey
           CONTENT_API_URL: !Ref ContentApiUrl
-      Description: Converting content to NITF format
-      Handler: com.gu.kindlegen.Lambda::handler
-      MemorySize: 512
-      Role: !GetAtt ExecutionRole.Arn
-      Runtime: java8
-      Timeout: 300
-
-  DailyEvent:
-    Type: AWS::Events::Rule
-    Properties:
-      Description: Event sent to process today's data
-      ScheduleExpression: cron(30 1 * * ? *)  # Run at 01:30 AM every day
-      Targets:
-        - Id: Lambda
-          Arn: !GetAtt Lambda.Arn
-
-  DailyEventLambdaPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt Lambda.Arn
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt DailyEvent.Arn
+      Events:
+        DailyEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(30 1 * * ? *)  # Run at 01:30 AM every day
+      CodeUri:
+        Bucket: !Ref DeployBucket
+        Key: !Sub ${Stack}/${Stage}/${App}/${App}.jar
+      Policies:
+        - AWSLambdaBasicExecutionRole  # Managed Policy that includes CloudWatch log permissions
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:PutObject
+            Resource: !Sub "arn:aws:s3:::${OutputBucket}/${Stage}/*"
