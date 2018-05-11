@@ -23,8 +23,8 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
   private val deleteGeneratedFiles = conf.getBoolean("deleteGeneratedFiles")
 
   {
-    val firstDate = LocalDate.of(2018, 3, 16)
-    val lastDate = LocalDate.of(2018, 3, 17)
+    val firstDate = LocalDate.now
+    val lastDate = LocalDate.now
     (firstDate.toEpochDay to lastDate.toEpochDay).map(LocalDate.ofEpochDay).foreach(test)
   }
 
@@ -68,7 +68,8 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
 
     it("generates valid NITF files") {
       forEvery(nitfFiles) { path => withClue(path) {
-        val nitf = XML.loadFile(path.toFile)
+        val bareNitf = XML.loadFile(path.toFile)
+        val nitf = ArticleNITF.qualify(bareNitf)  // specify the `xmlns` to validate against
         validateXml(nitf, resource("kpp-nitf-3.5.7.xsd").toURI)
       }}
     }

@@ -27,7 +27,7 @@ class ArticleNITFSpec extends FunSpec {
     )
 
     it("produces simple NITF") {
-      val expectedOutput = ArticleNITF.qualify(
+      val expectedOutput =
         <nitf version={ArticleNITF.Version}>
           <head>
             <title>my title</title>
@@ -53,7 +53,6 @@ class ArticleNITFSpec extends FunSpec {
             <body.end/>
           </body>
         </nitf>
-      )
 
       val generated = ArticleNITF(simpleArticle).nitf
       assertEquivalentXml(generated, expectedOutput)

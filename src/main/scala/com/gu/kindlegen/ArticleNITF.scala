@@ -48,7 +48,7 @@ object ArticleNITF {
 case class ArticleNITF(article: Article) {
   import ArticleNITF._
 
-  def nitf: Elem = qualify {
+  def nitf: Elem = {  // no xmlns - Amazon's NITF processor doesn't support it
     <nitf version={Version}>
       {head}
       {body}
