@@ -9,45 +9,45 @@ import scala.util.{Failure, Success, Try}
 
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
+import com.typesafe.config.{Config, ConfigFactory}
 
 object Lambda {
-  // env.AWS_REGION -> eu-west-1
-  // env.Stage -> CODE
-
   /*
    * This is your lambda entry point
    */
   def handler(parameters: java.util.Map[String, Any], context: Context): Unit = {
     val logger = context.getLogger
 
-    val params = parameters.asScala
+    val params = parameters.asScala.mapValues(_.toString)
+
     val date =
-      params.get("date").map(_.toString).map(LocalDate.parse)
-        .orElse(params.get("time").map(_.toString).map(Instant.parse(_).atZone(UTC).toLocalDate))  // scheduled event
+      params.get("date").map(LocalDate.parse)
+        .orElse(params.get("time").map(Instant.parse(_).atZone(UTC).toLocalDate))  // scheduled event
         .getOrElse(LocalDate.now)
 
-    val stage = sys.env.getOrElse("Stage", "CODE")  // CODE or PROD
-    val bucketName = "kindle-gen-published-files"
+    val config = resolveConfig(sys.env.getOrElse("ConfigSettings", ""))
+    val bucketName = config.getString("serialization.s3.bucket")
+    val pathPrefix = config.getString("serialization.s3.prefix")
+    logger.log(s"Using config ${config.root.render}")
 
     val s3 = AmazonS3ClientBuilder.defaultClient()
     // TODO should we validate the connection and permissions?
 
-    Settings.load match {
+    Settings(config) match {
       case Success(settings) =>
         import scala.concurrent.ExecutionContext.Implicits.global
 
         val fileSettings = settings.publishing.files
         val originalOutputDir = fileSettings.outputDir.toAbsolutePath
-        val customFileSettings = fileSettings.copy(originalOutputDir.resolve(date.toString))
-        val customSettings = settings.withPublishingFiles(customFileSettings)
-        val kindleGenerator = KindleGenerator(customSettings, date)
+        val customFileSettings = fileSettings.copy(outputDir = originalOutputDir.resolve(date.toString))
+        val kindleGenerator = KindleGenerator(settings.withPublishingFiles(customFileSettings), date)
 
         logger.log(s"Generating for $date; writing to ${customFileSettings.outputDir}")
         val files = kindleGenerator.writeNitfBundleToDisk()
 
         files.par.foreach { path =>
           // TODO what if the file already exists in S3?
-          val s3path = stage + "/" + originalOutputDir.relativize(path.toAbsolutePath)
+          val s3path = pathPrefix + originalOutputDir.relativize(path.toAbsolutePath)
           logger.log(s"Uploading $s3path")
           s3.putObject(bucketName, s3path, path.toFile)
           // TODO what if uploading to S3 fails?
@@ -60,4 +60,9 @@ object Lambda {
     }
   }
 
+  private def resolveConfig(configString: String): Config = {
+    val config = ConfigFactory.load
+    val overrides = ConfigFactory.parseString(configString)
+    overrides.withFallback(config).resolve()
+  }
 }

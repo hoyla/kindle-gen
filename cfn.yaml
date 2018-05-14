@@ -25,14 +25,18 @@ Parameters:
   ContentApiUrl:
     Description: 'The Content API URL to retrieve the articles to publish'
     Type: String
-  DeployBucket:
-    Description: Bucket where RiffRaff uploads artifacts on deploy
-    Type: String
-    Default: content-api-dist
   OutputBucket:
     Description: The bucket where the output (NITF files) should be stored
     Type: String
     Default: kindle-gen-published-files
+  CustomConfig:
+    Description: 'Overrides application configuration settings. Can be in JSON or HOCON'
+    Type: String
+    Default: ''
+  DeployBucket:
+    Description: Bucket where RiffRaff uploads artifacts on deploy
+    Type: String
+    Default: content-api-dist
 
 Resources:
   Lambda:
@@ -46,11 +50,20 @@ Resources:
       Timeout: 300
       Environment:
         Variables:
-          Stage: !Ref Stage
-          Stack: !Ref Stack
-          App: !Ref App
-          CONTENT_API_KEY: !Ref ContentApiKey
-          CONTENT_API_URL: !Ref ContentApiUrl
+          ConfigSettings:
+            Fn::Sub: |
+              content-api {
+                key = ${ContentApiKey}
+                url = ${ContentApiUrl}
+              }
+              serialization {
+                s3 {
+                  bucket = ${OutputBucket}
+                  prefix = ${Stage}/
+                }
+              }
+              // custom settings (which may override the above):
+              ${CustomConfig}
       Events:
         DailyEvent:
           Type: Schedule
