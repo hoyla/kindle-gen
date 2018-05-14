@@ -30,7 +30,7 @@ Parameters:
     Type: String
     Default: kindle-gen-published-files
   CustomConfig:
-    Description: 'Overrides application configuration settings. Can be in JSON or HOCON'
+    Description: 'Overrides application configuration settings. Should be in JSON format.'
     Type: String
     Default: ''
   DeployBucket:
@@ -52,18 +52,19 @@ Resources:
         Variables:
           ConfigSettings:
             Fn::Sub: |
-              content-api {
-                key = ${ContentApiKey}
-                url = ${ContentApiUrl}
+              {
+                "content-api": {
+                  "key": "${ContentApiKey}",
+                  "url": "${ContentApiUrl}"
+                },
+                "serialization": {
+                  "s3": {
+                    "bucket" = "${OutputBucket}",
+                    "prefix" = "${Stage}/"
+                  }
+                },
+                ${CustomConfig}
               }
-              serialization {
-                s3 {
-                  bucket = ${OutputBucket}
-                  prefix = ${Stage}/
-                }
-              }
-              // custom settings (which may override the above):
-              ${CustomConfig}
       Events:
         DailyEvent:
           Type: Schedule

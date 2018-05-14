@@ -28,7 +28,6 @@ object Lambda {
     val config = resolveConfig(sys.env.getOrElse("ConfigSettings", ""))
     val bucketName = config.getString("serialization.s3.bucket")
     val pathPrefix = config.getString("serialization.s3.prefix")
-    logger.log(s"Using config ${config.root.render}")
 
     val s3 = AmazonS3ClientBuilder.defaultClient()
     // TODO should we validate the connection and permissions?
