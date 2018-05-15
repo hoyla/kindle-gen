@@ -4,6 +4,7 @@ import java.time.OffsetDateTime
 
 import com.gu.contentapi.client.model.v1._
 import com.gu.contentapi.client.utils.CapiModelEnrichment._
+import com.gu.io.{Link, Linkable}
 
 
 case class Article(

@@ -4,6 +4,8 @@ import java.time.LocalDate
 
 import scala.util.{Failure, Success}
 
+import com.gu.io.FilePublisher
+
 object Main extends App {
   Settings.load match {
     case Success(settings) => run(settings)
@@ -12,8 +14,9 @@ object Main extends App {
 
   private def run(settings: Settings): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val kindleGenerator = KindleGenerator(settings, LocalDate.now)
-    kindleGenerator.writeNitfBundleToDisk()
+    val publisher = FilePublisher(settings.publishing.files.outputDir)
+    val kindleGenerator = KindleGenerator(settings, LocalDate.now, publisher)
+    kindleGenerator.publish()
     println("Done!")
     // Why does the program not exit here?
   }

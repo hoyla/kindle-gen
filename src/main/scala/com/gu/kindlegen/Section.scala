@@ -1,7 +1,8 @@
 package com.gu.kindlegen
 
 import com.gu.contentapi.client.model.v1.Tag
-import com.gu.kindlegen.Link.AbsoluteURL
+import com.gu.io.Link
+import com.gu.io.Link.AbsoluteURL
 
 
 case class Section(id: String, title: String, link: Link)

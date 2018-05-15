@@ -11,8 +11,8 @@ import org.scalatest.FunSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
 
-import com.gu.io.TempFiles
-import com.gu.kindlegen.Link.PathLink
+import com.gu.io.{FilePublisher, TempFiles}
+import com.gu.io.Link.PathLink
 import com.gu.scalatest.PathMatchers._
 import com.gu.xml.XmlUtils._
 
@@ -30,16 +30,13 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
     (firstDate.toEpochDay to lastDate.toEpochDay).map(LocalDate.ofEpochDay).foreach(test)
   }
 
-  def test(arbitraryDate: LocalDate): Unit = describe(s"writeNitfBundleToDisk($arbitraryDate)") {
-    def newInstance(editionDate: LocalDate) = {
-      import scala.concurrent.ExecutionContext.Implicits.global
-      val customSettings = settings.withPublishingFiles(fileSettings.copy(
-        outputDir = fileSettings.outputDir.resolve(arbitraryDate.toString)))
-      KindleGenerator(customSettings, editionDate)
-    }
+  def test(editionDate: LocalDate): Unit = describe(s"publish($editionDate)") {
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val publisher = FilePublisher(fileSettings.outputDir.resolve(editionDate.toString))
+    val generator = KindleGenerator(settings, editionDate, publisher)
 
-    lazy val eventualResults = Await.result(newInstance(arbitraryDate).writeNitfBundleToDisk(), settings.query.downloadTimeout)
-    lazy val paths = eventualResults.collect { case x: PathLink => x.toPath }
+    lazy val links = Await.result(generator.publish().map(_ => publisher.publications), settings.query.downloadTimeout)
+    lazy val paths = links.collect { case x: PathLink => x.toPath }.toSeq
     lazy val fileNames = paths.map(_.getFileName.toString)
 
     lazy val rssFiles = pathsEndingWith(fileSettings.rssExtension)

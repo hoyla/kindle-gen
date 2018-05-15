@@ -2,6 +2,8 @@ package com.gu.kindlegen
 
 import java.time.Instant
 
+import com.gu.io.Link
+
 
 object SectionsManifest {
   def apply(title: String, link: Link, books: Seq[BookSection], buildInstant: Instant = Instant.now): RssManifest = {

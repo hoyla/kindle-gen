@@ -5,6 +5,8 @@ import java.time.format.DateTimeFormatter
 
 import scala.xml.Elem
 
+import com.gu.io.{Link, Linkable}
+
 
 case class RssItem(title: String, link: Link) extends Linkable {
   def rss: Elem =

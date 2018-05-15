@@ -5,7 +5,7 @@ import java.time.Instant
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
-import com.gu.kindlegen.Link.RelativePath
+import com.gu.io.Link.RelativePath
 import com.gu.kindlegen.TestContent._
 
 class SectionsManifestSpec extends FlatSpec {

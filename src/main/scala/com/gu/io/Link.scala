@@ -1,4 +1,4 @@
-package com.gu.kindlegen
+package com.gu.io
 
 import java.net.{URI, URL}
 import java.nio.file.{Files, Path, Paths}
@@ -45,7 +45,7 @@ object Link {
     }
   }
 
-  object AbsolutePath extends Factory(str => new AbsolutePath(Paths.get(str).toRealPath().toString), Paths.get(_)) {
+  object AbsolutePath extends Factory(str => new AbsolutePath(Paths.get(str).toAbsolutePath.toString), Paths.get(_)) {
     protected override def validate(source: Path): Unit =
       require(source.isAbsolute, "Path must be absolute")
   }

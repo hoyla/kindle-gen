@@ -4,6 +4,8 @@ import java.time.LocalDate
 
 import scala.collection.breakOut
 
+import com.gu.io.{Link, Linkable}
+
 
 /**
  * Each Book (eg Guardian or Observer) contains many sections (eg G2, Top Stories, Finance)
