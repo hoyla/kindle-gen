@@ -7,7 +7,6 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.xml.Elem
 
 import com.gu.io.IOUtils._
-import com.gu.kindlegen.Link.PathLink
 import com.gu.kindlegen.Querier.PrintSentContentClient
 import com.gu.xml._
 
@@ -37,80 +36,73 @@ class KindleGenerator(querier: Querier,
     fArticles
   }
 
-  def writeNitfBundleToDisk(): Seq[Path] = {
-    val fArticlesOnDisk = fetchNitfBundle().flatMap { articles =>
+  def writeNitfBundleToDisk(): Future[Seq[Link]] = {
+    val nitfArticles = fetchNitfBundle().flatMap { articles =>
       Future.sequence(articles.zipWithIndex.map { case (article, index) =>
         downloadMainImage(article, index)
-          .map(writeToFile(_, index))
+          .flatMap(writeToFile(_, index))
       })
     }
 
-    val articlesOnDisk = Await.result(fArticlesOnDisk, querySettings.downloadTimeout)
+    val images = Await.ready(nitfArticles, querySettings.downloadTimeout)
+      .map(_.flatMap(_.mainImage))
 
-    val sections = BookSection.fromArticles(articlesOnDisk).map(writeToFile)
-    val rootManifest = writeToFile(sections)
-
-    (articlesOnDisk ++ articlesOnDisk.flatMap(_.mainImage) ++ sections :+ rootManifest)
-      .map(_.link).collect {
-      case link: PathLink => link.toPath
+    val sections = nitfArticles.flatMap { articles =>
+      Future.sequence(BookSection.fromArticles(articles).map(writeToFile))
     }
+    val rootManifest = sections.flatMap(writeToFile)
+
+    val linkables = List(nitfArticles, images, sections, rootManifest.map(Seq(_)))
+    Future.reduceLeft(linkables)(_ ++ _)
+      .map(_.map(_.link))
   }
 
   private def downloadMainImage(article: Article, fileNameIndex: Int): Future[Article] = {
-    if (publishingSettings.downloadImages) {
-      querier.downloadArticleImage(article).map { maybeImageData =>
-        article.copy(mainImage =
-          maybeImageData.map(writeToFile(_, fileNameIndex))
-        )
-      }
+    val image = article.mainImage
+    if (publishingSettings.downloadImages && image.isDefined) {
+      querier.downloadImage(image.get)
+        .flatMap(writeToFile(_, fileNameIndex))
+        .map(newLink => article.copy(mainImage = Some(newLink)))
     } else {
       Future.successful(article)  // with image sources as URLs
     }
   }
 
-  private def writeToFile(image: ImageData, fileNameIndex: Int): Image = {
+  private def writeToFile(image: ImageData, fileNameIndex: Int): Future[Image] = {
     val fileName = s"${fileNameIndex}_${image.metadata.id}.${fileExtension(image.source)}"
-    image.metadata.copy(link = writeToFile(image.data, fileName))
+    writeToFile(image.data, fileName).map { newLink => image.metadata.copy(link = newLink) }
   }
 
-  private def writeToFile(article: Article, fileNameIndex: Int): Article = {
+  private def writeToFile(article: Article, fileNameIndex: Int): Future[Article] = {
     val nitfGenerator = ArticleNITF(article)
     val fileName = s"${fileNameIndex}_${asFileName(article.docId)}.${fileSettings.nitfExtension}"
-    article.copy(link = writeToFile(nitfGenerator.nitf, fileName))
+    writeToFile(nitfGenerator.nitf, fileName).map { newLink => article.copy(link = newLink) }
   }
 
-  private def writeToFile(bookSection: BookSection): BookSection = {
+  private def writeToFile(bookSection: BookSection): Future[BookSection] = {
     val fileName = asFileName(bookSection.id) + "." + fileSettings.rssExtension
     val manifest = ArticlesManifest(bookSection)
-    bookSection.withLink(writeToFile(manifest.rss, fileName))
+    writeToFile(manifest.rss, fileName).map(bookSection.withLink)
   }
 
-  private def writeToFile(sections: Seq[BookSection]): RssManifest = {
+  private def writeToFile(sections: Seq[BookSection]): Future[RssManifest] = {
     val fileName = fileSettings.rootManifestFileName
     val manifest = SectionsManifest(
       title = publishingSettings.publicationName,
       link = Link.AbsoluteURL.from(publishingSettings.publicationLink),
       books = sections
     )
-    manifest.copy(link = writeToFile(manifest.rss, fileName))
+    writeToFile(manifest.rss, fileName).map { newLink => manifest.copy(link = newLink) }
   }
 
-  private def writeToFile(content: Elem, fileName: String): Link.RelativePath = {
+  private def writeToFile(content: Elem, fileName: String): Future[Link] = {
     val prettifier = if (publishingSettings.prettifyXml) defaultPrettyPrinter else TrimmingPrinter
     writeToFile(content.toXmlBytes(fileSettings.encoding)(prettifier), fileName)
   }
 
-  private def writeToFile(content: String, fileName: String): Link.RelativePath =
-    writeToFile(content.trim.getBytes(fileSettings.encoding), fileName)
-
-  private def writeToFile(content: Array[Byte], fileName: String): Link.RelativePath = {
-    val path = write(content, fileName)
+  private def writeToFile(content: Array[Byte], fileName: String): Future[Link] = Future {
+    val path = Files.write(outputDirectory.resolve(fileName), content)
     val relativePath = outputDirectory.relativize(path)
     Link.RelativePath.from(relativePath, outputDirLink)
-  }
-
-  private def write(data: Array[Byte], fileName: String): Path = {
-    val filePath = outputDirectory.resolve(fileName)
-    Files.write(filePath, data)
   }
 }

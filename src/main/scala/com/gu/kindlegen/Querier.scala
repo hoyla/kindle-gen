@@ -47,9 +47,8 @@ class Querier(capiClient: PrintSentContentClient,
     articles
   }
 
-  def downloadArticleImage(article: Article): Future[Option[ImageData]] = {
-    Future.traverse(article.mainImage.toList) { image =>
-      download(image.link.source).map(bytes => ImageData(image, bytes))
-    }.map(_.headOption)
+  // TODO test downloading in the Lambda
+  def downloadImage(image: Image): Future[ImageData] = {
+    download(image.link.source).map(bytes => ImageData(image, bytes))
   }
 }

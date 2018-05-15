@@ -11,6 +11,8 @@ import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.typesafe.config.{Config, ConfigFactory}
 
+import com.gu.kindlegen.Link.RelativePath
+
 object Lambda {
   /*
    * This is your lambda entry point
@@ -44,14 +46,15 @@ object Lambda {
         logger.log(s"Generating for $date; writing to ${customFileSettings.outputDir}")
         val files = kindleGenerator.writeNitfBundleToDisk()
 
-        files.par.foreach { path =>
-          // TODO what if the file already exists in S3?
+        // FIXME Future#foreach swallows errors; we need to report them
+        files.foreach { links => links.collect { case x: RelativePath => x.toPath }.foreach { path =>
+          // TODO what if the file already exists in S3? What if the directory already exists and is full?
           val s3path = pathPrefix + originalOutputDir.relativize(path.toAbsolutePath)
           logger.log(s"Uploading $s3path")
           s3.putObject(bucketName, s3path, path.toFile)
           // TODO what if uploading to S3 fails?
           Try(Files.delete(path))  // ignore deletion errors; at worst, the file will consume some space affecting the next invocation
-        }
+        } }
 
       case Failure(error) =>
         logger.log(s"[ERROR] Could not load the configuration! $error")

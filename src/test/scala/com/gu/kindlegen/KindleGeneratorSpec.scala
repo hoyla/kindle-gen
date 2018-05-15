@@ -3,6 +3,7 @@ package com.gu.kindlegen
 import java.nio.file.{Files, Path}
 import java.time.LocalDate
 
+import scala.concurrent.Await
 import scala.xml.XML
 
 import com.typesafe.config.ConfigFactory
@@ -11,6 +12,7 @@ import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
 
 import com.gu.io.TempFiles
+import com.gu.kindlegen.Link.PathLink
 import com.gu.scalatest.PathMatchers._
 import com.gu.xml.XmlUtils._
 
@@ -36,7 +38,8 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
       KindleGenerator(customSettings, editionDate)
     }
 
-    lazy val paths = newInstance(arbitraryDate).writeNitfBundleToDisk()
+    lazy val eventualResults = Await.result(newInstance(arbitraryDate).writeNitfBundleToDisk(), settings.query.downloadTimeout)
+    lazy val paths = eventualResults.collect { case x: PathLink => x.toPath }
     lazy val fileNames = paths.map(_.getFileName.toString)
 
     lazy val rssFiles = pathsEndingWith(fileSettings.rssExtension)
