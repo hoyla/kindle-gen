@@ -58,11 +58,9 @@ Resources:
                   "key": "${ContentApiKey}",
                   "url": "${ContentApiUrl}"
                 },
-                "serialization": {
-                  "s3": {
-                    "bucket" = "${OutputBucket}",
-                    "prefix" = "${Stage}/"
-                  }
+                "s3": {
+                  "bucket" = "${OutputBucket}",
+                  "prefix" = "${Stage}/"
                 },
                 ${CustomConfig}
               }
