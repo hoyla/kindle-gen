@@ -64,13 +64,19 @@ object Lambda {
     val fileSettings = settings.publishing.files
     val originalOutputDir = fileSettings.outputDir.toAbsolutePath
     val customFileSettings = fileSettings.copy(outputDir = originalOutputDir.resolve(date.toString))
-    settings.withPublishingFiles(customFileSettings)
+
+    val s3Settings = settings.s3
+    val bucketDir = s3Settings.bucketDirectory
+    val customS3Settings = s3Settings.copy(bucketDirectory = s"$bucketDir/$date")
+
+    settings.withPublishingFiles(customFileSettings).copy(s3 = customS3Settings)
   }
 
   private def s3Publisher(settings: S3Settings)(implicit ec: ExecutionContext): S3Publisher = {
-    val s3 = AmazonS3ClientBuilder.defaultClient()
-
     val bucketName = settings.bucketName
+    require(bucketName.nonEmpty, "S3 bucket name was not specified")
+
+    val s3 = AmazonS3ClientBuilder.defaultClient()
     require(s3.doesBucketExistV2(bucketName), s"S3 bucket $bucketName was not found")
 
     S3Publisher(s3, settings)
