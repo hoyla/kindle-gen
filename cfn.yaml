@@ -48,6 +48,7 @@ Resources:
       Handler: com.gu.kindlegen.Lambda::handler
       MemorySize: 512
       Timeout: 300
+      Tracing: Active
       Environment:
         Variables:
           ConfigSettings:
@@ -75,6 +76,7 @@ Resources:
         Key: !Sub ${Stack}/${Stage}/${App}/${App}.zip
       Policies:
         - AWSLambdaBasicExecutionRole  # Managed Policy that includes CloudWatch log permissions
+        - AWSXrayWriteOnlyAccess       # Managed Policy that enables X-Ray telemetry
         - Statement:
             Effect: Allow
             Action:
