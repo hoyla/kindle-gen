@@ -72,7 +72,7 @@ Resources:
             Schedule: cron(30 1 * * ? *)  # Run at 01:30 AM every day
       CodeUri:
         Bucket: !Ref DeployBucket
-        Key: !Sub ${Stack}/${Stage}/${App}/${App}.jar
+        Key: !Sub ${Stack}/${Stage}/${App}/${App}.zip
       Policies:
         - AWSLambdaBasicExecutionRole  # Managed Policy that includes CloudWatch log permissions
         - Statement:

@@ -10,7 +10,7 @@ deployments:
     parameters:
       bucket: content-api-dist
       functionNames: [kindle-gen-]
-      fileName: kindle-gen.jar
+      fileName: kindle-gen.zip
       prefixStack: false
 #    dependencies: [kindle-gen-cfn]
 
