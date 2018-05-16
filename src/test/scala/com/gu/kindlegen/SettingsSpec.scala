@@ -50,14 +50,22 @@ class SettingsSpec extends FunSpec {
     "sectionTagType" -> sectionTagType.name
   )
 
+  private val s3Values = Map(
+    "bucket" -> "My Bucket",
+    "prefix" -> "A_Prefix",
+    "tmpDirOnDisk" -> "/tmp"
+  )
+
   private def settingsConfig = Map(
     "content-api" -> contentApiConfig,
     "publishing" -> publishingConfig,
     "query" -> queryConfig,
+    "s3" -> s3Config,
   ).toConfig
   private def contentApiConfig = contentApiValues.toConfigObj
   private def publishingConfig = publishingValues.toConfigObj
   private def queryConfig = queryValues.toConfigObj
+  private def s3Config = s3Values.toConfigObj
 
   describe("Settings factory") {
     val settings = Settings(settingsConfig).get
@@ -93,6 +101,14 @@ class SettingsSpec extends FunSpec {
 
       Duration.ofNanos(querySettings.downloadTimeout.toNanos) shouldBe queryValues("downloadTimeout")
       querySettings.sectionTagType shouldBe sectionTagType
+    }
+
+    it("parses S3Settings correctly") {
+      val s3Settings = settings.s3
+
+      s3Settings.bucketName shouldBe s3Values("bucket")
+      s3Settings.bucketDirectory shouldBe s3Values("prefix")
+      s3Settings.tmpDirOnDisk.toString shouldBe s3Values("tmpDirOnDisk")
     }
   }
 }

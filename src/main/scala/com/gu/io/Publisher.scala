@@ -15,9 +15,10 @@ trait Publisher {
       .andThen { case Success(link) => saved(fileName, link) }(SideEffectsExecutionContext)
   }
 
-  /** Signals that all content has been saved
+  /** Signals that all content has been saved properly.
     *
-    * This method should make the saved content accessible to consumers.
+    * This method should make the saved content accessible to consumers. It must be called _after_ all the futures
+    * returned from `save` are complete.
     */
   def publish(): Future[Unit] = Future.unit
 

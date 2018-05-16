@@ -1,16 +1,17 @@
 package com.gu.kindlegen
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.{Files, Path}
 
 import scala.concurrent.duration.Duration
 import scala.util.Try
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 
+import com.gu.config._
 import com.gu.contentapi.client.model.v1.TagType
 
 /** Encapsulates the settings of this application */
-final case class Settings(contentApi: ContentApiSettings, publishing: PublishingSettings, query: QuerySettings) {
+final case class Settings(contentApi: ContentApiSettings, publishing: PublishingSettings, query: QuerySettings, s3: S3Settings) {
   def withPublishingFiles(files: PublishedFileSettings): Settings =
     copy(publishing = publishing.copy(files = files))
 }
@@ -33,53 +34,40 @@ final case class PublishingSettings(minArticlesPerEdition: Int,
 
 final case class QuerySettings(downloadTimeout: Duration, sectionTagType: TagType)
 
-object Settings {
-  def load: Try[Settings] = {
-    apply(ConfigFactory.load)
-  }
+case class S3Settings(bucketName: String, bucketDirectory: String, tmpDirOnDisk: Path) extends com.gu.io.aws.S3Settings
 
+object Settings extends RootSettingsFactory[Settings] {
   def apply(config: Config): Try[Settings] = {
     for {
       contentApi <- ContentApiSettings.fromParentConfig(config)
       publishing <- PublishingSettings.fromParentConfig(config)
       query <- QuerySettings.fromParentConfig(config)
+      s3 <- S3Settings.fromParentConfig(config)
     } yield {
-      Settings(contentApi, publishing, query)
+      Settings(contentApi, publishing, query, s3)
     }
   }
 }
 
-abstract class SettingsFactory[T](parentConfigPath: String) {
-  def fromParentConfig(root: Config): Try[T] =
-    apply(root.getConfig(parentConfigPath))
-
-  def apply(config: Config): Try[T]
-}
-
-object ContentApiSettings extends SettingsFactory[ContentApiSettings]("content-api") {
-  def apply(config: Config): Try[ContentApiSettings] = {
-    for {
-      key <- Try(config.getString(Key))
-      apiUrl <- Try(config.getString(TargetUrl))
-    } yield {
-      ContentApiSettings(key, apiUrl)
-    }
+object ContentApiSettings extends AbstractSettingsFactory[ContentApiSettings]("content-api") {
+  def apply(config: Config): Try[ContentApiSettings] = Try {
+    val key    = config.getString(Key)
+    val apiUrl = config.getString(TargetUrl)
+    ContentApiSettings(key, apiUrl)
   }
 
   private final val Key = "key"
   private final val TargetUrl = "url"
 }
 
-object PublishingSettings extends SettingsFactory[PublishingSettings]("publishing") {
+object PublishingSettings extends AbstractSettingsFactory[PublishingSettings]("publishing") {
   def apply(config: Config): Try[PublishingSettings] = {
-    for {
-      downloadImages <- Try(config.getBoolean(DownloadImages))
-      prettifyXml <- Try(config.getBoolean(PrettifyXml))
-      minArticles <- Try(config.getInt(MinArticlesPerEdition))
-      publicationName <- Try(config.getString(PublicationName))
-      publicationLink <- Try(config.getString(PublicationLink))
-      fileSettings <- PublishedFileSettings.fromParentConfig(config)
-    } yield {
+    PublishedFileSettings.fromParentConfig(config).map { fileSettings =>
+      val downloadImages  = config.getBoolean(DownloadImages)
+      val prettifyXml     = config.getBoolean(PrettifyXml)
+      val minArticles     = config.getInt(MinArticlesPerEdition)
+      val publicationName = config.getString(PublicationName)
+      val publicationLink = config.getString(PublicationLink)
       PublishingSettings(minArticles, downloadImages, prettifyXml, publicationName, publicationLink, fileSettings)
     }
   }
@@ -91,16 +79,13 @@ object PublishingSettings extends SettingsFactory[PublishingSettings]("publishin
   private final val PublicationLink = "publicationLink"
 }
 
-object PublishedFileSettings extends SettingsFactory[PublishedFileSettings]("files") {
-  def apply(config: Config): Try[PublishedFileSettings] = {
-    for {
-      outputDir <- Try(config.getString(OutputDir)).map(Paths.get(_))
-      nitfExtension <- Try(config.getString(NitfExtension).stripPrefix("."))
-      rssExtension <- Try(config.getString(RssExtension).stripPrefix("."))
-      rootManifest <- Try(config.getString(RootManifest)).map(Paths.get(_).getFileName.toString)
-    } yield {
-      PublishedFileSettings(outputDir, nitfExtension = nitfExtension, rssExtension = rssExtension, rootManifest)
-    }
+object PublishedFileSettings extends AbstractSettingsFactory[PublishedFileSettings]("files") {
+  def apply(config: Config): Try[PublishedFileSettings] = Try {
+    val outputDir     = config.getPath(OutputDir)
+    val nitfExtension = config.getString(NitfExtension).stripPrefix(".")
+    val rssExtension  = config.getString(RssExtension).stripPrefix(".")
+    val rootManifest  = config.getPath(RootManifest).getFileName.toString
+    PublishedFileSettings(outputDir, nitfExtension = nitfExtension, rssExtension = rssExtension, rootManifest)
   }
 
   private final val OutputDir = "outputDir"
@@ -109,17 +94,27 @@ object PublishedFileSettings extends SettingsFactory[PublishedFileSettings]("fil
   private final val RootManifest = "rootManifestFileName"
 }
 
-object QuerySettings extends SettingsFactory[QuerySettings]("query") {
-  def apply(config: Config): Try[QuerySettings] = {
-    for {
-      downloadDuration <- Try(config.getDuration(DownloadDuration)).map(javaDuration => Duration.fromNanos(javaDuration.toNanos))
-      sectionTagTypeName <- Try(config.getString(SectionTagType))
-      sectionTagType <- Try(TagType.valueOf(sectionTagTypeName).get)
-    } yield {
-      QuerySettings(downloadDuration, sectionTagType)
-    }
+object QuerySettings extends AbstractSettingsFactory[QuerySettings]("query") {
+  def apply(config: Config): Try[QuerySettings] = Try {
+    val downloadDuration   = config.getFiniteDuration(DownloadDuration)
+    val sectionTagTypeName = config.getString(SectionTagType)
+    val sectionTagType     = TagType.valueOf(sectionTagTypeName).get
+    QuerySettings(downloadDuration, sectionTagType)
   }
 
   private final val DownloadDuration = "downloadTimeout"
   private final val SectionTagType = "sectionTagType"
+}
+
+object S3Settings extends AbstractSettingsFactory[S3Settings]("s3") {
+  override def apply(config: Config): Try[S3Settings] = Try {
+    val bucketName = config.getString(BucketName)
+    val bucketDirectory = config.getString(BucketDirectory).stripSuffix("/")
+    val tmpDirOnDisk = Try(config.getPath(TmpDirOnDisk)).getOrElse(Files.createTempDirectory(""))
+    S3Settings(bucketName, bucketDirectory, tmpDirOnDisk)
+  }
+
+  private final val BucketName = "bucket"
+  private final val BucketDirectory = "prefix"
+  private final val TmpDirOnDisk = "tmpDirOnDisk"
 }
