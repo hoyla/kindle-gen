@@ -22,7 +22,7 @@ doc / exportJars := true
 
 /* deps for aws lambda */
 libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0"
-libraryDependencies += "com.amazonaws" % "aws-java-sdk-s3" % "1.11.321"
+libraryDependencies += "com.amazonaws" % "aws-java-sdk-s3" % "1.11.330"
 
 /*deps for CAPI client*/
 libraryDependencies += "com.gu" %% "content-api-client-default" % "12.0"
@@ -36,10 +36,10 @@ Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oI")   // show 
 
 /*deps for simple client*/
 //libraryDependencies += "com.typesafe.play" %% "play-ws" % "2.4.3"
-libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.3.0"  // used to fetch images
+libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.4.0"  // used to fetch images
 
 /* deps for jsoup and xml (html parsing) */
-libraryDependencies += "org.jsoup" % "jsoup" % "1.11.2"
+libraryDependencies += "org.jsoup" % "jsoup" % "1.11.3"
 libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.1.0"
 libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0"
 
