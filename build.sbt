@@ -20,6 +20,7 @@ scalacOptions ++= Seq(
 autoAPIMappings := true
 doc / exportJars := true
 
+val log4jVersion = "2.11.0"
 val scalaXmlVersion = "1.1.0"
 
 libraryDependencies ++= Seq(
@@ -34,13 +35,25 @@ libraryDependencies ++= Seq(
   "org.scala-lang.modules" %% "scala-xml" % scalaXmlVersion,
   "org.scala-lang.modules" %% "scala-parser-combinators" % scalaXmlVersion,
 
+  // logging infrastructure
+  "org.apache.logging.log4j" %% "log4j-api-scala" % "11.0",
+  "org.apache.logging.log4j" % "log4j-api" % log4jVersion,
+  "org.apache.logging.log4j" % "log4j-core" % log4jVersion,
+  "org.apache.logging.log4j" % "log4j-jcl" % log4jVersion /* for the Apache HTTP Client in libthrift and aws-java-sdk */,
+  "org.apache.logging.log4j" % "log4j-slf4j-impl" % log4jVersion /* for the content-api-client and libthrift */,
+
   // AWS
   "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
+  "com.amazonaws" % "aws-lambda-java-log4j2" % "1.1.0",
   "com.amazonaws" % "aws-java-sdk-s3" % "1.11.330",
 
   // test dependencies
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
   "com.github.andyglow" %% "scala-xml-diff" % "2.0.3" % "test",
+)
+
+dependencyOverrides ++= Seq(
+  "org.slf4j" % "slf4j-api" % "1.7.25" /* log4js-slf4j-impl depends on 1.8.0, but that's only compatible with Java 9+ */,
 )
 
 //Test / fork := true  // avoid OutOfMemory errors after repeated calls of `sbt test`
