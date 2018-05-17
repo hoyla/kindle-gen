@@ -20,33 +20,35 @@ scalacOptions ++= Seq(
 autoAPIMappings := true
 doc / exportJars := true
 
-/* deps for aws lambda */
-libraryDependencies += "com.amazonaws" % "aws-lambda-java-core" % "1.2.0"
-libraryDependencies += "com.amazonaws" % "aws-java-sdk-s3" % "1.11.330"
+val scalaXmlVersion = "1.1.0"
 
-/*deps for CAPI client*/
-libraryDependencies += "com.gu" %% "content-api-client-default" % "12.0"
-/* deps required to use junit test and test watch */
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
-libraryDependencies += "com.github.andyglow" %% "scala-xml-diff" % "2.0.3" % "test"
-libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.7.25" % "test"
+libraryDependencies ++= Seq(
+  "com.gu" %% "content-api-client-default" % "12.0",
+
+  "com.typesafe" % "config" % "1.3.3",
+
+  "org.scalaj" %% "scalaj-http" % "2.4.0" /* used to download images */,
+
+  // HTML parsing, cleanup, and conversion to NITF XML
+  "org.jsoup" % "jsoup" % "1.11.3",
+  "org.scala-lang.modules" %% "scala-xml" % scalaXmlVersion,
+  "org.scala-lang.modules" %% "scala-parser-combinators" % scalaXmlVersion,
+
+  // AWS
+  "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
+  "com.amazonaws" % "aws-java-sdk-s3" % "1.11.330",
+
+  // test dependencies
+  "org.scalatest" %% "scalatest" % "3.0.5" % "test",
+  "com.github.andyglow" %% "scala-xml-diff" % "2.0.3" % "test",
+)
+
+//Test / fork := true  // avoid OutOfMemory errors after repeated calls of `sbt test`
 Test / logBuffered := false  // enjoy ScalaTest's built-in event buffering algorithm
 Test / parallelExecution := false  // avoid exhausting the global execution context in tests opening many connections
 Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oI")   // show reminder of failed and canceled tests without stack traces
 
-/*deps for simple client*/
-//libraryDependencies += "com.typesafe.play" %% "play-ws" % "2.4.3"
-libraryDependencies +=  "org.scalaj" %% "scalaj-http" % "2.4.0"  // used to fetch images
-
-/* deps for jsoup and xml (html parsing) */
-libraryDependencies += "org.jsoup" % "jsoup" % "1.11.3"
-libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.1.0"
-libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0"
-
-/* deps for external configuration */
-libraryDependencies += "com.typesafe" % "config" % "1.3.3"
-
-/* deps for Riff-Raff Guardian deployment tool */
+// Guardian's Riff-Raff deployment configuration
 enablePlugins(RiffRaffArtifact, JavaAppPackaging)
 
 Universal / topLevelDirectory := None
