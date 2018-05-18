@@ -1,10 +1,11 @@
 package com.gu.kindlegen
 
-import java.nio.file.{Files, Path}
 import java.time.LocalDate
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.xml.Elem
+
+import org.apache.logging.log4j.scala.Logging
 
 import com.gu.io.{Link, Publisher}
 import com.gu.io.IOUtils._
@@ -22,38 +23,36 @@ object KindleGenerator {
 class KindleGenerator(querier: Querier,
                       publisher: Publisher,
                       publishingSettings: PublishingSettings,
-                      querySettings: QuerySettings)(implicit ec: ExecutionContext) {
+                      querySettings: QuerySettings)(implicit ec: ExecutionContext) extends Logging {
+  logger.trace(s"Initialised with $publishingSettings")
+
   private def fileSettings = publishingSettings.files
 
   def fetchNitfBundle(): Future[Seq[Article]] = {
-    querier.fetchAllArticles().flatMap { results =>
-      if (results.length >= publishingSettings.minArticlesPerEdition)
-        Future.successful(results)
-      else
-        Future.failed(new RuntimeException(s"${results.length} articles is not enough to generate an edition!"))
-    }
+    querier.fetchAllArticles()
+      .map { results =>
+        val minArticles = publishingSettings.minArticlesPerEdition
+        require(results.length >= minArticles,
+          s"Not enough articles to generate an edition! Expected >= $minArticles, Found ${results.length}")
+        results
+      }
   }
 
   // this implementation fails if any of the operations fails
   // we might want to modify that so that failed operations, e.g. downloading an image, don't affect other operations
   def publish(): Future[Unit] = {
-    val eventualArticles = fetchNitfBundle()
+    val eventualArticlesWithImages = fetchNitfBundle()
+      .flatMap { articles =>
+        Future.sequence(articles.zipWithIndex.map((downloadMainImage _).tupled))
+      }
 
-    val eventualArticlesWithImages = eventualArticles.flatMap { articles =>
-      Future.sequence(articles.zipWithIndex.map((downloadMainImage _).tupled))
-    }
-
-    val articlesWithImages = Await.result(eventualArticlesWithImages, querySettings.downloadTimeout)  // force the timeout
-
-    val eventualNitfArticles = Future.sequence(articlesWithImages.zipWithIndex.map((saveArticle _).tupled))
-
-    val eventualSections = eventualNitfArticles.flatMap { articles =>
-      Future.sequence(BookSection.fromArticles(articles).map(saveSection))
-    }
-
-    val eventualRootManifest = eventualSections.flatMap(saveRootManifest)
-
-    eventualRootManifest.flatMap(_ => publisher.publish())
+    Await.ready(eventualArticlesWithImages, querySettings.downloadTimeout)  // force the timeout
+      .flatMap { articlesWithImages =>
+        Future.sequence(articlesWithImages.zipWithIndex.map((saveArticle _).tupled))
+      }.flatMap { savedArticles =>
+        Future.sequence(BookSection.fromArticles(savedArticles).map(saveSection))
+      }.flatMap(saveRootManifest)
+      .flatMap(_ => publisher.publish())
   }
 
   private def downloadMainImage(article: Article, fileNameIndex: Int): Future[Article] = {
@@ -62,6 +61,10 @@ class KindleGenerator(querier: Querier,
       querier.downloadImage(image.get)
         .flatMap(save(_, fileNameIndex))
         .map(newLink => article.copy(mainImage = Some(newLink)))
+        .recover { case error =>
+          logger.warn(s"Failed to download or save the image for article ${article.docId}. Falling back to URL link.")
+          article
+        }
     } else {
       Future.successful(article)  // with image sources as URLs
     }

@@ -4,10 +4,12 @@ import scala.collection.concurrent.TrieMap
 import scala.concurrent.Future
 import scala.util.Success
 
+import org.apache.logging.log4j.scala.Logging
+
 import com.gu.concurrent.SideEffectsExecutionContext
 
 
-trait Publisher {
+trait Publisher extends Logging {
   /** Saves the content, asynchronously, eventually recording it in `publications` */
   def save(content: Array[Byte], fileName: String): Future[Link] = {
     saving(fileName)
@@ -20,7 +22,7 @@ trait Publisher {
     * This method should make the saved content accessible to consumers. It must be called _after_ all the futures
     * returned from `save` are complete.
     */
-  def publish(): Future[Unit] = Future.unit
+  def publish(): Future[Unit] = { logger.traceEntry(); Future.unit }
 
   def publications: Iterable[Link] = savedLinks.keys
 
@@ -28,10 +30,11 @@ trait Publisher {
   protected def persist(content: Array[Byte], fileName: String): Future[Link]
 
   /** Called before content is persisted */
-  protected def saving(key: String): Unit = {}
+  protected def saving(key: String): Unit = { logger.trace(s"Saving $key...") }
 
   /** Called after content is persisted */
   protected def saved(fileName: String, link: Link): Unit = {
+    logger.trace(s"Saved $fileName as $link")
     savedLinks.put(link, null)
   }
 

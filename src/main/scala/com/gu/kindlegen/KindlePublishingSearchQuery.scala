@@ -10,7 +10,7 @@ object KindlePublishingSearchQuery {
   // pagination is not necessary nor desired for a print-sent query
   // it only makes it slower and there are only ~200 per day
   // additionally, `newspaper-edition` date is always set to midnight, resulting in duplicate results across pages
-  val AllResultsPageSize = 400  // maximum page size accepted by CAPI
+  val MaxResultsPageSize = 400  // maximum page size accepted by CAPI
 
   val WhiteListedTags = Seq.empty[String]  // leave empty to get all tags
   val BlackListedTags = Seq("type/interactive")
@@ -34,7 +34,7 @@ object KindlePublishingSearchQuery {
       .showElements("image")
       .showTags(combineParams(responseTagTypes.map(_.id)))
       .showFields(combineParams(ResponseFields))
-      .pageSize(AllResultsPageSize)
+      .pageSize(MaxResultsPageSize)
   }
 
   @inline private def combineParams(strings: Seq[String]) = strings.mkString(",")
