@@ -55,6 +55,7 @@ object Lambda extends Logging {
       val level = Option(Level.getLevel(levelName))
         .getOrElse(throw new BadValue(config.origin, LogLevelConfigKey, s"""Log level "$levelName" is unknown!"""))
       Configurator.setRootLevel(level)
+      Configurator.setAllLevels("com.gu", level)
     }
   }
 
