@@ -28,7 +28,8 @@ object Article {
     htmlBlocks
   }
 
-  def apply(content: Content, sectionTagType: TagType): Article = {
+  def apply(content: Content, settings: QuerySettings): Article = {
+    val sectionTagType = settings.sectionTagType
     val maybeSectionTag = content.tags.find(_.`type` == sectionTagType)
     val maybeNewspaperDate = content.fields.flatMap(_.newspaperEditionDate)
 
@@ -37,10 +38,14 @@ object Article {
     require(maybeSectionTag.nonEmpty, s"$contentId doesn't have a $sectionTagType")
     require(maybeNewspaperDate.nonEmpty, s"$contentId doesn't have a NewspaperEditionDate")
 
-    apply(content, maybeNewspaperDate.get, content.fields.get, maybeSectionTag.get)
+    apply(content, maybeNewspaperDate.get, content.fields.get, maybeSectionTag.get, settings)
   }
 
-  def apply(content: Content, newspaperDate: CapiDateTime, fields: ContentFields, sectionTag: Tag): Article = {
+  def apply(content: Content,
+            newspaperDate: CapiDateTime,
+            fields: ContentFields,
+            sectionTag: Tag,
+            settings: QuerySettings): Article = {
     Article(
       section = Section(sectionTag),
       newspaperPageNumber = fields.newspaperPageNumber.getOrElse(Int.MaxValue),  // move to the end of the section
@@ -50,9 +55,9 @@ object Article {
       pubDate = newspaperDate.toOffsetDateTime,
       byline = fields.byline.getOrElse(""),
       articleAbstract = fields.standfirst.getOrElse(""),
-      // TODO handle non-text articles (e.g. cartoons)
+      // TODO handle non-text articles (e.g. cartoons -> stand1st)
       bodyBlocks = getBodyBlocks(content),
-      mainImage = Image.mainMaster(content)
+      mainImage = Image.mainImage(content, settings)
     )
   }
 }

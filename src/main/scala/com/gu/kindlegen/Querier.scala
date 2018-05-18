@@ -52,7 +52,7 @@ class Querier(capiClient: PrintSentContentClient,
     logger.info(s"Processing content $id")
     logger.trace(s"Processing content $id: $content")
 
-    Try(Article(content, settings.sectionTagType)) match {
+    Try(Article(content, settings)) match {
       case Success(article) =>
         logger.trace(s"Processed content $id into $article")
         Some(article)

@@ -11,18 +11,27 @@ case class Image(id: String,
                  credit: Option[String]) extends Linkable
 
 object Image {
-  def mainMaster(content: Content): Option[Image] = {
+  def mainImage(content: Content, settings: QuerySettings): Option[Image] = {
     def isMainImage(e: Element): Boolean =
       e.`type` == ElementType.Image && e.relation == "main"
 
-    def isMasterAsset(a: Asset): Boolean =
-      a.typeData.flatMap(_.isMaster).getOrElse(false)
+    def bestAcceptable(assets: Seq[Asset]): Option[Asset] = {
+      val assetDimensions: Seq[(Asset, Int)] = assets.map { asset =>
+        asset -> asset.typeData.flatMap { fields => Seq(fields.height, fields.width).max }
+      }.collect {
+        case (asset, Some(maxDimension)) if maxDimension <= settings.maxImageResolution =>
+          asset -> maxDimension
+      }
+
+      if (assetDimensions.isEmpty) None
+      else Some(assetDimensions.maxBy(_._2)._1)
+    }
 
     for {
       elements <- content.elements
       mainImage <- elements.find(isMainImage)
-      masterAsset <- mainImage.assets.find(isMasterAsset)
-      metadata <- masterAsset.typeData
+      bestAsset <- bestAcceptable(mainImage.assets)
+      metadata <- bestAsset.typeData
       url <- metadata.secureFile
       absoluteUrl <- Link.AbsoluteURL(url).toOption
     } yield

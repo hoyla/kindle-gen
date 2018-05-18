@@ -32,7 +32,7 @@ final case class PublishingSettings(minArticlesPerEdition: Int,
                                     publicationLink: String,
                                     files: PublishedFileSettings)
 
-final case class QuerySettings(downloadTimeout: Duration, sectionTagType: TagType)
+final case class QuerySettings(downloadTimeout: Duration, sectionTagType: TagType, maxImageResolution: Int)
 
 case class S3Settings(bucketName: String, bucketDirectory: String, tmpDirOnDisk: Path) extends com.gu.io.aws.S3Settings
 
@@ -97,12 +97,14 @@ object PublishedFileSettings extends AbstractSettingsFactory[PublishedFileSettin
 object QuerySettings extends AbstractSettingsFactory[QuerySettings]("query") {
   def apply(config: Config): Try[QuerySettings] = Try {
     val downloadDuration   = config.getFiniteDuration(DownloadDuration)
+    val maxImageResolution = config.getInt(MaxImageResolution)
     val sectionTagTypeName = config.getString(SectionTagType)
     val sectionTagType     = TagType.valueOf(sectionTagTypeName).get
-    QuerySettings(downloadDuration, sectionTagType)
+    QuerySettings(downloadDuration, sectionTagType, maxImageResolution)
   }
 
   private final val DownloadDuration = "downloadTimeout"
+  private final val MaxImageResolution = "maxImageResolution"
   private final val SectionTagType = "sectionTagType"
 }
 

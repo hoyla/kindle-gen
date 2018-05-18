@@ -16,7 +16,7 @@ object TestContent {
   val ExampleLink = Link.AbsoluteURL.from("https://www.example.com")
   lazy val ExamplePath = Link.AbsolutePath.from(Files.createDirectories(Paths.get("target", "tmp")).toRealPath())
 
-  val ExampleQuerySettings = QuerySettings(1.minute, TagType.Type)
+  val ExampleQuerySettings = QuerySettings(1.minute, TagType.Type, maxImageResolution = 1000)
 }
 
 /*

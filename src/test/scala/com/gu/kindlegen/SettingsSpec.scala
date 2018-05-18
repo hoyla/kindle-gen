@@ -47,6 +47,7 @@ class SettingsSpec extends FunSpec {
   private val sectionTagType = TagType.Keyword
   private val queryValues = Map(
     "downloadTimeout" -> Duration.ofSeconds(30),
+    "maxImageResolution" -> 500,
     "sectionTagType" -> sectionTagType.name
   )
 
@@ -100,6 +101,7 @@ class SettingsSpec extends FunSpec {
       val querySettings = settings.query
 
       Duration.ofNanos(querySettings.downloadTimeout.toNanos) shouldBe queryValues("downloadTimeout")
+      querySettings.maxImageResolution shouldBe queryValues("maxImageResolution")
       querySettings.sectionTagType shouldBe sectionTagType
     }
 
