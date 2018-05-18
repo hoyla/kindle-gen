@@ -4,11 +4,11 @@ import java.time.LocalDate
 
 import scala.collection.breakOut
 
-import com.gu.contentapi.client.utils.CapiModelEnrichment._
 
 /**
  * Each Book (eg Guardian or Observer) contains many sections (eg G2, Top Stories, Finance)
  */
+// TODO enable custom ordering of tags
 case class BookSection(section: Section, articles: Seq[Article]) extends Linkable {
   private val pageNumbers: Seq[Int] = articles.map(_.newspaperPageNumber)
   val firstPageNumber: Int = pageNumbers.min

@@ -1,15 +1,12 @@
 package com.gu.kindlegen
 
-import java.time.{Instant, LocalDate}
-
-import scala.xml.Utility
+import java.time.Instant
 
 import org.scalatest.FlatSpec
+import org.scalatest.Matchers._
 
-import com.gu.kindlegen.DateUtils._
 import com.gu.kindlegen.Link.RelativePath
 import com.gu.kindlegen.TestContent._
-import org.scalatest.Matchers._
 
 class SectionsManifestSpec extends FlatSpec {
 
