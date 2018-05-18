@@ -63,7 +63,6 @@ class Querier(capiClient: PrintSentContentClient,
     }
   }
 
-  // TODO test downloading in the Lambda
   def downloadImage(image: Image): Future[ImageData] = {
     val link = image.link
     logger.info(s"Downloading image from $link")
