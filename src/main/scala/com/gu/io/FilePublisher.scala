@@ -1,5 +1,6 @@
 package com.gu.io
 
+import java.io.File
 import java.nio.file.{Files, Path}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -22,7 +23,10 @@ case class FilePublisher(outputDirectory: Path)
     Future { Files.deleteIfExists(path) }
   }
 
-  private def toPath(fileName: String) = dir.resolve(fileName)
+  private def toPath(fileName: String) = {
+    require(!fileName.contains(File.separatorChar), s"Invalid file name! $fileName")
+    dir.resolve(fileName)
+  }
 
   private def toLink(path: Path) = {
     RelativePath.from(dir.relativize(path), relativeTo = dirLink)
