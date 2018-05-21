@@ -16,15 +16,10 @@ object Image {
       e.`type` == ElementType.Image && e.relation == "main"
 
     def bestAcceptable(assets: Seq[Asset]): Option[Asset] = {
-      val assetDimensions: Seq[(Asset, Int)] = assets.map { asset =>
-        asset -> asset.typeData.flatMap { fields => Seq(fields.height, fields.width).max }
-      }.collect {
-        case (asset, Some(maxDimension)) if maxDimension <= settings.maxImageResolution =>
-          asset -> maxDimension
-      }
-
-      if (assetDimensions.isEmpty) None
-      else Some(assetDimensions.maxBy(_._2)._1)
+      assets.iterator.flatMap(MeasurableAsset.apply)
+        .filter(_.maxDimension <= settings.maxImageResolution)
+        .reduceOption(MeasurableAsset.ordering.max)
+        .map(_.asset)
     }
 
     for {
@@ -42,5 +37,15 @@ object Image {
         caption = metadata.caption,
         credit = if (metadata.displayCredit.getOrElse(true)) metadata.credit else None
       )
+  }
+
+  private class MeasurableAsset(val asset: Asset, val maxDimension: Int)
+  private object MeasurableAsset {
+    def apply(asset: Asset): Option[MeasurableAsset] =
+      asset.typeData
+        .flatMap { fields => Seq(fields.height, fields.width).max }
+        .map(new MeasurableAsset(asset, _))
+
+    def ordering: Ordering[MeasurableAsset] = Ordering.by(_.maxDimension)
   }
 }
