@@ -38,5 +38,6 @@ trait Publisher extends Logging {
     savedLinks.put(link, null)
   }
 
+  // Map is the only concurrent collection type in Scala 2.12!
   protected val savedLinks: scala.collection.concurrent.Map[Link, Null] = TrieMap()
 }
