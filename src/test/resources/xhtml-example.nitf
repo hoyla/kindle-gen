@@ -38,10 +38,12 @@
                     <img src="some-image.png">Inline images should be supported</img>
                     <table><tr><td>Inline tables should be moved outside</td></tr></table>
                 </p>
+                <img src="some-image.png">Inline images should be supported</img>
                 <h2>should become hl2</h2>
                 <p class="supported attributes should be left intact">
                     <s>striked should be removed</s>
-                    <em><strike>striked</strike> inside em should be removed</em>
+                    <em>"<strike>striked</strike>" inside em should be an empty string</em>
+                    <em>"<del>striked</del>" inside em should be an empty string</em>
                     <sub>sub</sub> and <sup>sup</sup> should be removed but the text inside should remain intact
                     symbols § and character references &#xa3; should be left intact
                 </p>
@@ -59,6 +61,13 @@
                     <p>should not be combined</p>
                     <p>with other paragraphs, not even the new wrappers</p>
                 </blockquote>
+
+                <div>
+                    A &lt;div&gt; should be converted to a &lt;block&gt;.
+                    <p>The div's contents</p>
+                    <img src="somewhere">including images</img>
+                    should be converted
+                </div>
             </block>
         </body.content>
         <body.end/>

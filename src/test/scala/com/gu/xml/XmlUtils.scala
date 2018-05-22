@@ -41,8 +41,9 @@ object XmlUtils {
     val schemaPath = Paths.get(schemaURI)
     val xsdSources = Seq(schemaPath.resolveSibling("xml.xsd"), schemaPath).map(XmlSchemaValidator.xmlSource)
 
-    withClue(xmlContents.prettyPrint + "\n") {
-      val validationResult = XmlSchemaValidator.validateXml(xmlContents, xsdSources: _*)
+    val prettyXml = XML.loadString(xmlContents.prettyPrint)
+    withClue(prettyXml + "\n") {
+      val validationResult = XmlSchemaValidator.validateXml(prettyXml, xsdSources: _*)
       withClue(validationResult.issues.mkString("\n")) {
         validationResult shouldBe 'successful
       }

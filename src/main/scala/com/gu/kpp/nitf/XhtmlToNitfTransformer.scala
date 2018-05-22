@@ -2,9 +2,13 @@ package com.gu.kpp.nitf
 
 import scala.xml._
 
+import com.gu.nitf.HtmlToNitfConfig
 import com.gu.xml._
 
-object XhtmlToNitfTransformer {
+
+object XhtmlToNitfTransformer extends XhtmlToNitfTransformer(KindleHtmlToNitfConfig)
+
+class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
   /** Transforms an XHTML document into valid NITF <body.content>.
     *
     * @param xhtml an element representing an XHTML document
@@ -25,14 +29,12 @@ object XhtmlToNitfTransformer {
     unwrapBlockContentParents
   )
 
-  private val BlockContentParents = Set("abstract", "block", "body.content", "bq")
-  private val BlockContentTags = Set(
-    "block", "bq", "content", "dl", "fn", "hl2", "h3", "h4", "h5", "h6",
-    "hr", "media", "nitf-table", "note", "ol", "p", "pre", "table", "ul"
-  )
+  private val blockTags = config.nitf.blockTags
+  private val blockContentTags = config.nitf.blockContentTags
+  private val blockContentParentTags = config.nitf.blockContentParentTags
 
   private val removeControlCharacters = {  // temporary rule until https://github.com/scala/scala-xml/pull/203 is fixed
-    val unwanted = (c: Char) => c.isControl && c != '\n' && c != '\r' && c != '\t'
+    val unwanted = (c: Char) => c.isControl && c != '\n' && c != '\r' && c != '\t' && c != '\u0085' /* NEXT LINE (NEL) */
 
     rewriteRule("Remove control characters") {
       case a: Atom[_] if a.text.exists(unwanted) =>
@@ -47,16 +49,16 @@ object XhtmlToNitfTransformer {
   }
 
   private val convertOrRemoveTags = {
-    // TODO how about <div> -> <block>, <cite>, <code> -> <pre>, <small>, <caption>, tables?
-    val mappings = Map("b" -> "strong", "h2" -> "hl2", "i" -> "em", "u" -> "em")
-    val unsupportedTags = Set("figure", "span", "sub", "sup")
-    val unwantedTags = Set("s", "strike")  // tags that should be removed along with their content
-    val nonEmptyTags = Set("note", "abstract", "dl", "fn", "ol", "tr", "ul")  // tags that must contain something
+    val tagMapping = config.equivalentNitfTag
+    val unwantedTags = config.blacklist
+    val nonEmptyTags = config.nitf.nonEmptyTags
+    val supportedTags = config.supportedNitfTags
+
     rewriteRule("Convert or remove tags") {
-      case e: Elem if mappings.contains(e.label) => e.copy(label = mappings(e.label))
-      case n if unsupportedTags.contains(n.label) => n.child
       case n if unwantedTags.contains(n.label) => Nil
       case e: Elem if nonEmptyTags.contains(e.label) && e.child.isEmpty => Nil
+      case e: Elem if tagMapping.contains(e.label) => e.copy(label = tagMapping(e.label))
+      case e: Elem if !supportedTags(e.label) => e.child
     }
   }
 
@@ -67,7 +69,7 @@ object XhtmlToNitfTransformer {
     rewriteRule("Convert misplaced <li>, <ol> and <ul> to <p>") {
       case e: Elem if isList(e) && e.hasChildrenMatching(nonListItem) =>
         if (e.child.forall(nonListItem))
-          e.child  // remove the extraneous list tag
+          e.copy(label = "p")  // Google Chrome renders lists without list items as an indented paragraph
         else
           e.wrapChildren(nonListItem, e.copy(label = "li", attributes = Null, child = Nil))
       case e: Elem if !isList(e) && e.hasChildrenWithLabel("li") =>
@@ -101,18 +103,20 @@ object XhtmlToNitfTransformer {
   }
 
   private val wrapBlockContentText = {
-    val nonBlockContentTag = (x: Node) => !BlockContentTags.contains(x.label)
+    val nonBlockContentTag = (x: Node) => !blockContentTags(x.label)
     rewriteRule("Wrap text (and enriched text) in non-mixed elements") {
-      case e: Elem if BlockContentParents.contains(e.label) && e.hasChildrenMatching(nonBlockContentTag) =>
+      case e: Elem if blockTags.contains(e.label) && e.hasChildrenMatching(nonBlockContentTag) =>
         e.wrapChildren(nonBlockContentTag,
           wrapper = e.copy(label = "p", attributes = Null, child = Nil))
     }
   }
 
   private val unwrapBlockContentParents = {
-    rewriteRule("Unwrap block content parents") {
-      case e: Elem if !BlockContentParents.contains(e.label) && e.hasChildrenWithLabels(BlockContentTags) =>
-        e.unwrapChildren(child => BlockContentTags.contains(child.label))
+    rewriteRule("Unwrap block contents from non-top-level parents") {
+      case e: Elem if !blockContentParentTags(e.label) && e.hasChildrenWithLabels(blockContentTags) =>
+        e.unwrapChildren(child => blockContentTags(child.label))
+      case e: Elem if e.label == "block" && e.hasChildrenWithLabel("block") =>
+        e.unwrapChildren(_.label == "block")  // special case for html tags mapped to blocks
     }
   }
 
@@ -122,10 +126,6 @@ object XhtmlToNitfTransformer {
       // will need to go through [[wrapBlockContentText]] to wrap the text into a paragraph
       e.copy(label = "bq", child = wrapBlockContentText(e.copy(label = "block")))
     case e: Elem if e.label != "content" && e.hasChildrenWithLabel("img") =>
-      // <img /> => <content><img /></content>
-      e.copy(child = e.child.map {
-        case c: Elem if c.label == "img" => c.copy(label = "content", attributes = Null, child = c)
-        case c => c
-      })
+      e.wrapChildren(_.label == "img", e.copy(label = "content", attributes = Null, child = Nil))
   }
 }

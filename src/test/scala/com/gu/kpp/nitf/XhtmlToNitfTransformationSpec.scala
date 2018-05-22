@@ -1,4 +1,4 @@
-package com.gu.nitf
+package com.gu.kpp.nitf
 
 import java.io.File
 import java.nio.file.{Path, Paths}
@@ -8,7 +8,6 @@ import scala.xml._
 import org.scalatest.FunSpec
 import org.scalatest.Matchers._
 
-import com.gu.kpp.nitf.XhtmlToNitfTransformer
 import com.gu.xml._
 import com.gu.xml.XmlUtils._
 
