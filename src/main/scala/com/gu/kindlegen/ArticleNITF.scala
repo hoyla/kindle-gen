@@ -19,7 +19,7 @@ object ArticleNITF {
   val Version = "-//IPTC//DTD NITF 3.5//EN"
   private val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
 
-  private val cleaner = new Cleaner(Whitelist.relaxed  // TODO remove unwanted tags
+  private val cleaner = new Cleaner(Whitelist.relaxed
     .addProtocols("a", "href", "#")
     .removeProtocols("a", "href", "ftp", "http", "https", "mailto")
   )
