@@ -41,18 +41,17 @@ class KindleGenerator(querier: Querier,
   // this implementation fails if any of the operations fails
   // we might want to modify that so that failed operations, e.g. downloading an image, don't affect other operations
   def publish(): Future[Unit] = {
-    val eventualArticlesWithImages = fetchNitfBundle()
-      .flatMap { articles =>
-        Future.sequence(articles.zipWithIndex.map((downloadMainImage _).tupled))
-      }
+    for {
+      articles <- fetchNitfBundle()
+      eventualArticlesWithImages = Future.sequence(articles.zipWithIndex.map((downloadMainImage _).tupled))
 
-    Await.ready(eventualArticlesWithImages, querySettings.downloadTimeout)  // force the timeout
-      .flatMap { articlesWithImages =>
-        Future.sequence(articlesWithImages.zipWithIndex.map((saveArticle _).tupled))
-      }.flatMap { savedArticles =>
-        Future.sequence(BookSection.fromArticles(savedArticles).map(saveSection))
-      }.flatMap(saveRootManifest)
-      .flatMap(_ => publisher.publish())
+      articlesWithImages <- Await.ready(eventualArticlesWithImages, querySettings.downloadTimeout)  // force the timeout
+      savedArticles <- Future.sequence(articlesWithImages.zipWithIndex.map((saveArticle _).tupled))
+      savedSections <- Future.sequence(BookSection.fromArticles(savedArticles).map(saveSection))
+      rootManifest <- saveRootManifest(savedSections)
+      _ <- publisher.publish()
+    }
+      yield ()
   }
 
   private def downloadMainImage(article: Article, fileNameIndex: Int): Future[Article] = {
