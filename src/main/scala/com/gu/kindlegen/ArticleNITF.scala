@@ -20,6 +20,7 @@ object ArticleNITF {
   private val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
 
   private val cleaner = new Cleaner(Whitelist.relaxed
+    .addTags("big", "dfn", "dir", "figure", "mark", "samp", "section", "summary", "tt", "var")
     .addProtocols("a", "href", "#")
     .removeProtocols("a", "href", "ftp", "http", "https", "mailto")
   )
