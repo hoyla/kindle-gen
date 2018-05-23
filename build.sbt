@@ -20,6 +20,7 @@ scalacOptions ++= Seq(
 autoAPIMappings := true
 doc / exportJars := true
 
+val jacksonVersion = "2.9.5"
 val log4jVersion = "2.11.0"
 val scalaXmlVersion = "1.1.0"
 
@@ -45,7 +46,7 @@ libraryDependencies ++= Seq(
   // AWS
   "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
   "com.amazonaws" % "aws-lambda-java-log4j2" % "1.1.0",
-  "com.amazonaws" % "aws-java-sdk-s3" % "1.11.330",
+  "com.amazonaws" % "aws-java-sdk-s3" % "1.11.335",
 
   // test dependencies
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
@@ -53,6 +54,9 @@ libraryDependencies ++= Seq(
 )
 
 dependencyOverrides ++= Seq(
+  "com.fasterxml.jackson.core" % "jackson-annotations" % jacksonVersion,  // AWS depends on an old, insecure version
+  "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
+  "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
   "org.slf4j" % "slf4j-api" % "1.7.25" /* log4js-slf4j-impl depends on 1.8.0, but that's only compatible with Java 9+ */,
 )
 
