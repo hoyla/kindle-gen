@@ -2,12 +2,11 @@ package com.gu.io
 
 import java.nio.file.{Files, Path}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 import org.scalatest.FunSpec
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
+import com.gu.concurrent.TestExecutionContext.instance
 import com.gu.scalatest.PathMatchers._
 
 
