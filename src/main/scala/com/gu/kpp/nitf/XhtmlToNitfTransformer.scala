@@ -18,9 +18,10 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
     xhtml.transform(transformationRules).toElem()
   }
 
+  // the order of these rules is important
   private def transformationRules = Seq(
     removeControlCharacters,
-    convertOrRemoveTags,
+    convertHtmlTags,
     convertMisplacedLists,
     removeUnsupportedAttributes,
     removeTagsMissingRequiredAttributes,
@@ -48,13 +49,17 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
     }
   }
 
-  private val convertOrRemoveTags = {
+  /** Maps HTML tags to their NITF equivalents, removing unwanted ones.
+    *
+    * Unsupported HTML tags are discarded but their contents are preserved.
+    */
+  private val convertHtmlTags = {
     val tagMapping = config.equivalentNitfTag
     val unwantedTags = config.blacklist
     val nonEmptyTags = config.nitf.nonEmptyTags
     val supportedTags = config.supportedNitfTags
 
-    rewriteRule("Convert or remove tags") {
+    rewriteRule("Convert HTML tags") {
       case n if unwantedTags.contains(n.label) => Nil
       case e: Elem if nonEmptyTags.contains(e.label) && e.child.isEmpty => Nil
       case e: Elem if tagMapping.contains(e.label) => e.copy(label = tagMapping(e.label))
@@ -62,6 +67,12 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
     }
   }
 
+  /** Fixes badly-formatted HTML lists.
+    *
+    * Some articles may contain text directly inside HTML lists.
+    * If the list only contains text, then we convert it to a paragraph.
+    * If the list is mixed, then we wrap the text in list items.
+    */
   private val convertMisplacedLists = {
     val isList = (x: Node) => x.label == "ol" || x.label == "ul"
     val isListItem = (x: Node) => x.label == "li"
@@ -93,7 +104,7 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
     }
   }
 
-  /** Remove the tags that are useless without their attributes (e.g. an anchor whose link has been removed) */
+  /** Remove the tags that are useless without their attributes (e.g. an anchor with neither a link nor an id nor a name) */
   private val removeTagsMissingRequiredAttributes = {
     val tags = Set("a")
     rewriteRule("Remove tags missing required attributes") {
@@ -104,7 +115,7 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
 
   private val wrapBlockContentText = {
     val nonBlockContentTag = (x: Node) => !blockContentTags(x.label)
-    rewriteRule("Wrap text (and enriched text) in non-mixed elements") {
+    rewriteRule("Wrap text (and enriched text) in block (non-mixed) elements") {
       case e: Elem if blockTags.contains(e.label) && e.hasChildrenMatching(nonBlockContentTag) =>
         e.wrapChildren(nonBlockContentTag,
           wrapper = e.copy(label = "p", attributes = Null, child = Nil))
@@ -112,7 +123,7 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
   }
 
   private val unwrapBlockContentParents = {
-    rewriteRule("Unwrap block contents from non-top-level parents") {
+    rewriteRule("Unwrap block contents from non-block parents") {
       case e: Elem if !blockContentParentTags(e.label) && e.hasChildrenWithLabels(blockContentTags) =>
         e.unwrapChildren(child => blockContentTags(child.label))
       case e: Elem if e.label == "block" && e.hasChildrenWithLabel("block") =>

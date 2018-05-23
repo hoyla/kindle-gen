@@ -3,6 +3,7 @@ package com.gu.nitf
 
 object NitfConfig extends NitfConfig
 
+/** Information about [[https://www.iptc.org/std/NITF/3.5/documentation/nitf-documentation.html NITF v3.5]] */
 trait NitfConfig {
   /** Tags whose content must be one or more of [[blockContentTags]] */
   // actually, some of these tags can have other content but this simplification is currently enough
@@ -19,7 +20,7 @@ trait NitfConfig {
   /** Tags that must contain some content (text or other tags) to be valid */
   val nonEmptyTags = Set("note", "abstract", "dl", "fn", "ol", "tr", "ul")
 
-  val tags = Set(
+  val allTags = Set(
     "a",
     "abstract",
     "addressee",

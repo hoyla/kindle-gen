@@ -8,7 +8,7 @@ object HtmlToNitfConfig extends HtmlToNitfConfig {
 trait HtmlToNitfConfig {
   def nitf: NitfConfig
 
-  val supportedNitfTags: Set[String] = nitf.tags -- Set("sub", "sup")  // in NITF, these tags must be inside a <num> tag
+  val supportedNitfTags: Set[String] = nitf.allTags -- Set("sub", "sup")  // in NITF, these tags must be inside a <num> tag
 
   val equivalentNitfTag = Map(
     "b"         -> "em",
