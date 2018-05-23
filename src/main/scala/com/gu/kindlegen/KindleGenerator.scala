@@ -10,21 +10,19 @@ import org.apache.logging.log4j.scala.Logging
 
 import com.gu.io.{Link, Publisher}
 import com.gu.io.IOUtils._
-import com.gu.kindlegen.Querier.PrintSentContentClient
 import com.gu.xml._
 
 object KindleGenerator {
-  def apply(settings: Settings, editionDate: LocalDate, publisher: Publisher)(implicit ec: ExecutionContext): KindleGenerator = {
-    val capiClient = new PrintSentContentClient(settings.contentApi)
-    val querier = new Querier(capiClient, settings.query, editionDate)
-    new KindleGenerator(querier, publisher, settings.publishing, settings.query)
+  def apply(provider: ArticlesProvider, publisher: Publisher, settings: Settings)
+           (implicit ec: ExecutionContext): KindleGenerator = {
+    new KindleGenerator(provider, publisher, settings.publishing, settings.query)
   }
 
   // some NITF tags must be minimised to be valid (e.g. <doc-id/> instead of <doc-id>\n</doc-id>)
   private val prettyPrinter = new PrettyPrinter(width = 150, step = 3, minimizeEmpty = true)
 }
 
-class KindleGenerator(querier: Querier,
+class KindleGenerator(provider: ArticlesProvider,
                       publisher: Publisher,
                       publishingSettings: PublishingSettings,
                       querySettings: QuerySettings)(implicit ec: ExecutionContext) extends Logging {
@@ -33,7 +31,7 @@ class KindleGenerator(querier: Querier,
   private def fileSettings = publishingSettings.files
 
   def fetchNitfBundle(): Future[Seq[Article]] = {
-    querier.fetchAllArticles()
+    provider.fetchArticles()
       .map { results =>
         val minArticles = publishingSettings.minArticlesPerEdition
         require(results.length >= minArticles,
@@ -61,7 +59,7 @@ class KindleGenerator(querier: Querier,
   private def downloadMainImage(article: Article, fileNameIndex: Int): Future[Article] = {
     val image = article.mainImage
     if (publishingSettings.downloadImages && image.isDefined) {
-      querier.downloadImage(image.get)
+      ImageData.download(image.get)
         .flatMap(save(_, fileNameIndex))
         .map(newLink => article.copy(mainImage = Some(newLink)))
         .recover { case error =>

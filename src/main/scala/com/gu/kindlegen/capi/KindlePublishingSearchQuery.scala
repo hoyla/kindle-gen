@@ -1,4 +1,4 @@
-package com.gu.kindlegen
+package com.gu.kindlegen.capi
 
 import java.time.{LocalDate, ZoneOffset}
 import java.time.temporal.ChronoUnit.DAYS

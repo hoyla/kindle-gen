@@ -1,4 +1,4 @@
-package com.gu.kindlegen
+package com.gu.kindlegen.capi
 
 import java.time.LocalDate
 
@@ -9,16 +9,15 @@ import org.scalatest.Matchers._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
 import com.gu.contentapi.client.model.v1.SearchResponse
-import com.gu.contentapi.client.utils.CapiModelEnrichment._
-import com.gu.kindlegen.Querier.PrintSentContentClient
+import com.gu.kindlegen.{Settings, TestContent}
+import com.gu.kindlegen.capi.GuardianArticlesProvider.PrintSentContentClient
 import com.gu.kindlegen.TestContent._
 
-class QuerierSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
-  val settings = Settings.load.get.contentApi
-  val capiClient = new PrintSentContentClient(settings) // we can mock this for local testing
+class GuardianArticlesProviderSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
+  private val settings = Settings.load.get.copy(query = ExampleQuerySettings)
 
-  private def querier: Querier = querier(ExampleOffsetDate.toLocalDate)
-  private def querier(editionDate: LocalDate) = new Querier(capiClient, ExampleQuerySettings, editionDate)
+  private def querier: GuardianArticlesProvider = querier(ExampleOffsetDate.toLocalDate)
+  private def querier(editionDate: LocalDate) = GuardianArticlesProvider(settings, editionDate)
 
   val totalArticles = 96  // on exampleDate = 2017-07-24
 
@@ -67,7 +66,7 @@ class QuerierSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
     }
   }
 
-  private def withFetchResponse[T](querier: Querier = querier)(doSomething: SearchResponse => T): T = {
+  private def withFetchResponse[T](querier: GuardianArticlesProvider = querier)(doSomething: SearchResponse => T): T = {
     whenReady(querier.fetchPrintSentResponse())(doSomething)
   }
 }

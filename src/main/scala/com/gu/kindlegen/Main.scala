@@ -5,6 +5,7 @@ import java.time.LocalDate
 import scala.util.{Failure, Success}
 
 import com.gu.io.FilePublisher
+import com.gu.kindlegen.capi.GuardianArticlesProvider
 
 object Main extends App {
   Settings.load match {
@@ -14,10 +15,12 @@ object Main extends App {
 
   private def run(settings: Settings): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
+
     val publisher = FilePublisher(settings.publishing.files.outputDir)
-    val kindleGenerator = KindleGenerator(settings, LocalDate.now, publisher)
+    val provider = GuardianArticlesProvider(settings, LocalDate.now)
+    val kindleGenerator = KindleGenerator(provider, publisher, settings)
+
     kindleGenerator.publish()
-    println("Done!")
     // Why does the program not exit here?
   }
 

@@ -16,6 +16,7 @@ import org.apache.logging.log4j.core.config.Configurator
 import org.apache.logging.log4j.scala.Logging
 
 import com.gu.io.aws.S3Publisher
+import com.gu.kindlegen.capi.GuardianArticlesProvider
 
 object Lambda extends Logging {
   private val ConfigSettingsEnvKey = "ConfigSettings"
@@ -86,7 +87,8 @@ class Lambda(settings: Settings) extends Logging {
     logger.debug(s"Running with settings $settings")
 
     val publisher = s3Publisher(settings.s3)
-    val kindleGenerator = KindleGenerator(settings, date, publisher)
+    val provider = GuardianArticlesProvider(settings, date)
+    val kindleGenerator = KindleGenerator(provider, publisher, settings)
 
     logger.info(s"Starting to publish files for $date; uploading to s3://${settings.s3.absolutePath.source}")
     val published = kindleGenerator.publish()

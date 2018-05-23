@@ -13,6 +13,7 @@ import org.scalatest.Matchers._
 
 import com.gu.io.{FilePublisher, TempFiles}
 import com.gu.io.Link.PathLink
+import com.gu.kindlegen.capi.GuardianArticlesProvider
 import com.gu.scalatest.PathMatchers._
 import com.gu.xml.XmlUtils._
 
@@ -33,7 +34,8 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
   def test(editionDate: LocalDate): Unit = describe(s"publish($editionDate)") {
     import scala.concurrent.ExecutionContext.Implicits.global
     val publisher = FilePublisher(fileSettings.outputDir.resolve(editionDate.toString))
-    val generator = KindleGenerator(settings, editionDate, publisher)
+    val provider = GuardianArticlesProvider(settings, editionDate)
+    val generator = KindleGenerator(provider, publisher, settings)
 
     lazy val links = Await.result(generator.publish().map(_ => publisher.publications), settings.query.downloadTimeout)
     lazy val paths = links.collect { case x: PathLink => x.toPath }.toSeq
