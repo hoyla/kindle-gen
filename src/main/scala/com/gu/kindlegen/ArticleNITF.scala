@@ -11,7 +11,7 @@ import org.jsoup.nodes.Document.OutputSettings.Syntax
 import org.jsoup.nodes.Entities.EscapeMode
 import org.jsoup.safety.{Cleaner, Whitelist}
 
-import com.gu.kpp.nitf.XhtmlToNitfTransformer
+import com.gu.kpp.nitf.{KindleHtmlToNitfConfig, XhtmlToNitfTransformer}
 import com.gu.xml._
 
 
@@ -19,8 +19,10 @@ object ArticleNITF {
   val Version = "-//IPTC//DTD NITF 3.5//EN"
   private val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
 
-  private val cleaner = new Cleaner(Whitelist.relaxed
-    .addTags("big", "dfn", "dir", "figure", "mark", "samp", "section", "summary", "tt", "var")
+  private val textCleaner = new Cleaner(Whitelist.none)
+
+  private val htmlCleaner = new Cleaner(Whitelist.relaxed
+    .addTags(KindleHtmlToNitfConfig.equivalentNitfTag.keys.toSeq: _*)
     .addProtocols("a", "href", "#")
     .removeProtocols("a", "href", "ftp", "http", "https", "mailto")
   )
@@ -28,7 +30,7 @@ object ArticleNITF {
   def qualify(nitf: Elem): Elem =
     nitf.copy(scope = NamespaceBinding(null, "http://iptc.org/std/NITF/2006-10-18/", TopScope))
 
-  private def htmlToXhtml(html: String): NodeSeq = {
+  private def htmlToXhtml(html: String, cleaner: Cleaner = htmlCleaner): NodeSeq = {
     val saferHtml = if (html.exists(_.isControl)) html.filterNot(_.isControl) else html
 
     val document = cleaner.clean(Jsoup.parseBodyFragment(saferHtml.trim))
@@ -88,11 +90,9 @@ case class ArticleNITF(article: Article) {
 
   private def articleAbstract = htmlToXhtml(article.articleAbstract)
   private def bodyContent = article.bodyBlocks.map(html => <block>{htmlToXhtml(html)}</block>)
-  private def mainImage: Option[Elem] = article.mainImage.map { image =>
-    <content>
+  private def mainImage = article.mainImage.map { image =>
       <img src={image.link.source}>
-        {image.caption.getOrElse("")} {image.credit.getOrElse("")}  {/* TODO should we show article.trailText? */}
+        {htmlToXhtml((image.caption ++ image.credit).mkString(" "), textCleaner)}  {/* TODO should we show article.trailText? */}
       </img>
-    </content>
   }
 }
