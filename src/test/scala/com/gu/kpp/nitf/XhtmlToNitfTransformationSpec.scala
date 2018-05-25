@@ -15,6 +15,8 @@ import com.gu.xml.XmlUtils._
 class XhtmlToNitfTransformationSpec extends FunSpec {
   import XhtmlToNitfTransformationSpec._
 
+  protected def printTransformedResult = true
+
   filesToTest.foreach(test)
 
   protected def filesToTest: TraversableOnce[Path] =
@@ -26,9 +28,12 @@ class XhtmlToNitfTransformationSpec extends FunSpec {
           try {
             val xml = loadAndTransform(nitfFilePath.toFile)
             validateXml(xml, resource("kpp-nitf-3.5.7.xsd").toURI)
+            if (printTransformedResult) println(xml.prettyPrint)  // for manual inspection
 
             // the transformer should be idempotent: applying the transformation to valid NITF should do nothing
-            XhtmlToNitfTransformer(xml) shouldBe xml
+            val secondTransformation = XhtmlToNitfTransformer(xml)
+            secondTransformation should have length 1
+            assertEquivalentXml(secondTransformation.head, xml)
           } catch {
             case e: org.xml.sax.SAXParseException =>
               e.printStackTrace()
@@ -39,8 +44,10 @@ class XhtmlToNitfTransformationSpec extends FunSpec {
   }
 
   protected def loadAndTransform(nitfFile: File): Elem = {
-    val inputXml = Utility.trim(XML.loadFile(nitfFile)).transform(Seq(setVersionToNitf35))
-    XhtmlToNitfTransformer(inputXml.toElem())
+    val inputXml = Utility.trim(XML.loadFile(nitfFile)).transformNode(Seq(setVersionToNitf35))
+    val result = XhtmlToNitfTransformer(inputXml.toElem())
+    result should have length 1
+    result.head.toElem()
   }
 }
 

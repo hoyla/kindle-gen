@@ -14,8 +14,8 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
     * @param xhtml an element representing an XHTML document
     * @return the element transformed to match NITF specs
     */
-  def apply(xhtml: Elem): Elem = {
-    xhtml.transform(transformationRules).toElem()
+  def apply(xhtml: Elem): Seq[Node] = {
+    xhtml.transform(transformationRules)
   }
 
   // the order of these rules is important

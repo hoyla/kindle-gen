@@ -1,6 +1,7 @@
 package com.gu.xml
 
 import scala.util.Try
+import scala.util.control.NonFatal
 import scala.xml._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
@@ -11,7 +12,15 @@ object `package` {
     * @see [[RichSeqOfNodes.transformAll]]
     */
   def rewriteRule(ruleName: String)(pf: PartialFunction[Node, Seq[Node]]): RewriteRule = new RewriteRule {
-    override def transform(n: Node): Seq[Node] = pf.applyOrElse(n, identity[Seq[Node]])
+    override def transform(n: Node): Seq[Node] = {
+      try {
+        pf.applyOrElse(n, identity[Seq[Node]])
+      } catch {
+        case NonFatal(error) =>
+          throw new TransformationException(s"""Failed to apply the transformation "$ruleName" on $n""", error)
+      }
+    }
+
     override def toString(): String = ruleName
   }
 
@@ -49,8 +58,18 @@ object `package` {
     /** Transforms the node using the specified rules.
       * @see [[rewriteRule]]
       */
-    def transform(rules: Seq[RewriteRule]): Node =
-      new RuleTransformer(rules: _*).apply(node)
+    def transform(rules: Seq[RewriteRule]): Seq[Node] = {
+      new RuleTransformer(rules: _*).transform(node)
+    }
+
+    def transformNode(rules: Seq[RewriteRule]): Node = {
+      val transformed = transform(rules)
+      transformed.length match {
+        case 1 => transformed.head
+        case 0 => throw new TransformationException(s"Found no nodes after transforming $node")
+        case n => throw new TransformationException(s"Transformation resulted in $n nodes:\n${transformed.mkString("\n")}")
+      }
+    }
 
     /** Creates an element that matches this node, unless this node is a [[scala.xml.SpecialNode]]. */
     def toElem: Option[Elem] = node match {

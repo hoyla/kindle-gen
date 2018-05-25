@@ -3,6 +3,7 @@ package com.gu.kindlegen
 import java.time.LocalDate
 
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.Try
 import scala.xml.Elem
 
 import org.apache.logging.log4j.scala.Logging
@@ -75,25 +76,36 @@ class KindleGenerator(querier: Querier,
   }
 
   private def saveArticle(article: Article, fileNameIndex: Int): Future[Article] = {
-    val nitfGenerator = ArticleNITF(article)
     val fileName = s"${fileNameIndex}_${asFileName(article.docId)}.${fileSettings.nitfExtension}"
-    saveXml(nitfGenerator.nitf, fileName).map { newLink => article.copy(link = newLink) }
+    logger.debug(s"Generating NITF for $fileName...")
+
+    Future.fromTry(Try(ArticleNITF(article)))
+      .flatMap { nitfGenerator =>
+        saveXml(nitfGenerator.nitf, fileName).map { newLink => article.copy(link = newLink) }
+      }
   }
 
   private def saveSection(bookSection: BookSection): Future[BookSection] = {
     val fileName = asFileName(bookSection.id) + "." + fileSettings.rssExtension
-    val manifest = ArticlesManifest(bookSection)
-    saveXml(manifest.rss, fileName).map(bookSection.withLink)
+    logger.debug(s"Generating manifest for $fileName...")
+
+    Future.fromTry(Try(ArticlesManifest(bookSection)))
+      .flatMap { manifest =>
+        saveXml(manifest.rss, fileName).map(bookSection.withLink)
+      }
   }
 
   private def saveRootManifest(sections: Seq[BookSection]): Future[RssManifest] = {
     val fileName = fileSettings.rootManifestFileName
-    val manifest = SectionsManifest(
+    logger.debug(s"Generating manifest for $fileName...")
+
+    Future.fromTry(Try(SectionsManifest(
       title = publishingSettings.publicationName,
       link = Link.AbsoluteURL.from(publishingSettings.publicationLink),
       books = sections
-    )
-    saveXml(manifest.rss, fileName).map { newLink => manifest.copy(link = newLink) }
+    ))).flatMap { manifest =>
+        saveXml(manifest.rss, fileName).map { newLink => manifest.copy(link = newLink) }
+      }
   }
 
   private def saveXml(content: Elem, fileName: String): Future[Link] = {
