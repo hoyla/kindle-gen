@@ -60,7 +60,7 @@ dependencyOverrides ++= Seq(
   "org.slf4j" % "slf4j-api" % "1.7.25" /* log4js-slf4j-impl depends on 1.8.0, but that's only compatible with Java 9+ */,
 )
 
-//Test / fork := true  // avoid OutOfMemory errors after repeated calls of `sbt test`
+Test / fork := true  // force the use of the proper version of scala-xml; otherwise we'd use the one bundled with sbt!
 Test / logBuffered := false  // enjoy ScalaTest's built-in event buffering algorithm
 Test / parallelExecution := false  // avoid exhausting the global execution context in tests opening many connections
 Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oI")   // show reminder of failed and canceled tests without stack traces
