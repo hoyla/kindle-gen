@@ -19,6 +19,9 @@ object KindleGenerator {
     val querier = new Querier(capiClient, settings.query, editionDate)
     new KindleGenerator(querier, publisher, settings.publishing, settings.query)
   }
+
+  // some NITF tags must be minimised to be valid (e.g. <doc-id/> instead of <doc-id>\n</doc-id>)
+  private val prettyPrinter = new PrettyPrinter(width = 150, step = 3, minimizeEmpty = true)
 }
 
 class KindleGenerator(querier: Querier,
@@ -109,7 +112,7 @@ class KindleGenerator(querier: Querier,
   }
 
   private def saveXml(content: Elem, fileName: String): Future[Link] = {
-    val prettifier = if (publishingSettings.prettifyXml) defaultPrettyPrinter else TrimmingPrinter
+    val prettifier = if (publishingSettings.prettifyXml) KindleGenerator.prettyPrinter else TrimmingPrinter
     publisher.save(content.toXmlBytes(fileSettings.encoding)(prettifier), fileName)
   }
 }
