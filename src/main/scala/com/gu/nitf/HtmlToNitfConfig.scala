@@ -1,18 +1,27 @@
 package com.gu.nitf
 
 
-object HtmlToNitfConfig extends HtmlToNitfConfig {
-  def nitf: NitfConfig = NitfConfig
-}
-
 trait HtmlToNitfConfig {
   def nitf: NitfConfig
 
-  val supportedNitfTags: Set[String] = nitf.allTags -- Set("sub", "sup")  // in NITF, these tags must be inside a <num> tag
+  def blacklist: Set[String]
+
+  def equivalentNitfTag: Map[String, String]
+
+  def supportedNitfTags: Set[String]
+}
+
+object HtmlToNitfConfig extends HtmlToNitfConfig {
+  def nitf: NitfConfig = NitfConfig
+
+  val unsupportedNitfTags = Set("sub", "sup")  // in NITF, these tags must be inside a <num> tag
+
+  val supportedNitfTags: Set[String] = nitf.allTags -- unsupportedNitfTags
 
   val equivalentNitfTag = Map(
     "b"         -> "em",
     "big"       -> "em",
+    "blockquote"-> "bq",
     "cite"      -> "object.title",
     "code"      -> "pre",
     "dfn"       -> "em",

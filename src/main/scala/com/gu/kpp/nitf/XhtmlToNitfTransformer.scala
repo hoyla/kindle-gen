@@ -1,6 +1,7 @@
 package com.gu.kpp.nitf
 
 import scala.xml._
+import scala.xml.transform.RewriteRule
 
 import com.gu.nitf.HtmlToNitfConfig
 import com.gu.xml._
@@ -25,14 +26,10 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
     convertMisplacedLists,
     removeUnsupportedAttributes,
     removeTagsMissingRequiredAttributes,
-    wrapBlockContentText,
+    wrapTextIntoBlockContent,
     wrapSpecialElements,
-    unwrapBlockContentParents
+    unwrapTopLevelTags
   )
-
-  private val blockTags = config.nitf.blockTags
-  private val blockContentTags = config.nitf.blockContentTags
-  private val blockContentParentTags = config.nitf.blockContentParentTags
 
   private val removeControlCharacters = {  // temporary rule until https://github.com/scala/scala-xml/pull/203 is fixed
     val unwanted = (c: Char) => c.isControl && c != '\n' && c != '\r' && c != '\t' && c != '\u0085' /* NEXT LINE (NEL) */
@@ -96,7 +93,7 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
       "align", "char", "charoff", "valign",
       "src", "credit",
       "type",
-      "management-status", "ed-urg", "id-string"
+      "management-status", "ed-urg", "id-string", "holder", "norm", "date.publication"
     )
     rewriteRule("Remove unsupported attributes") {
       case e: Elem if !e.attributeKeys.forall(supportedAttributes) =>
@@ -113,30 +110,35 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
     }
   }
 
-  private val wrapBlockContentText = {
-    val nonBlockContentTag = (x: Node) => !blockContentTags(x.label)
+  private val enrichedTextOnlyParentTags = config.nitf.enrichedTextOnlyParentTags
+  private val enrichedTextParentTags = config.nitf.enrichedTextParentTags
+  private def enrichedTextNode(node: Node) = config.nitf.enrichedTextTags.contains(node.label)
+  private def nonEnrichedTextNode(node: Node) = !enrichedTextNode(node)
+
+  private val wrapTextIntoBlockContent: RewriteRule = {
     rewriteRule("Wrap text (and enriched text) in block (non-mixed) elements") {
-      case e: Elem if blockTags.contains(e.label) && e.hasChildrenMatching(nonBlockContentTag) =>
-        e.wrapChildren(nonBlockContentTag,
-          wrapper = e.copy(label = "p", attributes = Null, child = Nil))
+      // <bq>...</bq> => <bq><block>...</block></bq>
+      case e: Elem if e.label == "bq" && e.hasChildrenMatching(_.label != "block") =>
+        val block = e.copy(label = "block", child = e.child)
+        e.copy(child = wrapTextIntoBlockContent(block))
+
+      case e: Elem if !enrichedTextParentTags(e.label) && e.hasChildrenMatching(enrichedTextNode) =>
+        e.wrapChildren(enrichedTextNode, e.copy(label = "p", attributes = Null))
     }
   }
 
-  private val unwrapBlockContentParents = {
+  private val unwrapTopLevelTags = {
     rewriteRule("Unwrap block contents from non-block parents") {
-      case e: Elem if !blockContentParentTags(e.label) && e.hasChildrenWithLabels(blockContentTags) =>
-        e.unwrapChildren(child => blockContentTags(child.label))
       case e: Elem if e.label == "block" && e.hasChildrenWithLabel("block") =>
         e.unwrapChildren(_.label == "block")  // special case for html tags mapped to blocks
+
+      case e: Elem if enrichedTextOnlyParentTags(e.label) && e.hasChildrenMatching(nonEnrichedTextNode) =>
+        e.unwrapChildren(nonEnrichedTextNode)
     }
   }
 
   private val wrapSpecialElements = rewriteRule("Wrap special elements") {
-    case e: Elem if e.label == "blockquote" =>
-      // <blockquote>text</blockquote> => <bq><block>text</block></bq>
-      // will need to go through [[wrapBlockContentText]] to wrap the text into a paragraph
-      e.copy(label = "bq", child = wrapBlockContentText(e.copy(label = "block")))
     case e: Elem if e.label != "content" && e.hasChildrenWithLabel("img") =>
-      e.wrapChildren(_.label == "img", e.copy(label = "content", attributes = Null, child = Nil))
+      e.wrapChildren(_.label == "img", e.copy(label = "content", attributes = Null))
   }
 }

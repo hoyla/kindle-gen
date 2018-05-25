@@ -1,24 +1,42 @@
 package com.gu.nitf
 
 
-object NitfConfig extends NitfConfig
-
-/** Information about [[https://www.iptc.org/std/NITF/3.5/documentation/nitf-documentation.html NITF v3.5]] */
 trait NitfConfig {
-  /** Tags whose content must be one or more of [[blockContentTags]] */
-  // actually, some of these tags can have other content but this simplification is currently enough
-  val blockTags = Set("abstract", "block", "body.content", "bq")
+  /** Tags that may be contained within [[enrichedTextParentTags]] */
+  def enrichedTextTags: Set[String]
 
-  /** Tags that may contain blockContentTags */
-  val blockContentParentTags: Set[String] = blockTags ++ Set("caption", "dd", "li", "media-caption", "td", "th")
+  /** Tags whose contents may only be one of [[enrichedTextTags]]
+    *
+    * Some of these tags can contain all enrichedTextTags while some can only contain a subset or just text (#PCDATA)
+    */
+  def enrichedTextOnlyParentTags: Set[String]
 
-  /** Tags that must be contained within [[blockContentParentTags]] */
-  val blockContentTags = Set(
-    "block", "bq", "dl", "fn", "hl2", "hr", "media", "nitf-table", "note", "ol", "p", "pre", "table", "ul"
-  )
+  /** Tags whose contents may be [[enrichedTextTags]] or others (e.g. blockContent) */
+  def enrichedTextParentTags: Set[String]
 
   /** Tags that must contain some content (text or other tags) to be valid */
-  val nonEmptyTags = Set("note", "abstract", "dl", "fn", "ol", "tr", "ul")
+  def nonEmptyTags: Set[String]
+
+  def allTags: Set[String]
+}
+
+/** Information about [[https://www.iptc.org/std/NITF/3.5/documentation/nitf-documentation.html NITF v3.5]] */
+object NitfConfig extends NitfConfig {
+  val enrichedTextTags = Set(
+    "#PCDATA", "a", "br", "em", "q", "strong",
+  )
+
+  val enrichedTextOnlyParentTags = Set(
+    "a", "byline", "dt", "em", "hl1", "hl2", "p", "pre", "q", "strong", "title",
+  )
+
+  val enrichedTextParentTags: Set[String] = enrichedTextOnlyParentTags ++ Set(
+    "caption", "dd", "li", "th", "td",
+  )
+
+  val nonEmptyTags = Set(
+    "note", "abstract", "dl", "fn", "ol", "tr", "ul"
+  )
 
   val allTags = Set(
     "a",

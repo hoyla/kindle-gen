@@ -4,7 +4,7 @@ import com.gu.nitf.HtmlToNitfConfig
 
 
 object KindleHtmlToNitfConfig extends HtmlToNitfConfig {
-  def nitf: KindleNitfConfig = KindleNitfConfig
+  override def nitf: KindleNitfConfig.type = KindleNitfConfig
 
   override val blacklist: Set[String] = HtmlToNitfConfig.blacklist -- KindleNitfConfig.extraTags
 
@@ -12,4 +12,6 @@ object KindleHtmlToNitfConfig extends HtmlToNitfConfig {
     "b"   -> "strong",
     "big" -> "strong",
   )
+
+  override def supportedNitfTags: Set[String] = HtmlToNitfConfig.supportedNitfTags ++ nitf.extraTags
 }

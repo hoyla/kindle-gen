@@ -3,7 +3,7 @@
     <head>
         <title>How babies learn - and why robots can't compete</title>
         <docdata management-status="usable">
-            <doc-id id-string="news/2018/apr/03/how-babies-learn-and-why-robots-cant-compete"/>
+            <doc-id id-string="long id should not result in pretty-printing spaces in the middle of the doc-id tag because it wouldn't be valid"></doc-id>
             <urgency ed-urg="2"/>
             <date.issue norm="20180403"/>
             <date.release norm="20180403"/>
@@ -23,6 +23,12 @@
         </body.head>
         <body.content>
             <block>
+                <table>
+                    <tbody>
+                        <tr><td>Tables</td><td>should</td></tr>
+                        <tr><td>be</td><td>supported</td></tr>
+                    </tbody>
+                </table>
                 <content>
                     <img src="194_425.jpg">Images should be supported</img>
                 </content>
@@ -33,20 +39,28 @@
                 </p>
                 <p unsupported="attributes" should="be removed">
                     <u>underlined should become em</u>
-                    <span>spans should be removed</span>
+                    <span>spans should be unwrapped</span>
 
                     <img src="some-image.png">Inline images should be supported</img>
-                    <table><tr><td>Inline tables should be moved outside</td></tr></table>
+                    <table><tr><td>Inline tables should be moved outside the paragraph</td></tr></table>
                 </p>
-                <img src="some-image.png">Inline images should be supported</img>
-                <h2>should become hl2</h2>
+                <img src="some-image.png">images in the block should be supported</img>
+                <h1>&lt;h1&gt; should become hl2</h1>
+                <h2>&lt;h2&gt; should become hl2</h2>
+                <h3>&lt;h3&gt; should remain as-is</h3>
+                <h4>&lt;h4&gt; should remain as-is</h4>
+                <h5>&lt;h5&gt; should remain as-is</h5>
+                <h6>&lt;h6&gt; should remain as-is</h6>
                 <p class="supported attributes should be left intact">
                     <s>striked should be removed</s>
                     <em>"<strike>striked</strike>" inside em should be an empty string</em>
-                    <em>"<del>striked</del>" inside em should be an empty string</em>
-                    <sub>sub</sub> and <sup>sup</sup> should be removed but the text inside should remain intact
+                    <em>"<del>deleted</del>" inside em should be an empty string</em>
+                    <sub>sub</sub> and <sup>sup</sup> should be removed but the text inside should remain intact.
+                    <br />
                     symbols § and character references &#xa3; should be left intact
                 </p>
+                <p>Text in <p>nested paragraph</p> should become a top-level paragraph</p>
+                <em>Paragraphs <p>wrapped inside enriched text</p> should be unwrapped</em>
                 <ul>Text inside ul should be wrapped in a paragraph</ul>
                 <ol>Text inside ol should be wrapped in a paragraph</ol>
                 <li>List items outside lists should be converted to paragraphs</li>
@@ -61,7 +75,9 @@
                     <p>should not be combined</p>
                     <p>with other paragraphs, not even the new wrappers</p>
                 </blockquote>
-
+                <blockquote>
+                    <pre>Blockquote with preformatted text should not be wrapped in a paragraph</pre>
+                </blockquote>
                 <div>
                     A &lt;div&gt; should be converted to a &lt;block&gt;.
                     <p>The div's contents</p>
