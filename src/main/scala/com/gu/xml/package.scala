@@ -1,7 +1,8 @@
 package com.gu.xml
 
 import scala.util.Try
-import scala.xml._
+import scala.util.control.NonFatal
+import scala.xml.{PrettyPrinter => _, _}
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 object `package` {
@@ -11,7 +12,15 @@ object `package` {
     * @see [[RichSeqOfNodes.transformAll]]
     */
   def rewriteRule(ruleName: String)(pf: PartialFunction[Node, Seq[Node]]): RewriteRule = new RewriteRule {
-    override def transform(n: Node): Seq[Node] = pf.applyOrElse(n, identity[Seq[Node]])
+    override def transform(n: Node): Seq[Node] = {
+      try {
+        pf.applyOrElse(n, identity[Seq[Node]])
+      } catch {
+        case NonFatal(error) =>
+          throw new TransformationException(s"""Failed to apply the transformation "$ruleName" on $n""", error)
+      }
+    }
+
     override def toString(): String = ruleName
   }
 
@@ -49,8 +58,18 @@ object `package` {
     /** Transforms the node using the specified rules.
       * @see [[rewriteRule]]
       */
-    def transform(rules: Seq[RewriteRule]): Node =
-      new RuleTransformer(rules: _*).apply(node)
+    def transform(rules: Seq[RewriteRule]): Seq[Node] = {
+      new RuleTransformer(rules: _*).transform(node)
+    }
+
+    def transformNode(rules: Seq[RewriteRule]): Node = {
+      val transformed = transform(rules)
+      transformed.length match {
+        case 1 => transformed.head
+        case 0 => throw new TransformationException(s"Found no nodes after transforming $node")
+        case n => throw new TransformationException(s"Transformation resulted in $n nodes:\n${transformed.mkString("\n")}")
+      }
+    }
 
     /** Creates an element that matches this node, unless this node is a [[scala.xml.SpecialNode]]. */
     def toElem: Option[Elem] = node match {
@@ -109,10 +128,10 @@ object `package` {
         adaptMatching = wrappables => elem.copy(child = wrappables)
       )
 
-    def toXmlBytes(encoding: String = "UTF-8")(implicit prettifier: PrettyPrinter): Array[Byte] =
+    def toXmlBytes(encoding: String = "UTF-8")(implicit prettifier: scala.xml.PrettyPrinter): Array[Byte] =
       toXmlString(encoding)(prettifier).getBytes(encoding)
 
-    def toXmlString(encoding: String = "UTF-8")(implicit prettifier: PrettyPrinter): String =
+    def toXmlString(encoding: String = "UTF-8")(implicit prettifier: scala.xml.PrettyPrinter): String =
       s"""<?xml version="1.1" encoding="UTF-8"?>\n""" +  // s"" required to evaluate "\n" as a newline
         elem.prettyPrint(prettifier)
   }
@@ -123,7 +142,7 @@ object `package` {
     def prettyPrint(indent: Int, maxLineWidth: Int): String =
       prettyPrint(new PrettyPrinter(maxLineWidth, indent))
 
-    def prettyPrint(implicit prettier: PrettyPrinter): String =
+    def prettyPrint(implicit prettier: scala.xml.PrettyPrinter): String =
       nodes.map(prettier.format(_)).mkString("\n")
 
     def transformAll(rules: Seq[RewriteRule]): Seq[Node] =
@@ -150,8 +169,7 @@ object `package` {
     }
   }
 
-  // PrettyPrinter is stateful, so we need a new instance for each concurrent call
-  implicit def defaultPrettyPrinter: PrettyPrinter = new PrettyPrinter(width = 200, step = 3)
+  implicit val defaultPrettyPrinter: PrettyPrinter = new PrettyPrinter(width = 150, step = 3)
 
   object TrimmingPrinter extends PrettyPrinter(width = Int.MaxValue, step = 0, minimizeEmpty = true) {
     override def format(n: Node, pscope: NamespaceBinding, sb: StringBuilder): Unit =

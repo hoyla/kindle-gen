@@ -25,7 +25,7 @@ object XmlUtils {
     outputPath
   }
 
-  def prettify(xml: Node): Elem = {
+  def prettify(xml: NodeSeq): Elem = {
     XML.loadString(xml.prettyPrint)
   }
 
@@ -44,7 +44,7 @@ object XmlUtils {
     val prettyXml = XML.loadString(xmlContents.prettyPrint)
     withClue(prettyXml + "\n") {
       val validationResult = XmlSchemaValidator.validateXml(prettyXml, xsdSources: _*)
-      withClue(validationResult.issues.mkString("\n")) {
+      withClue(validationResult.issues.mkString("", "\n", "\n")) {
         validationResult shouldBe 'successful
       }
     }

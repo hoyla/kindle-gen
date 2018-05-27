@@ -4,6 +4,7 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 import scala.util.{Failure, Try}
+import scala.util.control.NonFatal
 import scala.xml._
 
 import org.jsoup.Jsoup
@@ -72,7 +73,7 @@ case class ArticleNITF(article: Article) {
     </head>
   }
 
-  private def body = XhtmlToNitfTransformer(Utility.trim {
+  private def body = transform(Utility.trim {
     <body>
       <body.head>
         <hedline>
@@ -94,5 +95,14 @@ case class ArticleNITF(article: Article) {
       <img src={image.link.source}>
         {htmlToXhtml((image.caption ++ image.credit).mkString(" "), textCleaner)}  {/* TODO should we show article.trailText? */}
       </img>
+  }
+
+  private def transform(elem: Elem) = {
+    try {
+      XhtmlToNitfTransformer(elem)
+    } catch {
+      case NonFatal(error) =>
+        throw new TransformationException(s"Failed to generate NITF for <${elem.label}> in article ${article.docId}: $error", error)
+    }
   }
 }
