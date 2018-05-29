@@ -42,10 +42,12 @@ object ArticleNITF {
 
 
     val xhtml = document.body.outerHtml
-    Try(NodeSeq.fromSeq(XML.loadString(xhtml).child)).recoverWith {
+    try {
+      NodeSeq.fromSeq(XML.loadString(xhtml).child)
+    } catch {
       case e: org.xml.sax.SAXParseException =>
-        Failure(new RuntimeException(s"Failed to parse XHTML: $e\n$xhtml", e))
-    }.get
+        throw new RuntimeException(s"Failed to parse XHTML: $e\n$xhtml", e)
+    }
   }
 }
 
