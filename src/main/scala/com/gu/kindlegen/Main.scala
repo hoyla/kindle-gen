@@ -20,7 +20,7 @@ object Main extends App {
 
     val downloader = OkHttpSttpDownloader()
     val publisher = FilePublisher(settings.publishing.files.outputDir)
-    val provider = GuardianArticlesProvider(settings, LocalDate.now)
+    val provider = GuardianArticlesProvider(settings, downloader, LocalDate.now)
     val kindleGenerator = KindleGenerator(provider, publisher, downloader, settings)
 
     kindleGenerator.publish()

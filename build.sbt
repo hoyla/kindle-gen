@@ -24,7 +24,7 @@ val jacksonVersion = "2.9.5"
 val log4jVersion = "2.11.0"
 
 libraryDependencies ++= Seq(
-  "com.gu" %% "content-api-client-default" % "12.0",
+  "com.gu" %% "content-api-client" % "12.2",
 
   "com.typesafe" % "config" % "1.3.3",
 

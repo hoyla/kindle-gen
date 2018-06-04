@@ -7,19 +7,22 @@ import scala.util.{Failure, Success, Try}
 
 import org.apache.logging.log4j.scala.Logging
 
-import com.gu.contentapi.client.{ContentApiClient, GuardianContentClient}
+import com.gu.contentapi.client.{AbstractContentApiClient, ContentApiClient, SttpContentApiClient}
 import com.gu.contentapi.client.model.v1.{Content, SearchResponse}
+import com.gu.io.sttp.SttpDownloader
 import com.gu.kindlegen._
 
 
 object GuardianArticlesProvider {
-  def apply(settings: Settings, editionDate: LocalDate)(implicit ec: ExecutionContext): GuardianArticlesProvider = {
-    val capiClient = new PrintSentContentClient(settings.contentApi)
+  def apply(settings: Settings, downloader: SttpDownloader, editionDate: LocalDate)(implicit ec: ExecutionContext): GuardianArticlesProvider = {
+    val capiClient = contentApiClient(settings.contentApi, downloader)
     new GuardianArticlesProvider(capiClient, settings.provider, editionDate)
   }
 
-  private class PrintSentContentClient(settings: ContentApiSettings) extends GuardianContentClient(settings.apiKey) {
-    override val targetUrl: String = settings.targetUrl
+  private def contentApiClient(settings: ContentApiSettings, sttpDownloader: SttpDownloader): ContentApiClient = {
+    new AbstractContentApiClient(settings.apiKey, Some(settings.targetUrl)) with SttpContentApiClient {
+      override protected def downloader = sttpDownloader
+    }
   }
 }
 

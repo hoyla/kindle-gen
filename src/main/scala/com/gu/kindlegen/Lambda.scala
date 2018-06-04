@@ -89,7 +89,7 @@ class Lambda(settings: Settings) extends Logging {
 
     val downloader = OkHttpSttpDownloader()
     val publisher = s3Publisher(settings.s3)
-    val provider = GuardianArticlesProvider(settings, date)
+    val provider = GuardianArticlesProvider(settings, downloader, date)
     val kindleGenerator = KindleGenerator(provider, publisher, downloader, settings)
 
     logger.info(s"Starting to publish files for $date; uploading to s3://${settings.s3.absolutePath.source}")

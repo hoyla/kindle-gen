@@ -9,14 +9,16 @@ import org.scalatest.Matchers._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
 import com.gu.contentapi.client.model.v1.SearchResponse
+import com.gu.io.sttp.OkHttpSttpDownloader
 import com.gu.kindlegen.{Settings, TestContent}
 import com.gu.kindlegen.TestContent._
 
 class GuardianArticlesProviderSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
   private val settings = Settings.load.get.copy(provider = ExampleGuardianProviderSettings)
 
+  private val downloader = OkHttpSttpDownloader()
   private def provider: GuardianArticlesProvider = provider(ExampleOffsetDate.toLocalDate)
-  private def provider(editionDate: LocalDate) = GuardianArticlesProvider(settings, editionDate)
+  private def provider(editionDate: LocalDate) = GuardianArticlesProvider(settings, downloader, editionDate)
 
   val totalArticles = 96  // on exampleDate = 2017-07-24
 
