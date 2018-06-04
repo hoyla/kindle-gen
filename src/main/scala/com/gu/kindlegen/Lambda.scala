@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.core.config.Configurator
 import org.apache.logging.log4j.scala.Logging
 
+import com.gu.io.sttp.OkHttpSttpDownloader
 import com.gu.io.aws.S3Publisher
 import com.gu.kindlegen.capi.GuardianArticlesProvider
 
@@ -86,9 +87,10 @@ class Lambda(settings: Settings) extends Logging {
 
     logger.debug(s"Running with settings $settings")
 
+    val downloader = OkHttpSttpDownloader()
     val publisher = s3Publisher(settings.s3)
     val provider = GuardianArticlesProvider(settings, date)
-    val kindleGenerator = KindleGenerator(provider, publisher, settings)
+    val kindleGenerator = KindleGenerator(provider, publisher, downloader, settings)
 
     logger.info(s"Starting to publish files for $date; uploading to s3://${settings.s3.absolutePath.source}")
     val published = kindleGenerator.publish()

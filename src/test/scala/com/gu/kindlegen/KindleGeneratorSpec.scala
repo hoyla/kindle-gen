@@ -34,9 +34,10 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
 
   def test(editionDate: LocalDate): Unit = describe(s"publish($editionDate)") {
     import scala.concurrent.ExecutionContext.Implicits.global
+    val downloader = OkHttpSttpDownloader()
     val publisher = FilePublisher(fileSettings.outputDir.resolve(editionDate.toString))
     val provider = GuardianArticlesProvider(settings, editionDate)
-    val generator = KindleGenerator(provider, publisher, settings)
+    val generator = KindleGenerator(provider, publisher, downloader, settings)
 
     lazy val links = Await.result(generator.publish().map(_ => publisher.publications), settings.provider.downloadTimeout)
     lazy val paths = links.collect { case x: PathLink => x.toPath }.toSeq

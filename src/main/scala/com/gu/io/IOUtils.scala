@@ -2,11 +2,7 @@ package com.gu.io
 
 import java.nio.file.{Files, Path}
 
-import scala.concurrent.{ExecutionContext, Future}
-
 import org.apache.logging.log4j.scala.Logging
-
-import com.gu.io.sttp.OkHttpSttpDownloader
 
 object IOUtils extends Logging {
   def asFileName(str: String): String = {
@@ -24,17 +20,4 @@ object IOUtils extends Logging {
       walk(path).filter(_ != path).forEach(deleteRecursively)
     deleteIfExists(path)
   }
-
-  def download(url: String)(implicit ec: ExecutionContext): Future[Array[Byte]] = {
-    downloader.download(url)
-  }
-
-  /** Downloads a URL to the file denoted by `path`.
-    * Creates the parent directory if it doesn't exist and overwrites the file if it exists.
-    */
-  def downloadAs(path: Path, url: String)(implicit ec: ExecutionContext): Future[Path] = {
-    downloader.downloadAs(path, url)
-  }
-
-  private val downloader: Downloader = OkHttpSttpDownloader()
 }

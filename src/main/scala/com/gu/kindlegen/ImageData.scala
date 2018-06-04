@@ -5,7 +5,7 @@ import scala.util.Failure
 
 import org.apache.logging.log4j.scala.Logging
 
-import com.gu.io.IOUtils
+import com.gu.io.Downloader
 
 
 case class ImageData(metadata: Image, data: Array[Byte]) {
@@ -13,11 +13,11 @@ case class ImageData(metadata: Image, data: Array[Byte]) {
 }
 
 object ImageData extends Logging {
-  def download(image: Image)(implicit ec: ExecutionContext): Future[ImageData] = {
+  def download(image: Image, downloader: Downloader)(implicit ec: ExecutionContext): Future[ImageData] = {
     val link = image.link
     logger.info(s"Downloading image from $link")
 
-    IOUtils.download(link.source)
+    downloader.download(link.source)
       .map(bytes => ImageData(image, bytes))
       .andThen {
         case Failure(error) => logger.error(s"Failed to download image from $link!", error)

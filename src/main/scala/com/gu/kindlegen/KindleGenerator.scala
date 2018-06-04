@@ -1,21 +1,19 @@
 package com.gu.kindlegen
 
-import java.time.LocalDate
-
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Try
 import scala.xml.Elem
 
 import org.apache.logging.log4j.scala.Logging
 
-import com.gu.io.{Link, Publisher}
+import com.gu.io.{Downloader, Link, Publisher}
 import com.gu.io.IOUtils._
 import com.gu.xml._
 
 object KindleGenerator {
-  def apply(provider: ArticlesProvider, publisher: Publisher, settings: Settings)
+  def apply(provider: ArticlesProvider, publisher: Publisher, downloader: Downloader, settings: Settings)
            (implicit ec: ExecutionContext): KindleGenerator = {
-    new KindleGenerator(provider, publisher, settings.publishing, settings.provider)
+    new KindleGenerator(provider, publisher, downloader, settings.publishing, settings.provider)
   }
 
   // some NITF tags must be minimised to be valid (e.g. <doc-id/> instead of <doc-id>\n</doc-id>)
@@ -24,6 +22,7 @@ object KindleGenerator {
 
 class KindleGenerator(provider: ArticlesProvider,
                       publisher: Publisher,
+                      downloader: Downloader,
                       publishingSettings: PublishingSettings,
                       querySettings: GuardianProviderSettings)(implicit ec: ExecutionContext) extends Logging {
   logger.trace(s"Initialised with $publishingSettings")
@@ -59,7 +58,7 @@ class KindleGenerator(provider: ArticlesProvider,
   private def downloadMainImage(article: Article, fileNameIndex: Int): Future[Article] = {
     val image = article.mainImage
     if (publishingSettings.downloadImages && image.isDefined) {
-      ImageData.download(image.get)
+      ImageData.download(image.get, downloader)
         .flatMap(save(_, fileNameIndex))
         .map(newLink => article.copy(mainImage = Some(newLink)))
         .recover { case error =>
