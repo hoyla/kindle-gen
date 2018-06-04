@@ -120,7 +120,7 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
       // <bq>...</bq> => <bq><block>...</block></bq>
       case e: Elem if e.label == "bq" && e.hasChildrenMatching(_.label != "block") =>
         val block = e.copy(label = "block", child = e.child)
-        e.copy(child = wrapTextIntoBlockContent(block))
+        e.copy(child = apply(block))  // apply all transformations to the blockquote contents
 
       case e: Elem if !enrichedTextParentTags(e.label) && e.hasChildrenMatching(enrichedTextNode) =>
         e.wrapChildren(enrichedTextNode, e.copy(label = "p", attributes = Null))
