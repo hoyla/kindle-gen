@@ -1,6 +1,9 @@
 package com.gu.nitf
 
 
+/** Information about the
+  * [[https://www.iptc.org/std/NITF/3.5/documentation/nitf-documentation.html News Industry Text Format v3.5]]
+  */
 trait NitfConfig {
   /** Tags that may be contained within [[enrichedTextParentTags]] */
   def enrichedTextTags: Set[String]
