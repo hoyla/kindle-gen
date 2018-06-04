@@ -22,19 +22,19 @@ doc / exportJars := true
 
 val jacksonVersion = "2.9.5"
 val log4jVersion = "2.11.0"
-val scalaXmlVersion = "1.1.0"
 
 libraryDependencies ++= Seq(
   "com.gu" %% "content-api-client-default" % "12.0",
 
   "com.typesafe" % "config" % "1.3.3",
 
-  "org.scalaj" %% "scalaj-http" % "2.4.0" /* used to download images */,
+  // HTTP client
+  "com.softwaremill.sttp" %% "okhttp-backend" % "1.2.0-RC6",
 
   // HTML parsing, cleanup, and conversion to NITF XML
   "org.jsoup" % "jsoup" % "1.11.3",
-  "org.scala-lang.modules" %% "scala-xml" % scalaXmlVersion,
-  "org.scala-lang.modules" %% "scala-parser-combinators" % scalaXmlVersion,
+  "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
 
   // logging infrastructure
   "org.apache.logging.log4j" %% "log4j-api-scala" % "11.0",
@@ -46,7 +46,7 @@ libraryDependencies ++= Seq(
   // AWS
   "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
   "com.amazonaws" % "aws-lambda-java-log4j2" % "1.1.0",
-  "com.amazonaws" % "aws-java-sdk-s3" % "1.11.335",
+  "com.amazonaws" % "aws-java-sdk-s3" % "1.11.344",
 
   // test dependencies
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
@@ -57,7 +57,7 @@ dependencyOverrides ++= Seq(
   "com.fasterxml.jackson.core" % "jackson-annotations" % jacksonVersion,  // AWS depends on an old, insecure version
   "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
   "com.fasterxml.jackson.dataformat" % "jackson-dataformat-cbor" % jacksonVersion,
-  "org.slf4j" % "slf4j-api" % "1.7.25" /* log4js-slf4j-impl depends on 1.8.0, but that's only compatible with Java 9+ */,
+  "org.slf4j" % "slf4j-api" % "1.7.25" /* log4j-slf4j-impl depends on 1.8.0, but that's only compatible with Java 9+ */,
 )
 
 Test / fork := true  // force the use of the proper version of scala-xml; otherwise we'd use the one bundled with sbt!

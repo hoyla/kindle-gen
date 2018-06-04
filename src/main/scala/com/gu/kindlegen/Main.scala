@@ -7,6 +7,7 @@ import scala.util.{Failure, Success}
 import com.gu.io.FilePublisher
 import com.gu.kindlegen.capi.GuardianArticlesProvider
 
+
 object Main extends App {
   Settings.load match {
     case Success(settings) => run(settings)

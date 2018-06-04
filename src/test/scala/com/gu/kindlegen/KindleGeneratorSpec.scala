@@ -13,6 +13,7 @@ import org.scalatest.Matchers._
 
 import com.gu.io.{FilePublisher, TempFiles}
 import com.gu.io.Link.PathLink
+import com.gu.io.sttp.OkHttpSttpDownloader
 import com.gu.kindlegen.capi.GuardianArticlesProvider
 import com.gu.scalatest.PathMatchers._
 import com.gu.xml.XmlUtils._
