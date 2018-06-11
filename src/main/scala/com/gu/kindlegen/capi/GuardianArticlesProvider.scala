@@ -15,7 +15,7 @@ import com.gu.kindlegen._
 object GuardianArticlesProvider {
   def apply(settings: Settings, editionDate: LocalDate)(implicit ec: ExecutionContext): GuardianArticlesProvider = {
     val capiClient = new PrintSentContentClient(settings.contentApi)
-    new GuardianArticlesProvider(capiClient, settings.query, editionDate)
+    new GuardianArticlesProvider(capiClient, settings.provider, editionDate)
   }
 
   private class PrintSentContentClient(settings: ContentApiSettings) extends GuardianContentClient(settings.apiKey) {
@@ -24,7 +24,7 @@ object GuardianArticlesProvider {
 }
 
 class GuardianArticlesProvider(capiClient: ContentApiClient,
-                               settings: QuerySettings,
+                               settings: GuardianProviderSettings,
                                editionDate: LocalDate)(implicit ec: ExecutionContext)
     extends ArticlesProvider with Logging {
 

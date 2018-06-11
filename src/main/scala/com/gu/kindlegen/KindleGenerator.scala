@@ -15,7 +15,7 @@ import com.gu.xml._
 object KindleGenerator {
   def apply(provider: ArticlesProvider, publisher: Publisher, settings: Settings)
            (implicit ec: ExecutionContext): KindleGenerator = {
-    new KindleGenerator(provider, publisher, settings.publishing, settings.query)
+    new KindleGenerator(provider, publisher, settings.publishing, settings.provider)
   }
 
   // some NITF tags must be minimised to be valid (e.g. <doc-id/> instead of <doc-id>\n</doc-id>)
@@ -25,7 +25,7 @@ object KindleGenerator {
 class KindleGenerator(provider: ArticlesProvider,
                       publisher: Publisher,
                       publishingSettings: PublishingSettings,
-                      querySettings: QuerySettings)(implicit ec: ExecutionContext) extends Logging {
+                      querySettings: GuardianProviderSettings)(implicit ec: ExecutionContext) extends Logging {
   logger.trace(s"Initialised with $publishingSettings")
 
   private def fileSettings = publishingSettings.files

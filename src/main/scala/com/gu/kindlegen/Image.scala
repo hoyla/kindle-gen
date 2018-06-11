@@ -11,7 +11,7 @@ case class Image(id: String,
                  credit: Option[String]) extends Linkable
 
 object Image {
-  def mainImage(content: Content, settings: QuerySettings): Option[Image] = {
+  def mainImage(content: Content, settings: GuardianProviderSettings): Option[Image] = {
     def isMainImage(e: Element): Boolean =
       e.`type` == ElementType.Image && e.relation == "main"
 

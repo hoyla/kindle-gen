@@ -11,7 +11,7 @@ class ArticleSuite extends FlatSpec {
 
   ".apply" should "apply method with content as parameter" in {
     val content = ta.toContent
-    val a = Article(content, ExampleQuerySettings)
+    val a = Article(content, ExampleGuardianProviderSettings)
     assert(a.newspaperPageNumber === 2)
   }
 }

@@ -16,7 +16,7 @@ object TestContent {
   val ExampleLink = Link.AbsoluteURL.from("https://www.example.com")
   lazy val ExamplePath = Link.AbsolutePath.from(Files.createDirectories(Paths.get("target", "tmp")).toRealPath())
 
-  val ExampleQuerySettings = QuerySettings(1.minute, TagType.Type, maxImageResolution = 1000)
+  val ExampleGuardianProviderSettings = GuardianProviderSettings(1.minute, TagType.NewspaperBook, maxImageResolution = 1000)
 }
 
 /*
@@ -70,7 +70,7 @@ case class TestContent(
       paidContentType = None,
       bio = None,
       paidContentCampaignColour = None,
-      `type` = ExampleQuerySettings.sectionTagType,
+      `type` = ExampleGuardianProviderSettings.sectionTagType,
       entityIds = None,
       emailAddress = None,
       apiUrl = "",

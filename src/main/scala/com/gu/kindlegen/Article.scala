@@ -28,7 +28,7 @@ object Article {
     htmlBlocks
   }
 
-  def apply(content: Content, settings: QuerySettings): Article = {
+  def apply(content: Content, settings: GuardianProviderSettings): Article = {
     val sectionTagType = settings.sectionTagType
     val maybeSectionTag = content.tags.find(_.`type` == sectionTagType)
     val maybeNewspaperDate = content.fields.flatMap(_.newspaperEditionDate)
@@ -45,7 +45,7 @@ object Article {
             newspaperDate: CapiDateTime,
             fields: ContentFields,
             sectionTag: Tag,
-            settings: QuerySettings): Article = {
+            settings: GuardianProviderSettings): Article = {
     Article(
       section = Section(sectionTag),
       newspaperPageNumber = fields.newspaperPageNumber.getOrElse(Int.MaxValue),  // move to the end of the section

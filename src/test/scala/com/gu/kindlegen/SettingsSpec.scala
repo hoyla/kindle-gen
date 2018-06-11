@@ -45,7 +45,7 @@ class SettingsSpec extends FunSpec {
   )
 
   private val sectionTagType = TagType.Keyword
-  private val queryValues = Map(
+  private val capiValues = Map(
     "downloadTimeout" -> Duration.ofSeconds(30),
     "maxImageResolution" -> 500,
     "sectionTagType" -> sectionTagType.name
@@ -60,12 +60,12 @@ class SettingsSpec extends FunSpec {
   private def settingsConfig = Map(
     "content-api" -> contentApiConfig,
     "publishing" -> publishingConfig,
-    "query" -> queryConfig,
+    "gu-capi" -> capiConfig,
     "s3" -> s3Config,
   ).toConfig
   private def contentApiConfig = contentApiValues.toConfigObj
   private def publishingConfig = publishingValues.toConfigObj
-  private def queryConfig = queryValues.toConfigObj
+  private def capiConfig = capiValues.toConfigObj
   private def s3Config = s3Values.toConfigObj
 
   describe("Settings factory") {
@@ -97,12 +97,12 @@ class SettingsSpec extends FunSpec {
       fileSettings.rootManifestFileName shouldBe publishedFilesValues("rootManifestFileName")
     }
 
-    it("parses QuerySettings correctly") {
-      val querySettings = settings.query
+    it("parses GuardianProviderSettings correctly") {
+      val providerSettings = settings.provider
 
-      Duration.ofNanos(querySettings.downloadTimeout.toNanos) shouldBe queryValues("downloadTimeout")
-      querySettings.maxImageResolution shouldBe queryValues("maxImageResolution")
-      querySettings.sectionTagType shouldBe sectionTagType
+      Duration.ofNanos(providerSettings.downloadTimeout.toNanos) shouldBe capiValues("downloadTimeout")
+      providerSettings.maxImageResolution shouldBe capiValues("maxImageResolution")
+      providerSettings.sectionTagType shouldBe sectionTagType
     }
 
     it("parses S3Settings correctly") {

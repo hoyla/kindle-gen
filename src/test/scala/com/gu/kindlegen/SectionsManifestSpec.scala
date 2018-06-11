@@ -14,7 +14,7 @@ class SectionsManifestSpec extends FlatSpec {
   private val time = Instant.now()
 
   private val content = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None).toContent
-  private val article = Article(content, ExampleQuerySettings)
+  private val article = Article(content, ExampleGuardianProviderSettings)
 
   private val international = section("International", "theguardian/mainsection/international")
   private val topStories = section("Top Stories", "theguardian/mainsection/topstories")

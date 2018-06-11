@@ -10,14 +10,13 @@ import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
 import com.gu.contentapi.client.model.v1.SearchResponse
 import com.gu.kindlegen.{Settings, TestContent}
-import com.gu.kindlegen.capi.GuardianArticlesProvider.PrintSentContentClient
 import com.gu.kindlegen.TestContent._
 
 class GuardianArticlesProviderSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
-  private val settings = Settings.load.get.copy(query = ExampleQuerySettings)
+  private val settings = Settings.load.get.copy(provider = ExampleGuardianProviderSettings)
 
-  private def querier: GuardianArticlesProvider = querier(ExampleOffsetDate.toLocalDate)
-  private def querier(editionDate: LocalDate) = GuardianArticlesProvider(settings, editionDate)
+  private def provider: GuardianArticlesProvider = provider(ExampleOffsetDate.toLocalDate)
+  private def provider(editionDate: LocalDate) = GuardianArticlesProvider(settings, editionDate)
 
   val totalArticles = 96  // on exampleDate = 2017-07-24
 
@@ -26,19 +25,19 @@ class GuardianArticlesProviderSpec extends FlatSpec with ScalaFutures with Integ
   val capiResponse = List(testContent.toContent)
 
   "articles" should "convert a capi response (Seq[Content) to a Seq[Article])" in {
-    val articles = querier.articles(capiResponse)
+    val articles = provider.articles(capiResponse)
 
     assert(articles.nonEmpty)
     assert(articles.head.newspaperPageNumber === 3)
   }
 
   "articles" should "convert publishable content" in {
-    querier.articles(Seq(testContent.toContent)) should not be empty
+    provider.articles(Seq(testContent.toContent)) should not be empty
   }
 
   "articles" should "ignore non-publishable content" in {
     val withoutTags = testContent.toContent.copy(tags = Seq.empty)
-    querier.articles(Seq(withoutTags)) shouldBe empty
+    provider.articles(Seq(withoutTags)) shouldBe empty
   }
 
   "fetchPrintSentResponse" should "initiate a proper search query" in {
@@ -47,7 +46,7 @@ class GuardianArticlesProviderSpec extends FlatSpec with ScalaFutures with Integ
 
   "fetchPrintSentResponse" should "support empty responses" in {
     val holiday = LocalDate.of(2017, 12, 25)
-    withFetchResponse(querier(holiday)) { _.results should have length 0 }
+    withFetchResponse(provider(holiday)) { _.results should have length 0 }
   }
 
   "fetchPrintSentResponse" should "return all results - no pagination should be required" in {
@@ -66,7 +65,7 @@ class GuardianArticlesProviderSpec extends FlatSpec with ScalaFutures with Integ
     }
   }
 
-  private def withFetchResponse[T](querier: GuardianArticlesProvider = querier)(doSomething: SearchResponse => T): T = {
+  private def withFetchResponse[T](querier: GuardianArticlesProvider = provider)(doSomething: SearchResponse => T): T = {
     whenReady(querier.fetchPrintSentResponse())(doSomething)
   }
 }

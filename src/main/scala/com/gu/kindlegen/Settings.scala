@@ -11,7 +11,7 @@ import com.gu.config._
 import com.gu.contentapi.client.model.v1.TagType
 
 /** Encapsulates the settings of this application */
-final case class Settings(contentApi: ContentApiSettings, publishing: PublishingSettings, query: QuerySettings, s3: S3Settings) {
+final case class Settings(contentApi: ContentApiSettings, publishing: PublishingSettings, provider: GuardianProviderSettings, s3: S3Settings) {
   def withPublishingFiles(files: PublishedFileSettings): Settings =
     copy(publishing = publishing.copy(files = files))
 }
@@ -32,19 +32,19 @@ final case class PublishingSettings(minArticlesPerEdition: Int,
                                     publicationLink: String,
                                     files: PublishedFileSettings)
 
-final case class QuerySettings(downloadTimeout: Duration, sectionTagType: TagType, maxImageResolution: Int)
+final case class GuardianProviderSettings(downloadTimeout: Duration, sectionTagType: TagType, maxImageResolution: Int)
 
-case class S3Settings(bucketName: String, bucketDirectory: String, tmpDirOnDisk: Path) extends com.gu.io.aws.S3Settings
+final case class S3Settings(bucketName: String, bucketDirectory: String, tmpDirOnDisk: Path) extends com.gu.io.aws.S3Settings
 
 object Settings extends RootSettingsFactory[Settings] {
   def apply(config: Config): Try[Settings] = {
     for {
       contentApi <- ContentApiSettings.fromParentConfig(config)
       publishing <- PublishingSettings.fromParentConfig(config)
-      query <- QuerySettings.fromParentConfig(config)
+      provider <- GuardianProviderSettings.fromParentConfig(config)
       s3 <- S3Settings.fromParentConfig(config)
     } yield {
-      Settings(contentApi, publishing, query, s3)
+      Settings(contentApi, publishing, provider, s3)
     }
   }
 }
@@ -94,13 +94,13 @@ object PublishedFileSettings extends AbstractSettingsFactory[PublishedFileSettin
   private final val RootManifest = "rootManifestFileName"
 }
 
-object QuerySettings extends AbstractSettingsFactory[QuerySettings]("query") {
-  def apply(config: Config): Try[QuerySettings] = Try {
+object GuardianProviderSettings extends AbstractSettingsFactory[GuardianProviderSettings]("gu-capi") {
+  def apply(config: Config): Try[GuardianProviderSettings] = Try {
     val downloadDuration   = config.getFiniteDuration(DownloadDuration)
     val maxImageResolution = config.getInt(MaxImageResolution)
     val sectionTagTypeName = config.getString(SectionTagType)
     val sectionTagType     = TagType.valueOf(sectionTagTypeName).get
-    QuerySettings(downloadDuration, sectionTagType, maxImageResolution)
+    GuardianProviderSettings(downloadDuration, sectionTagType, maxImageResolution)
   }
 
   private final val DownloadDuration = "downloadTimeout"
