@@ -47,7 +47,7 @@ object Article {
             sectionTag: Tag,
             settings: GuardianProviderSettings): Article = {
     Article(
-      section = Section(sectionTag),
+      section = Section.from(sectionTag),
       newspaperPageNumber = fields.newspaperPageNumber.getOrElse(Int.MaxValue),  // move to the end of the section
       title = content.webTitle,
       docId = content.id,

@@ -14,7 +14,7 @@ import com.gu.kindlegen.{Settings, TestContent}
 import com.gu.kindlegen.TestContent._
 
 class GuardianArticlesProviderSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
-  private val settings = Settings.load.get.copy(provider = ExampleGuardianProviderSettings)
+  private val settings = Settings.load.get.copy(articles = ExampleGuardianProviderSettings)
 
   private val downloader = OkHttpSttpDownloader()
   private def provider: GuardianArticlesProvider = provider(ExampleOffsetDate.toLocalDate)

@@ -9,6 +9,8 @@ final case class WeatherSettings(section: Section,
 
 final case class WeatherArticleSettings(title: String,
                                         byline: String,
-                                        articleAbstract: String,
+                                        `abstract`: Option[String],
                                         image: Option[Image],
-                                        cities: Seq[String])
+                                        cities: Seq[String]) {
+  def articleAbstract: Option[String] = `abstract`
+}

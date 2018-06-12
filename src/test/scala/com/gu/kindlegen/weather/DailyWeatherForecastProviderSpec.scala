@@ -36,7 +36,7 @@ class DailyWeatherForecastProviderSpec extends FunSpec {
   }
 
   private val articleTitle = "UK & Ireland Weather"
-  private val articleAbstract = "Arbitrary text"
+  private val articleAbstract = Some("Arbitrary text")
   private val byline = "Powered by AccuWeather™"
   private val section = Section("theguardian/mainsection/weather2", "Weather",
     AbsoluteURL.from("https://www.theguardian.com/theguardian/mainsection/weather2"))
@@ -45,7 +45,7 @@ class DailyWeatherForecastProviderSpec extends FunSpec {
   private val defaultSettings = settingsWithArticles(defaultArticleSettings)
 
   private def articleSettingsWithCities(cities: Iterable[Location]) =
-    WeatherArticleSettings(articleTitle, articleAbstract, byline, cities = cities.map(_.name).toSeq, image = None)
+    WeatherArticleSettings(articleTitle, byline, articleAbstract, cities = cities.map(_.name).toSeq, image = None)
   private def settingsWithArticles(articles: WeatherArticleSettings*) =
     WeatherSettings(section, minForecastsPercentage = 50, articles)
 
@@ -60,7 +60,7 @@ class DailyWeatherForecastProviderSpec extends FunSpec {
 
   it("creates as many articles as required") {
     val articleSettings = citiesWithForecasts.toSeq.zipWithIndex.map { case (city, i) =>
-      WeatherArticleSettings(s"Article $i", s"Abstract $i", s"Byline $i", cities = Seq(city), image = None)
+      WeatherArticleSettings(s"Article $i", s"Byline $i", Some(s"Abstract $i"), cities = Seq(city), image = None)
     }
     val settings = settingsWithArticles(articleSettings: _*)
     checkGeneratedArticles(settings)
@@ -90,7 +90,7 @@ class DailyWeatherForecastProviderSpec extends FunSpec {
       article.title shouldBe articleSettings.title
       article.byline shouldBe articleSettings.byline
       article.mainImage shouldBe articleSettings.image
-      article.articleAbstract shouldBe articleSettings.articleAbstract
+      article.articleAbstract shouldBe articleSettings.articleAbstract.getOrElse("")
 
       val xhtml = XML.loadString(article.bodyBlocks.mkString)
       checkArticleContents(xhtml, articleSettings)

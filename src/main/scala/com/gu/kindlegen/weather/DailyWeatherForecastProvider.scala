@@ -49,7 +49,7 @@ class DailyWeatherForecastProvider(client: WeatherClient,
           link = link,
           pubDate = OffsetDateTime.now,
           byline = articleSettings.byline,
-          articleAbstract = articleSettings.articleAbstract,
+          articleAbstract = articleSettings.articleAbstract.getOrElse(""),
           bodyBlocks = Seq(content.mkString),
           mainImage = articleSettings.image
         )

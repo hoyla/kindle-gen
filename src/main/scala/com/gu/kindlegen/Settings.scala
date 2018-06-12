@@ -7,12 +7,20 @@ import scala.util.Try
 
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
+import net.ceedubs.ficus.readers.ValueReader
 
 import com.gu.config._
 import com.gu.contentapi.client.model.v1.TagType
+import com.gu.io.Link
+import com.gu.io.Link.AbsoluteURL
+import com.gu.kindlegen.weather.WeatherSettings
 
 /** Encapsulates the settings of this application */
-final case class Settings(contentApi: ContentApiSettings, publishing: PublishingSettings, provider: GuardianProviderSettings, s3: S3Settings) {
+final case class Settings(contentApi: ContentApiSettings,
+                          articles: GuardianProviderSettings,
+                          weather: WeatherSettings,
+                          publishing: PublishingSettings,
+                          s3: S3Settings) {
   def withPublishingFiles(files: PublishedFileSettings): Settings =
     copy(publishing = publishing.copy(files = files))
 }
@@ -33,7 +41,9 @@ final case class PublishingSettings(minArticlesPerEdition: Int,
                                     publicationLink: String,
                                     files: PublishedFileSettings)
 
-final case class GuardianProviderSettings(downloadTimeout: Duration, sectionTagType: TagType, maxImageResolution: Int)
+final case class GuardianProviderSettings(downloadTimeout: FiniteDuration,
+                                          sectionTagType: TagType,
+                                          maxImageResolution: Int)
 
 final case class S3Settings(bucketName: String, bucketDirectory: String, optionalTmpDirOnDisk: Option[Path]) extends com.gu.io.aws.S3Settings {
   lazy val tmpDirOnDisk: Path = optionalTmpDirOnDisk.getOrElse(Files.createTempDirectory(""))
@@ -44,10 +54,11 @@ object Settings extends RootConfigReader[Settings] {
     for {
       contentApi <- ContentApiSettings.fromParentConfig(config)
       publishing <- PublishingSettings.fromParentConfig(config)
-      provider <- GuardianProviderSettings.fromParentConfig(config)
+      articles <- GuardianProviderSettings.fromParentConfig(config)
+      weather <- WeatherSettingsReader.fromParentConfig(config)
       s3 <- S3Settings.fromParentConfig(config)
     } yield {
-      Settings(contentApi, publishing, provider, s3)
+      Settings(contentApi, articles, weather, publishing, s3)
     }
   }
 }
@@ -116,4 +127,17 @@ object S3Settings extends AbstractConfigReader[S3Settings]("s3") {
   private final val BucketName = "bucket"
   private final val BucketDirectory = "prefix"
   private final val TmpDirOnDisk = "tmpDirOnDisk"
+}
+
+object WeatherSettingsReader extends AbstractConfigReader[WeatherSettings]("weather") {
+  private implicit val linkReader = new ValueReader[Link] {
+    override def read(config: Config, path: String): Link = AbsoluteURL.from(config.as[String](path))
+  }
+
+  override def apply(config: Config): Try[WeatherSettings] = Try {
+    import net.ceedubs.ficus.readers.ArbitraryTypeReader._
+    config.as[WeatherSettings]
+  }
+
+  // configuration properties have the same names as the class fields
 }

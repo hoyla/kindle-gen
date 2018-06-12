@@ -8,10 +8,13 @@ import scala.util.{Failure, Success, Try}
 
 import com.typesafe.config._
 import org.scalatest.{Assertion, FunSpec}
+import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
 
 import com.gu.config.ConfigReader
 import com.gu.contentapi.client.model.v1.TagType
+import com.gu.io.Link.AbsoluteURL
+import com.gu.kindlegen.weather.{WeatherArticleSettings, WeatherSettings}
 import com.gu.scalatest.PathMatchers._
 
 
@@ -27,6 +30,8 @@ class SettingsSpec extends FunSpec {
   testReader(GuardianProviderSettings, capiConfig)(validateValues)
 
   testReader(S3Settings, s3Config)(validateValues)
+
+  testReader(WeatherSettingsReader, weatherConfig)(validateValues)
 
   testReader(Settings, settingsConfig)(validateValues)
 
@@ -91,10 +96,38 @@ object SettingsSpec {
     "tmpDirOnDisk" -> "/tmp"
   )
 
+  private def weatherImage(country: String) = Map(
+    "id" -> country,
+    "link" -> s"http://example.com/$country.jpg",
+    "altText" -> s"Alternate text for $country",
+    "caption" -> s"Caption for $country",
+    "credit" -> s"Credit for $country",
+  )
+
+  private val weatherArticleValues = Seq("UK", "World", "OuterSpace").map { country => Map(
+    "title" -> s"Weather of the $country",
+    "byline" -> country,
+    "abstract" -> s"Abstract of the $country",
+    "cities" -> (1 to 3).map(city => s"$country $city").asJava,
+    "image" -> weatherImage(country).toConfigObj,
+  )}
+
+  private val weatherSection = Section("my-section", "My Section", AbsoluteURL.from("http://example.com"))
+  private val weatherValues = Map(
+    "articles" -> weatherArticleValues.map(_.toConfigObj).asJava,
+    "minForecastsPercentage" -> 75,
+    "section" -> Map(
+      "id" -> weatherSection.id,
+      "title" -> weatherSection.title,
+      "link" -> weatherSection.link.source
+    ).toConfigObj,
+  )
+
   private val settingsValues = Map(
     "content-api" -> contentApiConfig,
     "publishing" -> publishingConfig,
     "gu-capi" -> capiConfig,
+    "weather" -> weatherConfig,
     "s3" -> s3Config,
   )
 
@@ -104,12 +137,14 @@ object SettingsSpec {
   private def publishedFilesConfig = publishedFilesValues.toConfigObj
   private def capiConfig = capiValues.toConfigObj
   private def s3Config = s3Values.toConfigObj
+  private def weatherConfig = weatherValues.toConfigObj
 
   private def validateValues(settings: Settings): Assertion = {
     validateValues(settings.contentApi)
-    validateValues(settings.provider)
+    validateValues(settings.articles)
     validateValues(settings.publishing)
     validateValues(settings.s3)
+    validateValues(settings.weather)
   }
 
   private def validateValues(contentApiSettings: ContentApiSettings): Assertion = {
@@ -144,5 +179,27 @@ object SettingsSpec {
     s3Settings.bucketName shouldBe s3Values("bucket")
     s3Settings.bucketDirectory shouldBe s3Values("prefix")
     s3Settings.tmpDirOnDisk.toString shouldBe s3Values("tmpDirOnDisk")
+  }
+
+  private def validateValues(weather: WeatherSettings): Assertion = {
+    weather.section shouldBe weatherSection
+    weather.minForecastsPercentage shouldBe weatherValues("minForecastsPercentage")
+    forEvery(weather.articles.zipWithIndex) { case (article, index) =>
+      validateValues(article, weatherArticleValues(index))
+    }
+  }
+
+  private def validateValues(weatherArticle: WeatherArticleSettings, values: Map[String, _]): Assertion = {
+    weatherArticle.articleAbstract shouldBe values.get("abstract")
+    weatherArticle.byline shouldBe values("byline")
+
+    val cities = values("cities").asInstanceOf[java.lang.Iterable[String]].asScala
+    weatherArticle.cities should contain theSameElementsInOrderAs cities
+
+    val image = values.get("image").map { _ =>
+      val v = weatherImage(weatherArticle.byline)
+      Image(v("id"), AbsoluteURL.from(v("link")), v.get("altText"), v.get("caption"), v.get("credit"))
+    }
+    weatherArticle.image shouldBe image
   }
 }

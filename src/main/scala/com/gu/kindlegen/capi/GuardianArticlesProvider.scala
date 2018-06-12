@@ -16,7 +16,7 @@ import com.gu.kindlegen._
 object GuardianArticlesProvider {
   def apply(settings: Settings, downloader: SttpDownloader, editionDate: LocalDate)(implicit ec: ExecutionContext): GuardianArticlesProvider = {
     val capiClient = contentApiClient(settings.contentApi, downloader)
-    new GuardianArticlesProvider(capiClient, settings.provider, editionDate)
+    new GuardianArticlesProvider(capiClient, settings.articles, editionDate)
   }
 
   private def contentApiClient(settings: ContentApiSettings, sttpDownloader: SttpDownloader): ContentApiClient = {

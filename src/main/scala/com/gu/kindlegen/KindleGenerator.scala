@@ -13,7 +13,7 @@ import com.gu.xml._
 object KindleGenerator {
   def apply(provider: ArticlesProvider, publisher: Publisher, downloader: Downloader, settings: Settings)
            (implicit ec: ExecutionContext): KindleGenerator = {
-    new KindleGenerator(provider, publisher, downloader, settings.publishing, settings.provider)
+    new KindleGenerator(provider, publisher, downloader, settings.publishing, settings.articles)
   }
 
   // some NITF tags must be minimised to be valid (e.g. <doc-id/> instead of <doc-id>\n</doc-id>)
