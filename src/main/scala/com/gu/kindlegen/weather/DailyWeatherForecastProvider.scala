@@ -19,7 +19,6 @@ object DailyWeatherForecastProvider {
 
 class DailyWeatherForecastProvider(client: WeatherClient,
                                    section: Section,
-                                   sectionPageNumber: Int,
                                    settings: WeatherSettings)(implicit ec: ExecutionContext)
     extends ArticlesProvider with Logging {
 
@@ -43,7 +42,7 @@ class DailyWeatherForecastProvider(client: WeatherClient,
 
         Article(
           section = section,
-          newspaperPageNumber = sectionPageNumber,
+          newspaperPageNumber = articleSettings.pageNumber,
           title = articleSettings.title,
           docId = id,
           link = link,

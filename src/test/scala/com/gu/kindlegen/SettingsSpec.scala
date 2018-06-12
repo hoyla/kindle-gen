@@ -104,10 +104,11 @@ object SettingsSpec {
     "credit" -> s"Credit for $country",
   )
 
-  private val weatherArticleValues = Seq("UK", "World", "OuterSpace").map { country => Map(
+  private val weatherArticleValues = Seq("UK", "World", "OuterSpace").zipWithIndex.map { case (country, index) => Map(
     "title" -> s"Weather of the $country",
     "byline" -> country,
     "abstract" -> s"Abstract of the $country",
+    "pageNumber" -> index,
     "cities" -> (1 to 3).map(city => s"$country $city").asJava,
     "image" -> weatherImage(country).toConfigObj,
   )}
@@ -192,6 +193,7 @@ object SettingsSpec {
   private def validateValues(weatherArticle: WeatherArticleSettings, values: Map[String, _]): Assertion = {
     weatherArticle.articleAbstract shouldBe values.get("abstract")
     weatherArticle.byline shouldBe values("byline")
+    weatherArticle.pageNumber shouldBe values("pageNumber")
 
     val cities = values("cities").asInstanceOf[java.lang.Iterable[String]].asScala
     weatherArticle.cities should contain theSameElementsInOrderAs cities

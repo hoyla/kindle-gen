@@ -45,13 +45,13 @@ class DailyWeatherForecastProviderSpec extends FunSpec {
   private val defaultSettings = settingsWithArticles(defaultArticleSettings)
 
   private def articleSettingsWithCities(cities: Iterable[Location]) =
-    WeatherArticleSettings(articleTitle, byline, articleAbstract, cities = cities.map(_.name).toSeq, image = None)
+    WeatherArticleSettings(articleTitle, byline, articleAbstract, pageNumber = 0, cities = cities.map(_.name).toSeq, image = None)
   private def settingsWithArticles(articles: WeatherArticleSettings*) =
     WeatherSettings(section, minForecastsPercentage = 50, articles)
 
   private def provider(settings: WeatherSettings) = {
     implicit val ec = SideEffectsExecutionContext  // discard errors reported by Future#andThen and FutureUtils.successfulSequence
-    new DailyWeatherForecastProvider(client, section, sectionPageNumber = 0, settings = settings)
+    new DailyWeatherForecastProvider(client, section, settings = settings)
   }
 
   it("creates an article with a forecast for each city") {
