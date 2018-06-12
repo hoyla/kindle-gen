@@ -36,7 +36,7 @@ final case class GuardianProviderSettings(downloadTimeout: Duration, sectionTagT
 
 final case class S3Settings(bucketName: String, bucketDirectory: String, tmpDirOnDisk: Path) extends com.gu.io.aws.S3Settings
 
-object Settings extends RootSettingsFactory[Settings] {
+object Settings extends RootConfigReader[Settings] {
   def apply(config: Config): Try[Settings] = {
     for {
       contentApi <- ContentApiSettings.fromParentConfig(config)
@@ -49,7 +49,7 @@ object Settings extends RootSettingsFactory[Settings] {
   }
 }
 
-object ContentApiSettings extends AbstractSettingsFactory[ContentApiSettings]("content-api") {
+object ContentApiSettings extends AbstractConfigReader[ContentApiSettings]("content-api") {
   def apply(config: Config): Try[ContentApiSettings] = Try {
     val key    = config.getString(Key)
     val apiUrl = config.getString(TargetUrl)
@@ -60,7 +60,21 @@ object ContentApiSettings extends AbstractSettingsFactory[ContentApiSettings]("c
   private final val TargetUrl = "url"
 }
 
-object PublishingSettings extends AbstractSettingsFactory[PublishingSettings]("publishing") {
+object GuardianProviderSettings extends AbstractConfigReader[GuardianProviderSettings]("gu-capi") {
+  def apply(config: Config): Try[GuardianProviderSettings] = Try {
+    val downloadDuration   = config.getFiniteDuration(DownloadDuration)
+    val maxImageResolution = config.getInt(MaxImageResolution)
+    val sectionTagTypeName = config.getString(SectionTagType)
+    val sectionTagType     = TagType.valueOf(sectionTagTypeName).get
+    GuardianProviderSettings(downloadDuration, sectionTagType, maxImageResolution)
+  }
+
+  private final val DownloadDuration = "downloadTimeout"
+  private final val MaxImageResolution = "maxImageResolution"
+  private final val SectionTagType = "sectionTagType"
+}
+
+object PublishingSettings extends AbstractConfigReader[PublishingSettings]("publishing") {
   def apply(config: Config): Try[PublishingSettings] = {
     PublishedFileSettings.fromParentConfig(config).map { fileSettings =>
       val downloadImages  = config.getBoolean(DownloadImages)
@@ -79,7 +93,7 @@ object PublishingSettings extends AbstractSettingsFactory[PublishingSettings]("p
   private final val PublicationLink = "publicationLink"
 }
 
-object PublishedFileSettings extends AbstractSettingsFactory[PublishedFileSettings]("files") {
+object PublishedFileSettings extends AbstractConfigReader[PublishedFileSettings]("files") {
   def apply(config: Config): Try[PublishedFileSettings] = Try {
     val outputDir     = config.getPath(OutputDir)
     val nitfExtension = config.getString(NitfExtension).stripPrefix(".")
@@ -94,21 +108,7 @@ object PublishedFileSettings extends AbstractSettingsFactory[PublishedFileSettin
   private final val RootManifest = "rootManifestFileName"
 }
 
-object GuardianProviderSettings extends AbstractSettingsFactory[GuardianProviderSettings]("gu-capi") {
-  def apply(config: Config): Try[GuardianProviderSettings] = Try {
-    val downloadDuration   = config.getFiniteDuration(DownloadDuration)
-    val maxImageResolution = config.getInt(MaxImageResolution)
-    val sectionTagTypeName = config.getString(SectionTagType)
-    val sectionTagType     = TagType.valueOf(sectionTagTypeName).get
-    GuardianProviderSettings(downloadDuration, sectionTagType, maxImageResolution)
-  }
-
-  private final val DownloadDuration = "downloadTimeout"
-  private final val MaxImageResolution = "maxImageResolution"
-  private final val SectionTagType = "sectionTagType"
-}
-
-object S3Settings extends AbstractSettingsFactory[S3Settings]("s3") {
+object S3Settings extends AbstractConfigReader[S3Settings]("s3") {
   override def apply(config: Config): Try[S3Settings] = Try {
     val bucketName = config.getString(BucketName)
     val bucketDirectory = config.getString(BucketDirectory).stripSuffix("/")

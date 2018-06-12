@@ -4,7 +4,7 @@ import scala.util.Try
 
 import com.typesafe.config.{Config, ConfigFactory}
 
-trait SettingsFactory[T] {
+trait ConfigReader[T] {
   def fromParentConfig(root: Config): Try[T] =
     Try(root.getConfig(parentConfigPath)).flatMap(apply)
 
@@ -13,10 +13,10 @@ trait SettingsFactory[T] {
   protected def parentConfigPath: String
 }
 
-trait RootSettingsFactory[T] extends SettingsFactory[T] {
+trait RootConfigReader[T] extends ConfigReader[T] {
   def load: Try[T] = apply(ConfigFactory.load)
   override def fromParentConfig(root: Config): Try[T] = apply(root)
   protected final override def parentConfigPath: String = throw new UnsupportedOperationException
 }
 
-abstract class AbstractSettingsFactory[T](protected override val parentConfigPath: String) extends SettingsFactory[T]
+abstract class AbstractConfigReader[T](protected override val parentConfigPath: String) extends ConfigReader[T]
