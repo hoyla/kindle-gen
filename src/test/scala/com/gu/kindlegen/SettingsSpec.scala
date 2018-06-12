@@ -47,7 +47,7 @@ class SettingsSpec extends FunSpec {
   private def validateSettings[T](maybeSettings: Try[T])(validate: T => _) = {
     maybeSettings match {
       case Success(settings) => validate(settings)
-      case Failure(error) => fail("Failed to read configuration", error)
+      case Failure(error) => fail(s"Failed to read configuration! $error", error)
     }
   }
 }

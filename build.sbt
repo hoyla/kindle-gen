@@ -27,6 +27,7 @@ libraryDependencies ++= Seq(
   "com.gu" %% "content-api-client" % "12.2",
 
   "com.typesafe" % "config" % "1.3.3",
+  "com.iheart" %% "ficus" % "1.4.3",
 
   // HTTP client
   "com.softwaremill.sttp" %% "okhttp-backend" % "1.2.0-RC6",

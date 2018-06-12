@@ -2,10 +2,11 @@ package com.gu.kindlegen
 
 import java.nio.file.{Files, Path}
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
 import com.typesafe.config.Config
+import net.ceedubs.ficus.Ficus._
 
 import com.gu.config._
 import com.gu.contentapi.client.model.v1.TagType
@@ -34,7 +35,9 @@ final case class PublishingSettings(minArticlesPerEdition: Int,
 
 final case class GuardianProviderSettings(downloadTimeout: Duration, sectionTagType: TagType, maxImageResolution: Int)
 
-final case class S3Settings(bucketName: String, bucketDirectory: String, tmpDirOnDisk: Path) extends com.gu.io.aws.S3Settings
+final case class S3Settings(bucketName: String, bucketDirectory: String, optionalTmpDirOnDisk: Option[Path]) extends com.gu.io.aws.S3Settings {
+  lazy val tmpDirOnDisk: Path = optionalTmpDirOnDisk.getOrElse(Files.createTempDirectory(""))
+}
 
 object Settings extends RootConfigReader[Settings] {
   def apply(config: Config): Try[Settings] = {
@@ -51,8 +54,8 @@ object Settings extends RootConfigReader[Settings] {
 
 object ContentApiSettings extends AbstractConfigReader[ContentApiSettings]("content-api") {
   def apply(config: Config): Try[ContentApiSettings] = Try {
-    val key    = config.getString(Key)
-    val apiUrl = config.getString(TargetUrl)
+    val key    = config.as[String](Key)
+    val apiUrl = config.as[String](TargetUrl)
     ContentApiSettings(key, apiUrl)
   }
 
@@ -62,9 +65,9 @@ object ContentApiSettings extends AbstractConfigReader[ContentApiSettings]("cont
 
 object GuardianProviderSettings extends AbstractConfigReader[GuardianProviderSettings]("gu-capi") {
   def apply(config: Config): Try[GuardianProviderSettings] = Try {
-    val downloadDuration   = config.getFiniteDuration(DownloadDuration)
-    val maxImageResolution = config.getInt(MaxImageResolution)
-    val sectionTagTypeName = config.getString(SectionTagType)
+    val downloadDuration   = config.as[FiniteDuration](DownloadDuration)
+    val maxImageResolution = config.as[Int](MaxImageResolution)
+    val sectionTagTypeName = config.as[String](SectionTagType)
     val sectionTagType     = TagType.valueOf(sectionTagTypeName).get
     GuardianProviderSettings(downloadDuration, sectionTagType, maxImageResolution)
   }
@@ -77,11 +80,11 @@ object GuardianProviderSettings extends AbstractConfigReader[GuardianProviderSet
 object PublishingSettings extends AbstractConfigReader[PublishingSettings]("publishing") {
   def apply(config: Config): Try[PublishingSettings] = {
     PublishedFileSettings.fromParentConfig(config).map { fileSettings =>
-      val downloadImages  = config.getBoolean(DownloadImages)
-      val prettifyXml     = config.getBoolean(PrettifyXml)
-      val minArticles     = config.getInt(MinArticlesPerEdition)
-      val publicationName = config.getString(PublicationName)
-      val publicationLink = config.getString(PublicationLink)
+      val downloadImages  = config.as[Boolean](DownloadImages)
+      val prettifyXml     = config.as[Boolean](PrettifyXml)
+      val minArticles     = config.as[Int](MinArticlesPerEdition)
+      val publicationName = config.as[String](PublicationName)
+      val publicationLink = config.as[String](PublicationLink)
       PublishingSettings(minArticles, downloadImages, prettifyXml, publicationName, publicationLink, fileSettings)
     }
   }
@@ -95,24 +98,18 @@ object PublishingSettings extends AbstractConfigReader[PublishingSettings]("publ
 
 object PublishedFileSettings extends AbstractConfigReader[PublishedFileSettings]("files") {
   def apply(config: Config): Try[PublishedFileSettings] = Try {
-    val outputDir     = config.getPath(OutputDir)
-    val nitfExtension = config.getString(NitfExtension).stripPrefix(".")
-    val rssExtension  = config.getString(RssExtension).stripPrefix(".")
-    val rootManifest  = config.getPath(RootManifest).getFileName.toString
-    PublishedFileSettings(outputDir, nitfExtension = nitfExtension, rssExtension = rssExtension, rootManifest)
+    import net.ceedubs.ficus.readers.ArbitraryTypeReader._
+    config.as[PublishedFileSettings]
   }
 
-  private final val OutputDir = "outputDir"
-  private final val NitfExtension = "nitfExtension"
-  private final val RssExtension = "rssExtension"
-  private final val RootManifest = "rootManifestFileName"
+  // configuration properties have the same names as the class fields
 }
 
 object S3Settings extends AbstractConfigReader[S3Settings]("s3") {
   override def apply(config: Config): Try[S3Settings] = Try {
-    val bucketName = config.getString(BucketName)
-    val bucketDirectory = config.getString(BucketDirectory).stripSuffix("/")
-    val tmpDirOnDisk = Try(config.getPath(TmpDirOnDisk)).getOrElse(Files.createTempDirectory(""))
+    val bucketName      = config.as[String](BucketName)
+    val bucketDirectory = config.as[String](BucketDirectory).stripSuffix("/")
+    val tmpDirOnDisk    = config.as[Option[Path]](TmpDirOnDisk)
     S3Settings(bucketName, bucketDirectory, tmpDirOnDisk)
   }
 
