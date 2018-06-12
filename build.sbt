@@ -31,6 +31,7 @@ libraryDependencies ++= Seq(
 
   // HTTP client
   "com.softwaremill.sttp" %% "okhttp-backend" % "1.2.0-RC6",
+  "com.softwaremill.sttp" %% "json4s" % "1.2.0-RC6",
 
   // HTML parsing, cleanup, and conversion to NITF XML
   "org.jsoup" % "jsoup" % "1.11.3",
