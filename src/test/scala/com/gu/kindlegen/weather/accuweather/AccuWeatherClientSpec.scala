@@ -48,6 +48,14 @@ class AccuWeatherClientSpec extends FunSpec {
       checkUniqueness(_.name)
       checkUniqueness(_.key)
     }
+
+    it("contains all the locations in the default config") {
+      withSettings { settings =>
+        val knownCities = knownLocations.map(_.name)
+        val defaultCities = settings.weather.articles.flatMap(_.cities)
+        knownCities should contain allElementsOf defaultCities
+      }
+    }
   }
 
   describe("forecastFor(location)") {
