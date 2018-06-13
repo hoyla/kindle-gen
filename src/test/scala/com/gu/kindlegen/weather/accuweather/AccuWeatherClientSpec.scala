@@ -2,16 +2,16 @@ package com.gu.kindlegen.weather.accuweather
 
 import java.net.URI
 
+import org.json4s._
+import org.json4s.native.JsonMethods._
 import org.scalatest.FunSpec
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
+import org.scalatest.Inspectors._
 
 import com.gu.concurrent.TestExecutionContext._
 import com.gu.io.sttp.SttpDownloaderStub
 import com.gu.kindlegen.weather.WeatherClient._
-import org.json4s._
-import org.json4s.native.JsonMethods._
-import org.scalatest.Inspectors._
 
 class AccuWeatherClientSpec extends FunSpec {
   import AccuWeatherClient._
@@ -45,11 +45,11 @@ class AccuWeatherClientSpec extends FunSpec {
     }
   }
 
-  describe("forecastForLocation") {
+  describe("forecastFor(location)") {
     it("fetches a forecast for a particular location") {
       val location = Location("Cairo", "127164")
       val downloader = SttpDownloaderStub {
-        _.whenRequestMatches(_.uri.path.last.matches(raw"${location.key}(?:\.json)?"))
+        _.whenRequestMatches(_.uri.path.lastOption.exists(_.matches(raw"${location.key}(?:\.json)?")))
           .thenRespond(forecastResponse)
       }
 

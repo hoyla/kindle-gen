@@ -26,7 +26,7 @@ object WeatherClient {
     val values: Iterable[Option[_]] = this.productIterator.map(_.asInstanceOf[Option[_]]).toIterable
 
     /** Returns true if at least one field has a value */
-    def isDefined: Boolean = !isEmpty
+    def nonEmpty: Boolean = !isEmpty
 
     /** Returns true if all fields are empty */
     def isEmpty: Boolean = values.forall(_.isEmpty)

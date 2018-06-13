@@ -90,7 +90,7 @@ class AccuWeatherClient(apiKey: String,
 
       val forecast = response.as[Forecast]
 
-      if (forecast.isDefined) {
+      if (forecast.nonEmpty) {
         Future.successful(forecast)
       } else {
         val msg = s"AccuWeather response for ${location.name} did not contain a forecast!"

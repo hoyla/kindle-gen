@@ -60,7 +60,7 @@ class DailyWeatherForecastProviderSpec extends FunSpec {
 
   it("creates as many articles as required") {
     val articleSettings = citiesWithForecasts.toSeq.zipWithIndex.map { case (city, i) =>
-      WeatherArticleSettings(s"Article $i", s"Byline $i", Some(s"Abstract $i"), cities = Seq(city), image = None)
+      WeatherArticleSettings(s"Article $i", s"Byline $i", Some(s"Abstract $i"), pageNumber = i, cities = Seq(city), image = None)
     }
     val settings = settingsWithArticles(articleSettings: _*)
     checkGeneratedArticles(settings)
@@ -90,6 +90,7 @@ class DailyWeatherForecastProviderSpec extends FunSpec {
       article.title shouldBe articleSettings.title
       article.byline shouldBe articleSettings.byline
       article.mainImage shouldBe articleSettings.image
+      article.newspaperPageNumber shouldBe articleSettings.pageNumber
       article.articleAbstract shouldBe articleSettings.articleAbstract.getOrElse("")
 
       val xhtml = XML.loadString(article.bodyBlocks.mkString)

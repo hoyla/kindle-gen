@@ -58,7 +58,7 @@ class DailyWeatherForecastProvider(client: WeatherClient,
   protected def collectForecasts(cityNames: Seq[String]): Future[Seq[CityForecast]] = {
     successfulSequence(cityNames.map(dailyForecast))  // skip failed forecasts
       .flatMap { forecasts =>
-        val usableForecasts = forecasts.filter(_.forecast.isDefined)
+        val usableForecasts = forecasts.filter(_.forecast.nonEmpty)
         val minForecasts = (cityNames.size * minForecastsRatio).round
 
         if (usableForecasts.size >= minForecasts) {
