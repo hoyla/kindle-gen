@@ -102,6 +102,10 @@ class DailyWeatherForecastProviderSpec extends FunSpec {
     val testableCities = articleSettings.cities.filter(citiesWithForecasts)
     val testableForecasts = testableCities.map(city => CityForecast(city, forecastsByCity(city)))
 
+    val headers = xhtml \\ "thead" \\ "td"
+    val dummyForecast = Forecast(None, None, None, None, None)
+    headers should have size (dummyForecast.productArity + 1)  // 1 for the city column
+
     val rows = xhtml \\ "tbody" \ "tr"
     rows should have size testableForecasts.size
 

@@ -85,7 +85,8 @@ class DailyWeatherForecastProvider(client: WeatherClient,
   }
 
   protected def forecastTable(cityForecasts: Seq[CityForecast]) = {
-    val tableHeaders = forecastRowFields.map(_._1)
+    val cityHeader = ""  // the table looks nicer with an empty corner cell
+    val tableHeaders = cityHeader +: forecastRowFields.map(_._1)
     def forecastRow(forecast: Forecast) = forecastRowFields.map(_._2(forecast).getOrElse(""))
 
     <table>
