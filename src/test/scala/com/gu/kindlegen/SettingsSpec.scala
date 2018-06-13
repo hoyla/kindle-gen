@@ -62,6 +62,11 @@ object SettingsSpec {
     def toConfigObj: ConfigObject = ConfigValueFactory.fromMap(values.asJava)
   }
 
+  private val accuWeatherValues = Map(
+    "apiKey" -> "My weather API key",
+    "baseUrl" -> "https://weather.example.com"
+  )
+
   private val contentApiValues = Map(
     "key" -> "My API key",
     "url" -> "https://example.com"
@@ -125,6 +130,7 @@ object SettingsSpec {
   )
 
   private val settingsValues = Map(
+    "accuweather" -> accuWeatherConfig,
     "content-api" -> contentApiConfig,
     "publishing" -> publishingConfig,
     "gu-capi" -> capiConfig,
@@ -133,6 +139,7 @@ object SettingsSpec {
   )
 
   private def settingsConfig = settingsValues.toConfigObj
+  private def accuWeatherConfig = accuWeatherValues.toConfigObj
   private def contentApiConfig = contentApiValues.toConfigObj
   private def publishingConfig = publishingValues.toConfigObj
   private def publishedFilesConfig = publishedFilesValues.toConfigObj
@@ -141,11 +148,17 @@ object SettingsSpec {
   private def weatherConfig = weatherValues.toConfigObj
 
   private def validateValues(settings: Settings): Assertion = {
+    validateValues(settings.accuWeather)
     validateValues(settings.contentApi)
     validateValues(settings.articles)
     validateValues(settings.publishing)
     validateValues(settings.s3)
     validateValues(settings.weather)
+  }
+
+  private def validateValues(accuWeatherSettings: AccuWeatherSettings): Assertion = {
+    accuWeatherSettings.apiKey shouldBe accuWeatherValues("apiKey")
+    accuWeatherSettings.baseUrl.toString shouldBe accuWeatherValues("baseUrl")
   }
 
   private def validateValues(contentApiSettings: ContentApiSettings): Assertion = {

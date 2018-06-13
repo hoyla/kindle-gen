@@ -1,5 +1,6 @@
 package com.gu.kindlegen
 
+import java.net.URI
 import java.nio.file.{Files, Path}
 
 import scala.concurrent.duration.FiniteDuration
@@ -7,6 +8,7 @@ import scala.util.Try
 
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
+import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
 
 import com.gu.config._
@@ -16,14 +18,20 @@ import com.gu.io.Link.AbsoluteURL
 import com.gu.kindlegen.weather.WeatherSettings
 
 /** Encapsulates the settings of this application */
-final case class Settings(contentApi: ContentApiSettings,
+final case class Settings(credentials: Credentials,
                           articles: GuardianProviderSettings,
                           weather: WeatherSettings,
                           publishing: PublishingSettings,
                           s3: S3Settings) {
+  def accuWeather: AccuWeatherSettings = credentials.accuWeather
+  def contentApi: ContentApiSettings = credentials.contentApi
   def withPublishingFiles(files: PublishedFileSettings): Settings =
     copy(publishing = publishing.copy(files = files))
 }
+
+final case class Credentials(accuWeather: AccuWeatherSettings, contentApi: ContentApiSettings)
+
+final case class AccuWeatherSettings(apiKey: String, baseUrl: URI)
 
 final case class ContentApiSettings(apiKey: String, targetUrl: String)
 
@@ -52,14 +60,21 @@ final case class S3Settings(bucketName: String, bucketDirectory: String, optiona
 object Settings extends RootConfigReader[Settings] {
   def apply(config: Config): Try[Settings] = {
     for {
+      accuWeather <- AccuWeatherSettings.fromParentConfig(config)
       contentApi <- ContentApiSettings.fromParentConfig(config)
       publishing <- PublishingSettings.fromParentConfig(config)
       articles <- GuardianProviderSettings.fromParentConfig(config)
       weather <- WeatherSettingsReader.fromParentConfig(config)
       s3 <- S3Settings.fromParentConfig(config)
     } yield {
-      Settings(contentApi, articles, weather, publishing, s3)
+      Settings(Credentials(accuWeather, contentApi), articles, weather, publishing, s3)
     }
+  }
+}
+
+object AccuWeatherSettings extends AbstractConfigReader[AccuWeatherSettings]("accuweather") {
+  def apply(config: Config): Try[AccuWeatherSettings] = Try {
+    config.as[AccuWeatherSettings]
   }
 }
 
@@ -109,7 +124,6 @@ object PublishingSettings extends AbstractConfigReader[PublishingSettings]("publ
 
 object PublishedFileSettings extends AbstractConfigReader[PublishedFileSettings]("files") {
   def apply(config: Config): Try[PublishedFileSettings] = Try {
-    import net.ceedubs.ficus.readers.ArbitraryTypeReader._
     config.as[PublishedFileSettings]
   }
 
@@ -135,7 +149,6 @@ object WeatherSettingsReader extends AbstractConfigReader[WeatherSettings]("weat
   }
 
   override def apply(config: Config): Try[WeatherSettings] = Try {
-    import net.ceedubs.ficus.readers.ArbitraryTypeReader._
     config.as[WeatherSettings]
   }
 
