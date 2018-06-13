@@ -2,6 +2,7 @@ package com.gu.kindlegen
 
 import java.net.URI
 import java.nio.file.{Files, Path}
+import java.time.DayOfWeek
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
@@ -15,7 +16,7 @@ import com.gu.config._
 import com.gu.contentapi.client.model.v1.TagType
 import com.gu.io.Link
 import com.gu.io.Link.AbsoluteURL
-import com.gu.kindlegen.weather.WeatherSettings
+import com.gu.kindlegen.weather.{WeatherArticleSettings, WeatherSettings}
 
 /** Encapsulates the settings of this application */
 final case class Settings(credentials: Credentials,
@@ -149,8 +150,25 @@ object WeatherSettingsReader extends AbstractConfigReader[WeatherSettings]("weat
   }
 
   override def apply(config: Config): Try[WeatherSettings] = Try {
-    config.as[WeatherSettings]
+    val minForecastsPercentage = config.as[Int](MinForecastsPercentage)
+    val articles = config.as[Seq[WeatherArticleSettings]](Articles)
+    val sections = dailySections(config)
+    WeatherSettings(minForecastsPercentage, articles, sections)
   }
 
-  // configuration properties have the same names as the class fields
+  private def dailySections(config: Config): Map[DayOfWeek, Section] = {
+    val sections = config.as[Map[String, Section]](Sections)
+    val defaultSection = sections(DefaultSection)
+    sections
+      .filterKeys(_ != DefaultSection)
+      .map {
+        case (dayName, section) => DayOfWeek.valueOf(dayName.toUpperCase) -> section
+      }
+      .withDefaultValue(defaultSection)
+  }
+
+  private final val Articles = "articles"
+  private final val DefaultSection = "default"
+  private final val MinForecastsPercentage = "minForecastsPercentage"
+  private final val Sections = "sections"
 }

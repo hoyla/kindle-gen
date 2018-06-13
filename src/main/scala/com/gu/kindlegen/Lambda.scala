@@ -1,6 +1,5 @@
 package com.gu.kindlegen
 
-import java.net.URI
 import java.time.{Instant, LocalDate}
 import java.time.ZoneOffset.UTC
 
@@ -19,7 +18,7 @@ import org.apache.logging.log4j.scala.Logging
 import com.gu.io.aws.S3Publisher
 import com.gu.io.sttp.{OkHttpSttpDownloader, SttpDownloader}
 import com.gu.kindlegen.capi.GuardianArticlesProvider
-import com.gu.kindlegen.weather.{DailyWeatherForecastProvider, WeatherSettings}
+import com.gu.kindlegen.weather.DailyWeatherForecastProvider
 import com.gu.kindlegen.weather.accuweather.AccuWeatherClient
 
 object Lambda extends Logging {
@@ -43,7 +42,7 @@ object Lambda extends Logging {
     Settings(config)
       .recover(fatalError("Could not load the configuration"))
       .map(withOutputDirForDate(date))
-      .map(new Lambda(_).run(date, context.getRemainingTimeInMillis))
+      .map(new Lambda(_, date).run(context.getRemainingTimeInMillis))
       .recover(fatalError("Generation failed!"))
   }
 
@@ -82,17 +81,17 @@ object Lambda extends Logging {
   }
 }
 
-class Lambda(settings: Settings) extends Logging {
+class Lambda(settings: Settings, date: LocalDate) extends Logging {
   import Lambda.ErrorReportingTimeInMillis
 
-  def run(date: LocalDate, remainingTimeInMillis: => Long): Unit = {
+  def run(remainingTimeInMillis: => Long): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     logger.debug(s"Running with settings $settings")
 
     val downloader = OkHttpSttpDownloader()
     val provider = new CompositeArticlesProvider(
-      capiProvider(settings, downloader, date),
+      capiProvider(settings, downloader),
       weatherProvider(settings, downloader)
     )
     val publisher = s3Publisher(settings)
@@ -106,17 +105,18 @@ class Lambda(settings: Settings) extends Logging {
     logger.debug("Publishing finished successfully.")
   }
 
-  private def capiProvider(settings: Settings, downloader: OkHttpSttpDownloader, date: LocalDate)
+  private def capiProvider(settings: Settings, downloader: OkHttpSttpDownloader)
                           (implicit ec: ExecutionContext): ArticlesProvider = {
     GuardianArticlesProvider(settings.contentApi, settings.articles, downloader, date)
   }
 
   private def weatherProvider(settings: Settings, downloader: SttpDownloader)
                              (implicit ec: ExecutionContext): ArticlesProvider = {
-    // TODO choose section based on day of week
-    val credentials = settings.credentials.accuWeather
+    val credentials = settings.accuWeather
     val client = AccuWeatherClient(credentials.apiKey, credentials.baseUrl, downloader)
-    new DailyWeatherForecastProvider(client, settings.weather.section, settings.weather)
+
+    val section = settings.weather.sections(date.getDayOfWeek)
+    new DailyWeatherForecastProvider(client, section, settings.weather)
   }
 
   private def s3Publisher(settings: Settings)(implicit ec: ExecutionContext): S3Publisher = {

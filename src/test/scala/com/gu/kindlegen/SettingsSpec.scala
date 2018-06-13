@@ -1,7 +1,7 @@
 package com.gu.kindlegen
 
 import java.nio.file.Paths
-import java.time.Duration
+import java.time.{DayOfWeek, Duration}
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
@@ -52,7 +52,9 @@ class SettingsSpec extends FunSpec {
   private def validateSettings[T](maybeSettings: Try[T])(validate: T => _) = {
     maybeSettings match {
       case Success(settings) => validate(settings)
-      case Failure(error) => fail(s"Failed to read configuration! $error", error)
+      case Failure(error) =>
+        error.printStackTrace()
+        fail(s"Failed to read configuration! $error", error)
     }
   }
 }
@@ -118,16 +120,19 @@ object SettingsSpec {
     "image" -> weatherImage(country).toConfigObj,
   )}
 
-  private val weatherSection = Section("my-section", "My Section", AbsoluteURL.from("http://example.com"))
+  val defaultSection = Section("default-section", "Default Section", AbsoluteURL.from("http://example.com/default"))
+  private val weatherSections = Map(
+    "default" -> defaultSection,
+    "saturday" -> Section("weekend", "Weekend Section", AbsoluteURL.from("http://example.com/weekend")),
+    "Sunday" -> Section("special", "Special Section", AbsoluteURL.from("http://example.com/special")),
+  )
   private val weatherValues = Map(
     "articles" -> weatherArticleValues.map(_.toConfigObj).asJava,
     "minForecastsPercentage" -> 75,
-    "section" -> Map(
-      "id" -> weatherSection.id,
-      "title" -> weatherSection.title,
-      "link" -> weatherSection.link.source
-    ).toConfigObj,
+    "sections" -> weatherSections.mapValues(toMap).toConfigObj,
   )
+  private def toMap(section: Section) =
+    Map("id" -> section.id, "title" -> section.title, "link" -> section.link.source).toConfigObj
 
   private val settingsValues = Map(
     "accuweather" -> accuWeatherConfig,
@@ -196,10 +201,19 @@ object SettingsSpec {
   }
 
   private def validateValues(weather: WeatherSettings): Assertion = {
-    weather.section shouldBe weatherSection
     weather.minForecastsPercentage shouldBe weatherValues("minForecastsPercentage")
     forEvery(weather.articles.zipWithIndex) { case (article, index) =>
       validateValues(article, weatherArticleValues(index))
+    }
+
+    val weatherSections = this.weatherSections.map { case (day, section) => day.toUpperCase -> section }
+    val sectionKeys = weatherSections.keySet  // day names + "default"
+
+    forEvery(weather.sections) { case (day, section) =>
+      section shouldBe weatherSections(day.toString)
+    }
+    forEvery(DayOfWeek.values.filterNot(day => sectionKeys.contains(day.toString))) { unconfiguredDay =>
+      weather.sections(unconfiguredDay) shouldBe defaultSection
     }
   }
 

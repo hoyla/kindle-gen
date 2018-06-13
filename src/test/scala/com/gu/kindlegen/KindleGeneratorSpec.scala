@@ -40,7 +40,7 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
     val weatherClient = AccuWeatherClient(settings.accuWeather.apiKey, settings.accuWeather.baseUrl, downloader)
     val publisher = FilePublisher(fileSettings.outputDir.resolve(editionDate.toString))
     val capiProvider = GuardianArticlesProvider(settings.contentApi, settings.articles, downloader, editionDate)
-    val weatherProvider = new DailyWeatherForecastProvider(weatherClient, settings.weather.section, settings.weather)
+    val weatherProvider = new DailyWeatherForecastProvider(weatherClient, settings.weather.sections(editionDate.getDayOfWeek), settings.weather)
     val provider = new CompositeArticlesProvider(capiProvider, weatherProvider)
     val generator = KindleGenerator(provider, publisher, downloader, settings)
 
