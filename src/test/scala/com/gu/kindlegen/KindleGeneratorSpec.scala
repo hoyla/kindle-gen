@@ -15,6 +15,8 @@ import com.gu.io.{FilePublisher, TempFiles}
 import com.gu.io.Link.PathLink
 import com.gu.io.sttp.OkHttpSttpDownloader
 import com.gu.kindlegen.capi.GuardianArticlesProvider
+import com.gu.kindlegen.weather.DailyWeatherForecastProvider
+import com.gu.kindlegen.weather.accuweather.AccuWeatherClient
 import com.gu.scalatest.PathMatchers._
 import com.gu.xml.XmlUtils._
 
@@ -35,8 +37,11 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
   def test(editionDate: LocalDate): Unit = describe(s"publish($editionDate)") {
     import scala.concurrent.ExecutionContext.Implicits.global
     val downloader = OkHttpSttpDownloader()
+    val weatherClient = AccuWeatherClient(settings.accuWeather.apiKey, settings.accuWeather.baseUrl, downloader)
     val publisher = FilePublisher(fileSettings.outputDir.resolve(editionDate.toString))
-    val provider = GuardianArticlesProvider(settings, downloader, editionDate)
+    val capiProvider = GuardianArticlesProvider(settings.contentApi, settings.articles, downloader, editionDate)
+    val weatherProvider = new DailyWeatherForecastProvider(weatherClient, settings.weather.section, settings.weather)
+    val provider = new CompositeArticlesProvider(capiProvider, weatherProvider)
     val generator = KindleGenerator(provider, publisher, downloader, settings)
 
     lazy val links = Await.result(generator.publish().map(_ => publisher.publications), settings.articles.downloadTimeout)

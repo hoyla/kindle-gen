@@ -18,7 +18,8 @@ class GuardianArticlesProviderSpec extends FlatSpec with ScalaFutures with Integ
 
   private val downloader = OkHttpSttpDownloader()
   private def provider: GuardianArticlesProvider = provider(ExampleOffsetDate.toLocalDate)
-  private def provider(editionDate: LocalDate) = GuardianArticlesProvider(settings, downloader, editionDate)
+  private def provider(editionDate: LocalDate) =
+    GuardianArticlesProvider(settings.contentApi, settings.articles, downloader, editionDate)
 
   val totalArticles = 96  // on exampleDate = 2017-07-24
 

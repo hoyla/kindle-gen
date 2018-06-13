@@ -1,5 +1,6 @@
 package com.gu.kindlegen
 
+import java.net.URI
 import java.time.{Instant, LocalDate}
 import java.time.ZoneOffset.UTC
 
@@ -15,9 +16,11 @@ import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.core.config.Configurator
 import org.apache.logging.log4j.scala.Logging
 
-import com.gu.io.sttp.OkHttpSttpDownloader
 import com.gu.io.aws.S3Publisher
+import com.gu.io.sttp.{OkHttpSttpDownloader, SttpDownloader}
 import com.gu.kindlegen.capi.GuardianArticlesProvider
+import com.gu.kindlegen.weather.{DailyWeatherForecastProvider, WeatherSettings}
+import com.gu.kindlegen.weather.accuweather.AccuWeatherClient
 
 object Lambda extends Logging {
   private val ConfigSettingsEnvKey = "ConfigSettings"
@@ -88,8 +91,12 @@ class Lambda(settings: Settings) extends Logging {
     logger.debug(s"Running with settings $settings")
 
     val downloader = OkHttpSttpDownloader()
-    val publisher = s3Publisher(settings.s3)
-    val provider = GuardianArticlesProvider(settings, downloader, date)
+    val provider = new CompositeArticlesProvider(
+      capiProvider(settings, downloader, date),
+      weatherProvider(settings, downloader)
+    )
+    val publisher = s3Publisher(settings)
+
     val kindleGenerator = KindleGenerator(provider, publisher, downloader, settings)
 
     logger.info(s"Starting to publish files for $date; uploading to s3://${settings.s3.absolutePath.source}")
@@ -99,13 +106,26 @@ class Lambda(settings: Settings) extends Logging {
     logger.debug("Publishing finished successfully.")
   }
 
-  private def s3Publisher(settings: S3Settings)(implicit ec: ExecutionContext): S3Publisher = {
-    val bucketName = settings.bucketName
+  private def capiProvider(settings: Settings, downloader: OkHttpSttpDownloader, date: LocalDate)
+                          (implicit ec: ExecutionContext): ArticlesProvider = {
+    GuardianArticlesProvider(settings.contentApi, settings.articles, downloader, date)
+  }
+
+  private def weatherProvider(settings: Settings, downloader: SttpDownloader)
+                             (implicit ec: ExecutionContext): ArticlesProvider = {
+    // TODO choose section based on day of week
+    val credentials = settings.credentials.accuWeather
+    val client = AccuWeatherClient(credentials.apiKey, credentials.baseUrl, downloader)
+    new DailyWeatherForecastProvider(client, settings.weather.section, settings.weather)
+  }
+
+  private def s3Publisher(settings: Settings)(implicit ec: ExecutionContext): S3Publisher = {
+    val bucketName = settings.s3.bucketName
     require(bucketName.nonEmpty, "S3 bucket name was not specified")
 
     val s3 = AmazonS3ClientBuilder.defaultClient()
     require(s3.doesBucketExistV2(bucketName), s"S3 bucket $bucketName was not found")
 
-    S3Publisher(s3, settings)
+    S3Publisher(s3, settings.s3)
   }
 }
