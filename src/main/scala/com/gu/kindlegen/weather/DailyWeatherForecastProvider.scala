@@ -59,7 +59,7 @@ class DailyWeatherForecastProvider(client: WeatherClient,
     successfulSequence(cityNames.map(dailyForecast))  // skip failed forecasts
       .flatMap { forecasts =>
         val usableForecasts = forecasts.filter(_.forecast.nonEmpty)
-        val minForecasts = (cityNames.size * minForecastsRatio).round
+        val minForecasts = (cityNames.size * minForecastsRatio).ceil
 
         if (usableForecasts.size >= minForecasts) {
           logger.info(s"Found ${usableForecasts.size} usable forecasts (out of ${cityNames.size}).")
