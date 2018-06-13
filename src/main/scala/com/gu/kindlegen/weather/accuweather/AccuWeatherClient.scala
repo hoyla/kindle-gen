@@ -60,7 +60,7 @@ object AccuWeatherClient {
 
 /** A client for AccuWeather's API
   *
-  * @param apiBaseUri the URL to the API server, e.g. http(s)://{{api} or {{apidev}}.accuweather.com/
+  * @param apiBaseUri the URL to the API server, e.g. http://dataservice.accuweather.com
   */
 class AccuWeatherClient(apiKey: String,
                         apiBaseUri: URI,
@@ -79,7 +79,7 @@ class AccuWeatherClient(apiKey: String,
   }
 
   def forecastFor(location: Location): Future[Forecast] = {
-    val url = uri"$apiBaseUri/$ForecastPath/${location.key}.json?api-key=$apiKey&details=true&language=en-gb"
+    val url = uri"$apiBaseUri/$ForecastPath/${location.key}.json?apikey=$apiKey&details=true&metric=true&language=en-gb"
     val request = sttp.get(url).response(asJson[JValue])
 
     logger.debug(s"Requesting forecast for $location...")

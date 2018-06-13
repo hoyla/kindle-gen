@@ -2,15 +2,20 @@ package com.gu.kindlegen.weather.accuweather
 
 import java.net.URI
 
+import scala.util.{Failure, Success}
+
 import org.json4s._
 import org.json4s.native.JsonMethods._
-import org.scalatest.FunSpec
+import org.scalatest.{Assertion, FunSpec}
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest.Inspectors._
+import org.scalatest.time.SpanSugar._
+import org.scalatest.OptionValues._
 
 import com.gu.concurrent.TestExecutionContext._
-import com.gu.io.sttp.SttpDownloaderStub
+import com.gu.io.sttp.{OkHttpSttpDownloader, SttpDownloaderStub}
+import com.gu.kindlegen.Settings
 import com.gu.kindlegen.weather.WeatherClient._
 
 class AccuWeatherClientSpec extends FunSpec {
@@ -47,18 +52,41 @@ class AccuWeatherClientSpec extends FunSpec {
 
   describe("forecastFor(location)") {
     it("fetches a forecast for a particular location") {
-      val location = Location("Cairo", "127164")
       val downloader = SttpDownloaderStub {
-        _.whenRequestMatches(_.uri.path.lastOption.exists(_.matches(raw"${location.key}(?:\.json)?")))
+        _.whenRequestMatches(_.uri.path.lastOption.exists(_.matches(raw"${cairo.key}(?:\.json)?")))
           .thenRespond(forecastResponse)
       }
 
       val client = AccuWeatherClient(apiKey = "", new URI("http://example.com"), downloader)
-      val actual = client.forecastFor(location).futureValue
+      val actual = client.forecastFor(cairo).futureValue
       actual shouldBe expectedForecast
+    }
+
+    it("works with the actual API") {
+      withSettings { settings =>
+        val credentials = settings.accuWeather
+        val downloader = OkHttpSttpDownloader()
+        val client = AccuWeatherClient(credentials.apiKey, credentials.baseUrl, downloader)
+
+        val forecast = client.forecastFor(cairo).futureValue(timeout(scaled(15.seconds)))
+        withClue(forecast) {
+          forecast.nonEmpty shouldBe true
+          forecast.high.value should be < 55  // the temperatures should be in celsius, not fahrenheit
+          forecast.low.value should be < 40  // these numbers are higher than the highest recorded temperatures in Cairo
+                                            //  but still very low for Cairo if they were in fahrenheit
+        }
+      }
     }
   }
 
+  private def withSettings(f: Settings => Assertion): Unit = {
+    Settings.load match {
+      case Success(settings) => f(settings)
+      case Failure(_) => pending // fix SettingsSpec first
+    }
+  }
+
+  private val cairo = Location("Cairo", "127164")
   private val expectedForecast = Forecast(Some("heat"), Some(34), Some(22), Some("Good"), Some(0))
   private val forecastResponse = """{
     "Headline": {
