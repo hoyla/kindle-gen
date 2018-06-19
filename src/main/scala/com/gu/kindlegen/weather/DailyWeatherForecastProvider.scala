@@ -9,6 +9,7 @@ import scala.xml.Elem
 import org.apache.logging.log4j.scala.Logging
 
 import com.gu.concurrent.FutureUtils._
+import com.gu.io.IOUtils
 import com.gu.kindlegen._
 import com.gu.kindlegen.weather.WeatherClient.Forecast
 
@@ -37,8 +38,10 @@ class DailyWeatherForecastProvider(client: WeatherClient,
     collectForecasts(articleSettings.cities)
       .map(forecastTable)
       .map { content: Elem =>
-        val link = section.link  // the article is generated and has no link of its own; another link will be provided later
-        val id = section.id + '_' + articleSettings.title.replace(' ', '-')
+        // the article is generated and has no link of its own; another link will be provided later
+        val link = section.link
+        // Amazon's KPP doesn't like special characters in article ids
+        val id = IOUtils.asFileName(s"${section.id}_${articleSettings.title}").replace(' ', '_')
 
         Article(
           section = section,

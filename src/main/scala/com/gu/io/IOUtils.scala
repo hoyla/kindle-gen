@@ -2,11 +2,14 @@ package com.gu.io
 
 import java.nio.file.{Files, Path}
 
-import org.apache.logging.log4j.scala.Logging
+import scala.util.matching.Regex
 
-object IOUtils extends Logging {
+
+object IOUtils {
+  val unwantedFileNameChars: Regex = raw"""[:/\\?&#<>'"]""".r
+
   def asFileName(str: String): String = {
-    str.replaceAll(raw"[:/\\?&#]", "_")
+    unwantedFileNameChars.replaceAllIn(str, "_")
   }
 
   def fileExtension(pathOrUrl: String): String = {
