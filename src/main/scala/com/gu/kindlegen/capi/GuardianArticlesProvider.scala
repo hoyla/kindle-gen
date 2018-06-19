@@ -14,16 +14,16 @@ import com.gu.kindlegen._
 
 
 object GuardianArticlesProvider {
-  def apply(contentApiSettings: ContentApiSettings,
+  def apply(credentials: ContentApiCredentials,
             capiSettings: GuardianProviderSettings,
             downloader: SttpDownloader,
             editionDate: LocalDate)(implicit ec: ExecutionContext): GuardianArticlesProvider = {
-    val capiClient = contentApiClient(contentApiSettings, downloader)
+    val capiClient = contentApiClient(credentials, downloader)
     new GuardianArticlesProvider(capiClient, capiSettings, editionDate)
   }
 
-  private def contentApiClient(settings: ContentApiSettings, sttpDownloader: SttpDownloader): ContentApiClient = {
-    new AbstractContentApiClient(settings.apiKey, Some(settings.targetUrl)) with SttpContentApiClient {
+  private def contentApiClient(credentials: ContentApiCredentials, sttpDownloader: SttpDownloader): ContentApiClient = {
+    new AbstractContentApiClient(credentials.apiKey, Some(credentials.targetUrl)) with SttpContentApiClient {
       override protected def downloader = sttpDownloader
     }
   }

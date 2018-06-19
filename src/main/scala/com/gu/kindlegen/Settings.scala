@@ -19,22 +19,19 @@ import com.gu.io.Link.AbsoluteURL
 import com.gu.kindlegen.weather.{WeatherArticleSettings, WeatherSettings}
 
 /** Encapsulates the settings of this application */
-final case class Settings(credentials: Credentials,
+final case class Settings(accuWeather: AccuWeatherSettings,
+                          contentApi: ContentApiCredentials,
                           articles: GuardianProviderSettings,
                           weather: WeatherSettings,
                           publishing: PublishingSettings,
                           s3: S3Settings) {
-  def accuWeather: AccuWeatherSettings = credentials.accuWeather
-  def contentApi: ContentApiSettings = credentials.contentApi
   def withPublishingFiles(files: PublishedFileSettings): Settings =
     copy(publishing = publishing.copy(files = files))
 }
 
-final case class Credentials(accuWeather: AccuWeatherSettings, contentApi: ContentApiSettings)
-
 final case class AccuWeatherSettings(apiKey: String, baseUrl: URI)
 
-final case class ContentApiSettings(apiKey: String, targetUrl: String)
+final case class ContentApiCredentials(apiKey: String, targetUrl: String)
 
 final case class PublishedFileSettings(outputDir: Path,
                                        nitfExtension: String,
@@ -62,13 +59,13 @@ object Settings extends RootConfigReader[Settings] {
   def apply(config: Config): Try[Settings] = {
     for {
       accuWeather <- AccuWeatherSettings.fromParentConfig(config)
-      contentApi <- ContentApiSettings.fromParentConfig(config)
+      contentApi <- ContentApiCredentials.fromParentConfig(config)
       publishing <- PublishingSettings.fromParentConfig(config)
       articles <- GuardianProviderSettings.fromParentConfig(config)
       weather <- WeatherSettingsReader.fromParentConfig(config)
       s3 <- S3Settings.fromParentConfig(config)
     } yield {
-      Settings(Credentials(accuWeather, contentApi), articles, weather, publishing, s3)
+      Settings(accuWeather, contentApi, articles, weather, publishing, s3)
     }
   }
 }
@@ -79,11 +76,11 @@ object AccuWeatherSettings extends AbstractConfigReader[AccuWeatherSettings]("ac
   }
 }
 
-object ContentApiSettings extends AbstractConfigReader[ContentApiSettings]("content-api") {
-  def apply(config: Config): Try[ContentApiSettings] = Try {
+object ContentApiCredentials extends AbstractConfigReader[ContentApiCredentials]("content-api") {
+  def apply(config: Config): Try[ContentApiCredentials] = Try {
     val key    = config.as[String](Key)
     val apiUrl = config.as[String](TargetUrl)
-    ContentApiSettings(key, apiUrl)
+    ContentApiCredentials(key, apiUrl)
   }
 
   private final val Key = "key"

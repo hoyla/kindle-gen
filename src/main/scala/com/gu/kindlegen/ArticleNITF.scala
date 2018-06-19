@@ -18,7 +18,8 @@ import com.gu.xml._
 
 object ArticleNITF {
   val Version = "-//IPTC//DTD NITF 3.5//EN"
-  private val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
+
+  private val dateFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
 
   private val textCleaner = new Cleaner(Whitelist.none)
 
@@ -62,7 +63,7 @@ case class ArticleNITF(article: Article) {
   }
 
   private def head = {
-    val pubDate = formatter.format(article.pubDate)
+    val pubDate = dateFormatter.format(article.pubDate)
     <head>
       <title>{article.title}</title>
       <docdata management-status="usable">

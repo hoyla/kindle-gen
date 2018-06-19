@@ -48,8 +48,6 @@ case class TestContent(
     testArticleTitle: String,
     testArticleId: String,
     testArticleIssueDate: CapiDateTime,
-    testArticleReleaseDate: CapiDateTime,
-    testArticlePubDate: CapiDateTime,
     testArticleByline: String,
     testArticleAbstract: String, // standfirst is used
     testArticleContent: String,

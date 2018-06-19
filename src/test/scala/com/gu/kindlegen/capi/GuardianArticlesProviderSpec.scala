@@ -24,7 +24,7 @@ class GuardianArticlesProviderSpec extends FlatSpec with ScalaFutures with Integ
   val totalArticles = 96  // on exampleDate = 2017-07-24
 
   val capiDate = ExampleDate
-  val testContent = TestContent("", "", 3, "", "", capiDate, capiDate, capiDate, "", "", "", None)
+  val testContent = TestContent("", "", 3, "", "", capiDate, "", "", "", None)
   val capiResponse = List(testContent.toContent)
 
   "articles" should "convert a capi response (Seq[Content) to a Seq[Article])" in {

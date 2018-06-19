@@ -7,7 +7,7 @@ import com.gu.kindlegen.TestContent._
 class ArticleSuite extends FlatSpec {
 
   val capiDate = ExampleDate
-  val ta = TestContent("", "", 2, "", "", capiDate, capiDate, capiDate, "", "", "", None)
+  val ta = TestContent("", "", 2, "", "", capiDate, "", "", "", None)
 
   ".apply" should "apply method with content as parameter" in {
     val content = ta.toContent

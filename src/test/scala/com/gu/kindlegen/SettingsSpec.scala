@@ -21,7 +21,7 @@ import com.gu.scalatest.PathMatchers._
 class SettingsSpec extends FunSpec {
   import SettingsSpec._
 
-  testReader(ContentApiSettings, contentApiConfig)(validateValues)
+  testReader(ContentApiCredentials, contentApiConfig)(validateValues)
 
   testReader(PublishedFileSettings, publishedFilesConfig)(validateValues)
 
@@ -166,7 +166,7 @@ object SettingsSpec {
     accuWeatherSettings.baseUrl.toString shouldBe accuWeatherValues("baseUrl")
   }
 
-  private def validateValues(contentApiSettings: ContentApiSettings): Assertion = {
+  private def validateValues(contentApiSettings: ContentApiCredentials): Assertion = {
     contentApiSettings.apiKey shouldBe contentApiValues("key")
     contentApiSettings.targetUrl shouldBe contentApiValues("url")
   }

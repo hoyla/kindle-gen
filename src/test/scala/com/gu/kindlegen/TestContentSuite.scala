@@ -6,7 +6,7 @@ import com.gu.kindlegen.TestContent._
 class TestContentSuite extends FunSuite {
 
   val capiDate = ExampleDate
-  val ta = TestContent("", "", 1, "", "", capiDate, capiDate, capiDate, "", "", "", None)
+  val ta = TestContent("", "", 1, "", "", capiDate, "", "", "", None)
 
   test("TestContent.toContent") {
     assert(ta.toContent.id === "")
