@@ -1,7 +1,8 @@
 package com.gu.kindlegen
 
-import java.time.{Instant, LocalDate}
+import java.time.{Instant, LocalDate, LocalTime}
 import java.time.ZoneOffset.UTC
+import java.time.temporal.ChronoUnit.HOURS
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{Await, ExecutionContext}
@@ -85,9 +86,16 @@ class Lambda(settings: Settings, date: LocalDate) extends Logging {
   import Lambda.ErrorReportingTimeInMillis
 
   def run(remainingTimeInMillis: => Long): Unit = {
-    import scala.concurrent.ExecutionContext.Implicits.global
+    if (isTimeToRun) {
+      logger.debug(s"Running with settings $settings")
+      doRun(remainingTimeInMillis)
+    } else {
+      logger.info(s"Skipping run; it's either too early or too late for ${settings.run.localHour} ${settings.run.zone}.")
+    }
+  }
 
-    logger.debug(s"Running with settings $settings")
+  def doRun(remainingTimeInMillis: => Long): Unit = {
+    import scala.concurrent.ExecutionContext.Implicits.global
 
     val downloader = OkHttpSttpDownloader()
     val provider = new CompositeArticlesProvider(
@@ -103,6 +111,14 @@ class Lambda(settings: Settings, date: LocalDate) extends Logging {
 
     Await.ready(published, Duration(remainingTimeInMillis - ErrorReportingTimeInMillis, MILLISECONDS))
     logger.debug("Publishing finished successfully.")
+  }
+
+  private def isTimeToRun: Boolean = {
+    val runSettings = settings.run
+    val localNow = LocalTime.now(runSettings.zone)
+
+    localNow.isAfter(runSettings.localHour) &&
+      HOURS.between(runSettings.localHour, localNow) == 0
   }
 
   private def capiProvider(settings: Settings, downloader: OkHttpSttpDownloader)

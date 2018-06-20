@@ -1,6 +1,7 @@
 package com.gu
 
 import java.nio.file.{Path, Paths}
+import java.time.{LocalTime, ZoneId}
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
@@ -16,8 +17,13 @@ package object config {
       Duration.fromNanos(config.getDuration(key).toNanos)
   }
 
-  implicit val pathReader = new ValueReader[Path] {
-    override def read(config: Config, path: String): Path =
-      Paths.get(config.as[String](path))
-  }
+  implicit val localTimeReader: ValueReader[LocalTime] =
+    (config: Config, path: String) => LocalTime.parse(config.as[String](path))
+
+  implicit val pathReader: ValueReader[Path] =
+    (config: Config, path: String) => Paths.get(config.as[String](path))
+
+  implicit val zoneIdReader: ValueReader[ZoneId] =
+    (config: Config, path: String) => ZoneId.of(config.as[String](path))
+
 }

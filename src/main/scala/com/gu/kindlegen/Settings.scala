@@ -2,7 +2,7 @@ package com.gu.kindlegen
 
 import java.net.URI
 import java.nio.file.{Files, Path}
-import java.time.DayOfWeek
+import java.time.{DayOfWeek, LocalTime, ZoneId}
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
@@ -24,6 +24,7 @@ final case class Settings(accuWeather: AccuWeatherSettings,
                           articles: GuardianProviderSettings,
                           weather: WeatherSettings,
                           publishing: PublishingSettings,
+                          run: RunSettings,
                           s3: S3Settings) {
   def withPublishingFiles(files: PublishedFileSettings): Settings =
     copy(publishing = publishing.copy(files = files))
@@ -51,6 +52,11 @@ final case class GuardianProviderSettings(downloadTimeout: FiniteDuration,
                                           sectionTagType: TagType,
                                           maxImageResolution: Int)
 
+/** @param localHour Run within 60 minutes of this hour
+  * @param zone the zone used to interpret ''localHour''
+  */
+final case class RunSettings(localHour: LocalTime, zone: ZoneId)
+
 final case class S3Settings(bucketName: String, bucketDirectory: String, optionalTmpDirOnDisk: Option[Path]) extends com.gu.io.aws.S3Settings {
   lazy val tmpDirOnDisk: Path = optionalTmpDirOnDisk.getOrElse(Files.createTempDirectory(""))
 }
@@ -63,9 +69,10 @@ object Settings extends RootConfigReader[Settings] {
       publishing <- PublishingSettings.fromParentConfig(config)
       articles <- GuardianProviderSettings.fromParentConfig(config)
       weather <- WeatherSettingsReader.fromParentConfig(config)
+      run <- RunSettings.fromParentConfig(config)
       s3 <- S3Settings.fromParentConfig(config)
     } yield {
-      Settings(accuWeather, contentApi, articles, weather, publishing, s3)
+      Settings(accuWeather, contentApi, articles, weather, publishing, run, s3)
     }
   }
 }
@@ -126,6 +133,12 @@ object PublishedFileSettings extends AbstractConfigReader[PublishedFileSettings]
   }
 
   // configuration properties have the same names as the class fields
+}
+
+object RunSettings extends AbstractConfigReader[RunSettings]("run") {
+  override def apply(config: Config): Try[RunSettings] = Try {
+    config.as[RunSettings]
+  }
 }
 
 object S3Settings extends AbstractConfigReader[S3Settings]("s3") {

@@ -97,6 +97,11 @@ object SettingsSpec {
     "sectionTagType" -> sectionTagType.name
   )
 
+  private val runValues = Map(
+    "localHour" -> "06:00",
+    "zone" -> "Antarctica/South_Pole"
+  )
+
   private val s3Values = Map(
     "bucket" -> "My Bucket",
     "prefix" -> "A_Prefix",
@@ -139,8 +144,9 @@ object SettingsSpec {
     "content-api" -> contentApiConfig,
     "publishing" -> publishingConfig,
     "gu-capi" -> capiConfig,
-    "weather" -> weatherConfig,
+    "run" -> runConfig,
     "s3" -> s3Config,
+    "weather" -> weatherConfig,
   )
 
   private def settingsConfig = settingsValues.toConfigObj
@@ -149,6 +155,7 @@ object SettingsSpec {
   private def publishingConfig = publishingValues.toConfigObj
   private def publishedFilesConfig = publishedFilesValues.toConfigObj
   private def capiConfig = capiValues.toConfigObj
+  private def runConfig = runValues.toConfigObj
   private def s3Config = s3Values.toConfigObj
   private def weatherConfig = weatherValues.toConfigObj
 
@@ -157,6 +164,7 @@ object SettingsSpec {
     validateValues(settings.contentApi)
     validateValues(settings.articles)
     validateValues(settings.publishing)
+    validateValues(settings.run)
     validateValues(settings.s3)
     validateValues(settings.weather)
   }
@@ -192,6 +200,11 @@ object SettingsSpec {
     Duration.ofNanos(providerSettings.downloadTimeout.toNanos) shouldBe capiValues("downloadTimeout")
     providerSettings.maxImageResolution shouldBe capiValues("maxImageResolution")
     providerSettings.sectionTagType shouldBe sectionTagType
+  }
+
+  private def validateValues(runSettings: RunSettings): Assertion = {
+    runSettings.localHour.toString shouldBe runValues("localHour")
+    runSettings.zone.toString shouldBe runValues("zone")
   }
 
   private def validateValues(s3Settings: S3Settings): Assertion = {

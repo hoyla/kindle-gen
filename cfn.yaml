@@ -70,16 +70,20 @@ Resources:
                   "url": "${ContentApiUrl}"
                 },
                 "s3": {
-                  "bucket" = "${OutputBucket}",
-                  "prefix" = "${Stage}/"
+                  "bucket": "${OutputBucket}",
+                  "prefix": "${Stage}/"
                 },
                 ${CustomConfig}
               }
       Events:
-        DailyEvent:
+        DailyGMT:
           Type: Schedule
           Properties:
-            Schedule: cron(30 1 * * ? *)  # Run at 01:30 AM every day
+            Schedule: cron(10 1 * * ? *)  # Run at 01:10 AM GMT (UTC+0) every day
+        DailyBST:
+          Type: Schedule
+          Properties:
+            Schedule: cron(10 0 * * ? *)  # Run at 01:10 AM BST (UTC+1) every day
       CodeUri:
         Bucket: !Ref DeployBucket
         Key: !Sub ${Stack}/${Stage}/${App}/${App}.zip
