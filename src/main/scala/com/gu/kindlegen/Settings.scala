@@ -23,6 +23,7 @@ final case class Settings(accuWeather: AccuWeatherSettings,
                           contentApi: ContentApiCredentials,
                           articles: GuardianProviderSettings,
                           weather: WeatherSettings,
+                          books: BookBindingSettings,
                           publishing: PublishingSettings,
                           run: RunSettings,
                           s3: S3Settings) {
@@ -31,6 +32,8 @@ final case class Settings(accuWeather: AccuWeatherSettings,
 }
 
 final case class AccuWeatherSettings(apiKey: String, baseUrl: URI)
+
+final case class BookBindingSettings(mainSections: Seq[MainSection])
 
 final case class ContentApiCredentials(apiKey: String, targetUrl: String)
 
@@ -69,10 +72,11 @@ object Settings extends RootConfigReader[Settings] {
       publishing <- PublishingSettings.fromParentConfig(config)
       articles <- GuardianProviderSettings.fromParentConfig(config)
       weather <- WeatherSettingsReader.fromParentConfig(config)
+      books <- BookBindingSettings.fromParentConfig(config)
       run <- RunSettings.fromParentConfig(config)
       s3 <- S3Settings.fromParentConfig(config)
     } yield {
-      Settings(accuWeather, contentApi, articles, weather, publishing, run, s3)
+      Settings(accuWeather, contentApi, articles, weather, books, publishing, run, s3)
     }
   }
 }
@@ -80,6 +84,13 @@ object Settings extends RootConfigReader[Settings] {
 object AccuWeatherSettings extends AbstractConfigReader[AccuWeatherSettings]("accuweather") {
   def apply(config: Config): Try[AccuWeatherSettings] = Try {
     config.as[AccuWeatherSettings]
+  }
+}
+
+object BookBindingSettings extends AbstractConfigReader[BookBindingSettings]("books") {
+  def apply(config: Config): Try[BookBindingSettings] = Try {
+    implicit val linkReader = AbsoluteURLReader
+    config.as[BookBindingSettings]
   }
 }
 
@@ -155,9 +166,7 @@ object S3Settings extends AbstractConfigReader[S3Settings]("s3") {
 }
 
 object WeatherSettingsReader extends AbstractConfigReader[WeatherSettings]("weather") {
-  private implicit val linkReader = new ValueReader[Link] {
-    override def read(config: Config, path: String): Link = AbsoluteURL.from(config.as[String](path))
-  }
+  private implicit val linkReader = AbsoluteURLReader
 
   override def apply(config: Config): Try[WeatherSettings] = Try {
     val minForecastsPercentage = config.as[Int](MinForecastsPercentage)
@@ -181,4 +190,8 @@ object WeatherSettingsReader extends AbstractConfigReader[WeatherSettings]("weat
   private final val DefaultSection = "default"
   private final val MinForecastsPercentage = "minForecastsPercentage"
   private final val Sections = "sections"
+}
+
+private object AbsoluteURLReader extends ValueReader[Link] {
+  override def read(config: Config, path: String): Link = AbsoluteURL.from(config.as[String](path))
 }

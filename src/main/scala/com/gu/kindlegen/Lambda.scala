@@ -102,7 +102,7 @@ class Lambda(settings: Settings, date: LocalDate) extends Logging {
       capiProvider(settings, downloader),
       weatherProvider(settings, downloader)
     )
-    val binder = BookSection
+    val binder = MainSectionsBookBinder(settings.books.mainSections)
     val publisher = s3Publisher(settings)
 
     val kindleGenerator = KindleGenerator(provider, binder, publisher, downloader, settings)

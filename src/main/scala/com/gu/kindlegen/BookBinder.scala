@@ -7,6 +7,14 @@ trait BookBinder {
   def group(articles: Seq[Article]): Seq[BookSection]
 }
 
+
+object MainSectionsBookBinder {
+  /** A binder that uses the same sections attached to articles */
+  val default = new MainSectionsBookBinder(Seq.empty)
+
+  def apply(mainSections: Seq[MainSection]) = new MainSectionsBookBinder(mainSections)
+}
+
 class MainSectionsBookBinder(mainSections: Seq[MainSection]) extends BookBinder {
   override def group(articles: Seq[Article]): Seq[BookSection] = {
     articles.groupBy(mainSection)

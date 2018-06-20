@@ -8,19 +8,12 @@ import com.gu.io.{Link, Linkable}
 
 
 
-object BookSection extends BookBinder {
+object BookSection {
   val ordering = Ordering.by((section: BookSection) =>
     (section.firstPageNumber, section.lastPageNumber, section.title))
 
   def apply(section: Section, articles: Seq[Article]): BookSection = {
     new BookSection(section, articles.sortBy(_.newspaperPageNumber))
-  }
-
-  /** Groups articles into book sections, sorted according to each section's articles' page number */
-  override def group(articles: Seq[Article]): Seq[BookSection] = {
-    articles.groupBy(_.section)
-      .map { case (section, articles) => apply(section, articles) }(breakOut)
-      .sorted(ordering)
   }
 }
 

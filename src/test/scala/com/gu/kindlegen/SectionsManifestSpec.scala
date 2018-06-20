@@ -21,7 +21,7 @@ class SectionsManifestSpec extends FlatSpec {
   private val nonXmlChars = section("Non<XML> &chars;", "non/xml/chars")
   private val sections = Seq(international, topStories, nonXmlChars)
 
-  private lazy val bookSections = BookSection.group(articles)
+  private lazy val bookSections = MainSectionsBookBinder.default.group(articles)
   private val articles = Seq(
       (international, 1),
       (international, 2),

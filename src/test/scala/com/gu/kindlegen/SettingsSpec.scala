@@ -64,6 +64,8 @@ object SettingsSpec {
     def toConfigObj: ConfigObject = ConfigValueFactory.fromMap(values.asJava)
   }
 
+  private def defaultSection = Section("default-section", "Default Section", AbsoluteURL.from("http://example.com/default"))
+
   private val accuWeatherValues = Map(
     "apiKey" -> "My weather API key",
     "baseUrl" -> "https://weather.example.com"
@@ -72,6 +74,15 @@ object SettingsSpec {
   private val contentApiValues = Map(
     "key" -> "My API key",
     "url" -> "https://example.com"
+  )
+
+  private val subsectionIds = (1 to 5).map(_.toString)
+  private val mainSections = Seq(Map(
+    "info" -> toMap(defaultSection),
+    "subsectionIds" -> subsectionIds.asJava
+  ))
+  private val bookValues = Map(
+    "mainSections" -> mainSections.map(_.toConfigObj).asJava
   )
 
   private val publishedFilesValues = Map(
@@ -125,7 +136,6 @@ object SettingsSpec {
     "image" -> weatherImage(country).toConfigObj,
   )}
 
-  val defaultSection = Section("default-section", "Default Section", AbsoluteURL.from("http://example.com/default"))
   private val weatherSections = Map(
     "default" -> defaultSection,
     "saturday" -> Section("weekend", "Weekend Section", AbsoluteURL.from("http://example.com/weekend")),
@@ -144,6 +154,7 @@ object SettingsSpec {
     "content-api" -> contentApiConfig,
     "publishing" -> publishingConfig,
     "gu-capi" -> capiConfig,
+    "books" -> bookConfig,
     "run" -> runConfig,
     "s3" -> s3Config,
     "weather" -> weatherConfig,
@@ -155,6 +166,7 @@ object SettingsSpec {
   private def publishingConfig = publishingValues.toConfigObj
   private def publishedFilesConfig = publishedFilesValues.toConfigObj
   private def capiConfig = capiValues.toConfigObj
+  private def bookConfig = bookValues.toConfigObj
   private def runConfig = runValues.toConfigObj
   private def s3Config = s3Values.toConfigObj
   private def weatherConfig = weatherValues.toConfigObj
@@ -164,6 +176,7 @@ object SettingsSpec {
     validateValues(settings.contentApi)
     validateValues(settings.articles)
     validateValues(settings.publishing)
+    validateValues(settings.books)
     validateValues(settings.run)
     validateValues(settings.s3)
     validateValues(settings.weather)
@@ -177,6 +190,14 @@ object SettingsSpec {
   private def validateValues(contentApiSettings: ContentApiCredentials): Assertion = {
     contentApiSettings.apiKey shouldBe contentApiValues("key")
     contentApiSettings.targetUrl shouldBe contentApiValues("url")
+  }
+
+  private def validateValues(bookBindingSettings: BookBindingSettings): Assertion = {
+    bookBindingSettings.mainSections should have size mainSections.size
+    forEvery(bookBindingSettings.mainSections.zip(mainSections)) { case (mainSection, values) =>
+      mainSection.info shouldBe defaultSection
+      mainSection.subsectionIds should contain theSameElementsAs subsectionIds
+    }
   }
 
   private def validateValues(publishingSettings: PublishingSettings): Assertion = {
