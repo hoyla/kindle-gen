@@ -8,23 +8,22 @@ import com.gu.kindlegen.TestContent._
 
 
 class BookSectionSuite extends FlatSpec {
-  private def article(sectionId: String, sectionName: String, pageNum: Int) =
-    Article(section = section(sectionId, sectionName), newspaperPageNumber = pageNum,
-      "", "", ExampleLink, ExampleOffsetDate, "", "", Nil, None)
+  private def article(section: Section, pageNum: Int) =
+    Article(section, pageNum, title = "", docId = s"${section.id}${pageNum.toString}", ExampleLink, ExampleOffsetDate, "", "", Nil, None)
 
-  private def section(sectionId: String, sectionName: String) =
-    Section(id = sectionId, title = sectionName, link = ExampleLink)
+  private def section(sectionId: String) =
+    Section(id = sectionId, title = sectionId.toUpperCase, link = ExampleLink)
 
-  private val articlesInZ = (1 to 4).map(pageNum => article("z", "Z", pageNum))
-  private val articlesInX = (1 to 4).map(pageNum => article("x", "X", pageNum))
-  private val articlesInA = (4 to 5).map(pageNum => article("a", "A", pageNum))
+  private val articlesInX = (1 to 5 by 2).map(pageNum => article(section("x"), pageNum))
+  private val articlesInZ = (1 to 5     ).map(pageNum => article(section("z"), pageNum))
+  private val articlesInA = (4 to 5     ).map(pageNum => article(section("a"), pageNum))
   private val allArticles = articlesInA ++ articlesInX ++ articlesInZ
 
   ".fromArticles" should "return list of BookSections grouped by bookSectionId sorted by page number" in {
     val expected = List(  // sorted by page number then by section id
-      BookSection(section("x", "X"), articlesInX),
-      BookSection(section("z", "Z"), articlesInZ),
-      BookSection(section("a", "A"), articlesInA)
+      BookSection(section("x"), articlesInX),
+      BookSection(section("z"), articlesInZ),
+      BookSection(section("a"), articlesInA)
     )
 
     BookSection.group(allArticles) should contain theSameElementsInOrderAs expected
