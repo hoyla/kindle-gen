@@ -24,9 +24,9 @@ case class BookSection(section: Section, articles: Seq[Article]) extends Linkabl
   def withLink(newLink: Link): BookSection = copy(section = section.copy(link = newLink))
 }
 
-object BookSection {
+object BookSection extends BookBinder {
   /** Groups articles into book sections, sorted according to each section's articles' page number */
-  def fromArticles(articles: Seq[Article]): Seq[BookSection] = {
+  override def group(articles: Seq[Article]): Seq[BookSection] = {
     articles.groupBy(_.section)
       .values.map(apply)(breakOut)
       .sortBy(section => (section.firstPageNumber, section.lastPageNumber, section.title))

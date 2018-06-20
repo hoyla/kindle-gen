@@ -11,9 +11,13 @@ import com.gu.io.IOUtils._
 import com.gu.xml._
 
 object KindleGenerator {
-  def apply(provider: ArticlesProvider, publisher: Publisher, downloader: Downloader, settings: Settings)
+  def apply(provider: ArticlesProvider,
+            binder: BookBinder,
+            publisher: Publisher,
+            downloader: Downloader,
+            settings: Settings)
            (implicit ec: ExecutionContext): KindleGenerator = {
-    new KindleGenerator(provider, publisher, downloader, settings.publishing, settings.articles)
+    new KindleGenerator(provider, binder, publisher, downloader, settings.publishing, settings.articles)
   }
 
   // some NITF tags must be minimised to be valid (e.g. <doc-id/> instead of <doc-id>\n</doc-id>)
@@ -21,6 +25,7 @@ object KindleGenerator {
 }
 
 class KindleGenerator(provider: ArticlesProvider,
+                      binder: BookBinder,
                       publisher: Publisher,
                       downloader: Downloader,
                       publishingSettings: PublishingSettings,
@@ -48,7 +53,7 @@ class KindleGenerator(provider: ArticlesProvider,
 
       articlesWithImages <- Await.ready(eventualArticlesWithImages, querySettings.downloadTimeout)  // force the timeout
       savedArticles <- Future.sequence(articlesWithImages.zipWithIndex.map((saveArticle _).tupled))
-      savedSections <- Future.sequence(BookSection.fromArticles(savedArticles).map(saveSection))
+      savedSections <- Future.sequence(binder.group(savedArticles).map(saveSection))
       rootManifest <- saveRootManifest(savedSections)
       _ <- publisher.publish()
     }

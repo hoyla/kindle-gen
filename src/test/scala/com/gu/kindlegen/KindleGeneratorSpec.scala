@@ -42,7 +42,8 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
     val capiProvider = GuardianArticlesProvider(settings.contentApi, settings.articles, downloader, editionDate)
     val weatherProvider = new DailyWeatherForecastProvider(weatherClient, settings.weather.sections(editionDate.getDayOfWeek), settings.weather)
     val provider = new CompositeArticlesProvider(capiProvider, weatherProvider)
-    val generator = KindleGenerator(provider, publisher, downloader, settings)
+    val binder = BookSection
+    val generator = KindleGenerator(provider, binder, publisher, downloader, settings)
 
     lazy val links = Await.result(generator.publish().map(_ => publisher.publications), settings.articles.downloadTimeout)
     lazy val paths = links.collect { case x: PathLink => x.toPath }.toSeq

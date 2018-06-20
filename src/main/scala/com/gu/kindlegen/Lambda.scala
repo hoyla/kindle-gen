@@ -102,9 +102,10 @@ class Lambda(settings: Settings, date: LocalDate) extends Logging {
       capiProvider(settings, downloader),
       weatherProvider(settings, downloader)
     )
+    val binder = BookSection
     val publisher = s3Publisher(settings)
 
-    val kindleGenerator = KindleGenerator(provider, publisher, downloader, settings)
+    val kindleGenerator = KindleGenerator(provider, binder, publisher, downloader, settings)
 
     logger.info(s"Starting to publish files for $date; uploading to s3://${settings.s3.absolutePath.source}")
     val published = kindleGenerator.publish()

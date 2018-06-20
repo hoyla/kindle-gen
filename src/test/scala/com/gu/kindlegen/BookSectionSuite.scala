@@ -27,21 +27,21 @@ class BookSectionSuite extends FlatSpec {
       BookSection(section("a", "A"), articlesInA)
     )
 
-    BookSection.fromArticles(allArticles) should contain theSameElementsInOrderAs expected
+    BookSection.group(allArticles) should contain theSameElementsInOrderAs expected
   }
 
   it should "return empty list when given an empty list" in {
-    BookSection.fromArticles(Nil) shouldBe empty
+    BookSection.group(Nil) shouldBe empty
   }
 
   it should "filter out duplicate sections" in {
-    val sections = BookSection.fromArticles(allArticles)
+    val sections = BookSection.group(allArticles)
     sections.map(_.id) should contain theSameElementsAs sections.map(_.id).distinct
     sections.map(_.title) should contain theSameElementsAs sections.map(_.title).distinct
   }
 
   it should "group articles uniquely into sections" in {
-    val sections = BookSection.fromArticles(allArticles)
+    val sections = BookSection.group(allArticles)
     forAll(sections) { section =>
       val otherSections = sections.filterNot(_ eq section)
       val otherSectionArticles = otherSections.flatMap(_.articles)
