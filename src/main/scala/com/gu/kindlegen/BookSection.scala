@@ -18,9 +18,9 @@ object BookSection {
 }
 
 case class BookSection private(section: Section, articles: Seq[Article]) extends Linkable {
-  private val pageNumbers: Seq[Int] = articles.map(_.newspaperPageNumber)
-  val firstPageNumber: Int = pageNumbers.min
-  val lastPageNumber: Int = pageNumbers.max
+  private lazy val pageNumbers: Seq[Int] = articles.map(_.newspaperPageNumber)
+  lazy val firstPageNumber: Int = pageNumbers.min
+  lazy val lastPageNumber: Int = pageNumbers.max
 
   def id: String = section.id
   def title: String = section.title

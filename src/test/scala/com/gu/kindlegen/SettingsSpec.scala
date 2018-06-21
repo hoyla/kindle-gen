@@ -4,6 +4,7 @@ import java.nio.file.Paths
 import java.time.{DayOfWeek, Duration}
 
 import scala.collection.JavaConverters._
+import scala.collection.immutable.ListMap
 import scala.util.{Failure, Success, Try}
 
 import com.typesafe.config._
@@ -64,7 +65,9 @@ object SettingsSpec {
     def toConfigObj: ConfigObject = ConfigValueFactory.fromMap(values.asJava)
   }
 
-  private def defaultSection = Section("default-section", "Default Section", AbsoluteURL.from("http://example.com/default"))
+  private val defaultSection = Section("default-section", "Default Section", AbsoluteURL.from("http://example.com/default"))
+  private val specialSection = Section("special", "Special Section", AbsoluteURL.from("http://example.com/special"))
+  private val weekendSection = Section("weekend", "Weekend Section", AbsoluteURL.from("http://example.com/weekend"))
 
   private val accuWeatherValues = Map(
     "apiKey" -> "My weather API key",
@@ -76,11 +79,11 @@ object SettingsSpec {
     "url" -> "https://example.com"
   )
 
-  private val subsectionIds = (1 to 5).map(_.toString)
-  private val mainSections = Seq(Map(
-    "info" -> toMap(defaultSection),
-    "subsectionIds" -> subsectionIds.asJava
-  ))
+  private val mainSections = Seq(
+    toMap(defaultSection),
+    Map("id" -> weekendSection.id, "title" -> "Different title", "overrides" -> Seq("x", "y").asJava),
+    Map("id" -> specialSection.id),
+  )
   private val bookValues = Map(
     "mainSections" -> mainSections.map(_.toConfigObj).asJava
   )
@@ -138,16 +141,16 @@ object SettingsSpec {
 
   private val weatherSections = Map(
     "default" -> defaultSection,
-    "saturday" -> Section("weekend", "Weekend Section", AbsoluteURL.from("http://example.com/weekend")),
-    "Sunday" -> Section("special", "Special Section", AbsoluteURL.from("http://example.com/special")),
+    "saturday" -> weekendSection,
+    "Sunday" -> specialSection,
   )
   private val weatherValues = Map(
     "articles" -> weatherArticleValues.map(_.toConfigObj).asJava,
     "minForecastsPercentage" -> 75,
-    "sections" -> weatherSections.mapValues(toMap).toConfigObj,
+    "sections" -> weatherSections.mapValues(toMap(_).toConfigObj).toConfigObj,
   )
   private def toMap(section: Section) =
-    Map("id" -> section.id, "title" -> section.title, "link" -> section.link.source).toConfigObj
+    Map("id" -> section.id, "title" -> section.title, "link" -> section.link.source)
 
   private val settingsValues = Map(
     "accuweather" -> accuWeatherConfig,
@@ -194,9 +197,10 @@ object SettingsSpec {
 
   private def validateValues(bookBindingSettings: BookBindingSettings): Assertion = {
     bookBindingSettings.mainSections should have size mainSections.size
-    forEvery(bookBindingSettings.mainSections.zip(mainSections)) { case (mainSection, values) =>
-      mainSection.info shouldBe defaultSection
-      mainSection.subsectionIds should contain theSameElementsAs subsectionIds
+    bookBindingSettings.mainSections.map(_.id) should contain theSameElementsInOrderAs mainSections.map(_("id"))
+    forEvery(bookBindingSettings.mainSections.filter(_.id == weekendSection.id)) { newWeekendSection =>
+      newWeekendSection.title should not equal weekendSection.title
+      newWeekendSection.overrides shouldBe Seq("x", "y")
     }
   }
 

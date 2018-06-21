@@ -6,6 +6,7 @@ import org.scalatest.Matchers._
 
 import com.gu.kindlegen.TestContent.{ExampleLink, ExampleOffsetDate}
 
+
 class MainSectionsBookBinderSpec extends FunSpec {
 
   describe(".group") {
@@ -36,7 +37,7 @@ class MainSectionsBookBinderSpec extends FunSpec {
     }
 
     it("combines sections") {
-      val mainSection = MainSection(section("azx"), Seq("a", "z", "x"))
+      val mainSection = MainSectionTemplate("azx", overrides = Seq("a", "z", "x"))
       val binder = new MainSectionsBookBinder(Seq(mainSection))
 
       val books = binder.group(allArticles)
@@ -48,7 +49,7 @@ class MainSectionsBookBinderSpec extends FunSpec {
     }
 
     it("sorts sections according to configuration") {
-      val mainSections = Seq(sectionZ, sectionX, sectionA).map(MainSection(_, Nil))
+      val mainSections = Seq("z", "x", "a").map(MainSectionTemplate(_))
       val expectedArticleGroups = Seq(articlesInZ, articlesInX, articlesInA)
 
       val binder = new MainSectionsBookBinder(mainSections)
@@ -61,7 +62,7 @@ class MainSectionsBookBinderSpec extends FunSpec {
     }
 
     it("pushes unknown sections to the end") {
-      val mainSection = MainSection(section("a"), subsectionIds = Nil)
+      val mainSection = MainSectionTemplate("a")
       val binder = new MainSectionsBookBinder(Seq(mainSection))
       val books = binder.group(allArticles)
       books.map(_.section.id) should contain theSameElementsInOrderAs Seq("a", "x", "z")

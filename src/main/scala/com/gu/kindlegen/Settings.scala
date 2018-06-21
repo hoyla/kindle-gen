@@ -33,7 +33,7 @@ final case class Settings(accuWeather: AccuWeatherSettings,
 
 final case class AccuWeatherSettings(apiKey: String, baseUrl: URI)
 
-final case class BookBindingSettings(mainSections: Seq[MainSection])
+final case class BookBindingSettings(mainSections: Seq[MainSectionTemplate])
 
 final case class ContentApiCredentials(apiKey: String, targetUrl: String)
 
