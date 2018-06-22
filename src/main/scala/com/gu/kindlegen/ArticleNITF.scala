@@ -76,7 +76,7 @@ case class ArticleNITF(article: Article) {
     </head>
   }
 
-  private def body = transform(Utility.trim {
+  private def body = transform {
     <body>
       <body.head>
         <hedline>
@@ -90,7 +90,7 @@ case class ArticleNITF(article: Article) {
       </body.content>
       <body.end/>
     </body>
-  }.toElem.get)
+  }
 
   private def articleAbstract = htmlToXhtml(article.articleAbstract)
   private def bodyContent = article.bodyBlocks.map(html => <block>{htmlToXhtml(html)}</block>)
