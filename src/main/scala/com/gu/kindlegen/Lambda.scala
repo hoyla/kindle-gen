@@ -35,6 +35,7 @@ object Lambda extends Logging {
 
     logger.trace(s"Running with parameters $parameters")
     val params = parameters.asScala.mapValues(_.toString)
+    val forceRun = params.getOrElse("forceRun", "false").toBoolean
     val date =
       params.get("date").map(LocalDate.parse)
         .orElse(params.get("time").map(Instant.parse(_).atZone(UTC).toLocalDate)) // scheduled event
@@ -43,7 +44,7 @@ object Lambda extends Logging {
     Settings(config)
       .recover(fatalError("Could not load the configuration"))
       .map(withOutputDirForDate(date))
-      .map(new Lambda(_, date).run(context.getRemainingTimeInMillis))
+      .map(new Lambda(_, date).run(forceRun, context.getRemainingTimeInMillis))
       .recover(fatalError("Generation failed!"))
   }
 
@@ -85,8 +86,8 @@ object Lambda extends Logging {
 class Lambda(settings: Settings, date: LocalDate) extends Logging {
   import Lambda.ErrorReportingTimeInMillis
 
-  def run(remainingTimeInMillis: => Long): Unit = {
-    if (isTimeToRun) {
+  def run(forceRun: Boolean, remainingTimeInMillis: => Long): Unit = {
+    if (forceRun || isTimeToRun) {
       logger.debug(s"Running with settings $settings")
       doRun(remainingTimeInMillis)
     } else {
