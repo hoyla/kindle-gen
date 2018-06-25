@@ -30,8 +30,8 @@ libraryDependencies ++= Seq(
   "com.iheart" %% "ficus" % "1.4.3",
 
   // HTTP client
-  "com.softwaremill.sttp" %% "okhttp-backend" % "1.2.0-RC6",
-  "com.softwaremill.sttp" %% "json4s" % "1.2.0-RC6",
+  "com.softwaremill.sttp" %% "okhttp-backend" % "1.2.1",
+  "com.softwaremill.sttp" %% "json4s" % "1.2.1",
 
   // HTML parsing, cleanup, and conversion to NITF XML
   "org.jsoup" % "jsoup" % "1.11.3",
