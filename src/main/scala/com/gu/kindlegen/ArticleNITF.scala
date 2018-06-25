@@ -96,7 +96,7 @@ case class ArticleNITF(article: Article) {
   private def bodyContent = article.bodyBlocks.map(html => <block>{htmlToXhtml(html)}</block>)
   private def mainImage = article.mainImage.map { image =>
       <img src={image.link.source}>
-        {htmlToXhtml((image.caption ++ image.credit).mkString(" "), textCleaner)}  {/* TODO should we show article.trailText? */}
+        {htmlToXhtml((image.caption ++ image.credit).mkString(" "), textCleaner)}
       </img>
   }
 

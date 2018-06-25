@@ -6,7 +6,8 @@ import com.gu.kindlegen.Image
 
 
 class ImageFactory(settings: GuardianProviderSettings) {
-  def mainImage(content: Content): Option[Image] = {
+  def mainImage(content: Content,
+                captionFallback: Option[String] = None): Option[Image] = {
     def isMainImage(e: Element): Boolean =
       e.`type` == ElementType.Image && e.relation == "main"
 
@@ -25,11 +26,12 @@ class ImageFactory(settings: GuardianProviderSettings) {
       url <- metadata.secureFile
       absoluteUrl <- Link.AbsoluteURL(url).toOption
     } yield {
+      val caption = (metadata.caption ++ captionFallback).map(_.trim).find(_.nonEmpty)
       Image(
         id = mainImage.id,
         link = absoluteUrl,
         altText = metadata.altText,
-        caption = metadata.caption,
+        caption = caption,
         credit = if (metadata.displayCredit.getOrElse(true)) metadata.credit else None
       )
     }

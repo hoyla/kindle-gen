@@ -1,5 +1,7 @@
 package com.gu.kindlegen.capi
 
+import org.apache.logging.log4j.scala.Logging
+
 import com.gu.contentapi.client.model.v1._
 import com.gu.contentapi.client.utils.CapiModelEnrichment._
 import com.gu.io.Link
@@ -11,7 +13,7 @@ object ArticleFactory {
   /** Content fields processed by this factory
     * @see [[com.gu.contentapi.client.model.v1.Content.fields]]
     */
-  val ContentFields = Set("byline", "newspaper-edition-date", "newspaper-page-number", "standfirst")
+  val ContentFields = Set("byline", "newspaper-edition-date", "newspaper-page-number", "standfirst", "trailText")
 
   /** Content blocks processed by this factory
     * @see [[com.gu.contentapi.client.model.v1.Content.blocks]]
@@ -22,9 +24,24 @@ object ArticleFactory {
     * @see [[com.gu.contentapi.client.model.v1.Content.elements]]
     */
   val ElementTypes = Set[ElementType](ElementType.Image)
+
+  private def tag(id: String, tagType: TagType): Tag =
+    Tag(id, tagType, webTitle = "", webUrl = "", apiUrl = "")
+
+  // TODO move to settings
+  private[capi] val cartoonTags = Set(
+    tag("type/cartoon", TagType.Type),
+    tag("tone/cartoons", TagType.Tone),
+    tag("commentisfree/series/guardian-comment-cartoon", TagType.Series),
+    tag("commentisfree/series/observer-comment-cartoon", TagType.Series),
+  )
+
+  private[capi] val cartoonTagIds = cartoonTags.map(_.id)
 }
 
-class ArticleFactory(settings: GuardianProviderSettings) {
+class ArticleFactory(settings: GuardianProviderSettings, imageFactory: ImageFactory) extends Logging {
+  import com.gu.kindlegen.capi.ArticleFactory._
+
   def apply(content: Content): Article = {
     val sectionTagType = settings.sectionTagType
     val maybeSectionTag = content.tags.find(_.`type` == sectionTagType)
@@ -43,6 +60,13 @@ class ArticleFactory(settings: GuardianProviderSettings) {
             fields: ContentFields,
             sectionTag: Tag,
             settings: GuardianProviderSettings): Article = {
+    val isCartoon = content.tags.map(_.id).exists(cartoonTagIds)
+    if (isCartoon)
+      logger.debug(s"Detected cartoon in ${content.id}")
+
+    val captionFallback = if (isCartoon) content.fields.flatMap(_.trailText) else None
+    val mainImage = imageFactory.mainImage(content, captionFallback)
+
     Article(
       id = content.id,
       title = content.webTitle,
@@ -53,7 +77,7 @@ class ArticleFactory(settings: GuardianProviderSettings) {
       byline = fields.byline.getOrElse(""),
       articleAbstract = fields.standfirst.getOrElse(""),
       bodyBlocks = getBodyBlocks(content),
-      mainImage = imageFactory.mainImage(content)
+      mainImage = mainImage
     )
   }
 
@@ -67,6 +91,4 @@ class ArticleFactory(settings: GuardianProviderSettings) {
 
   private def sectionFrom(tag: Tag): Section =
     Section(tag.id, tag.webTitle, AbsoluteURL.from(tag.webUrl))
-
-  private val imageFactory = new ImageFactory(settings)
 }

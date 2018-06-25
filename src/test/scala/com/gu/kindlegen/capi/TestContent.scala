@@ -40,6 +40,18 @@ object TestContent {
       width = Some(ExampleGuardianProviderSettings.maxImageResolution),
     ))
   )
+
+  implicit class RichCapiContent(val content: Content) extends AnyVal {
+    def adjustFields(newFields: ContentFields => ContentFields): Content = {
+      content.copy(fields = content.fields.map(newFields))
+    }
+
+    def adjustAssetFields(newAssetFields: AssetFields => AssetFields): Content = {
+      content.copy(elements = content.elements.map(_.map { element =>
+        element.copy(assets = element.assets.map(asset => asset.copy(typeData = asset.typeData.map(newAssetFields))))
+      }))
+    }
+  }
 }
 
 case class TestContent(id: String,

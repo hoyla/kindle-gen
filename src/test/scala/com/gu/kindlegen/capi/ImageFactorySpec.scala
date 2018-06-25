@@ -10,9 +10,9 @@ import com.gu.kindlegen.capi.TestContent._
 
 class ImageFactorySpec extends FunSpec {
   describe("reading from Content") {
-    val factory = new ImageFactory(ExampleGuardianProviderSettings)
-
     val testContent = TestContent.Sample
+    val factory = new ImageFactory(ExampleGuardianProviderSettings)
+    val maxResolution = ExampleGuardianProviderSettings.maxImageResolution
 
     it("extracts fields") {
       val image = factory.mainImage(testContent.toContent).value
@@ -24,7 +24,14 @@ class ImageFactorySpec extends FunSpec {
       image.link.source shouldBe testContent.imageUrl.value
     }
 
-    val maxResolution = ExampleGuardianProviderSettings.maxImageResolution
+    it("adds a caption if none is defined") {
+      val contentWithoutCaption = testContent.toContent.adjustAssetFields(_.copy(caption = None))
+      def image(captionFallback: Option[String]) = factory.mainImage(contentWithoutCaption, captionFallback).value
+
+      image(captionFallback = None).caption shouldBe None
+      image(captionFallback = Some("fallback")).caption.value shouldBe "fallback"
+    }
+
     Map(
       "small" -> (maxResolution - 1),
       "medium" -> maxResolution,
@@ -42,7 +49,7 @@ class ImageFactorySpec extends FunSpec {
           val content = setter(testContent.toContent)
           val maybeImage = factory.mainImage(content)
 
-          if (resolution <= maxResolution)
+          if (isAcceptable)
             maybeImage shouldBe defined
           else
             maybeImage shouldBe empty
@@ -51,12 +58,7 @@ class ImageFactorySpec extends FunSpec {
     }
   }
 
-  private def withWidth(w: Int): Content => Content = withAssetFields(_, _.copy(width = Some(w)))
-  private def withHeight(h: Int): Content => Content = withAssetFields(_, _.copy(height = Some(h)))
+  private def withWidth(w: Int): Content => Content = _.adjustAssetFields(_.copy(width = Some(w)))
+  private def withHeight(h: Int): Content => Content = _.adjustAssetFields(_.copy(height = Some(h)))
 
-  private def withAssetFields(content: Content, newAssetFields: AssetFields => AssetFields): Content = {
-    content.copy(elements = content.elements.map(_.map(element =>
-      element.copy(assets = element.assets.map(asset => asset.copy(typeData = asset.typeData.map(newAssetFields))))
-    )))
-  }
 }

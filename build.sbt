@@ -52,6 +52,7 @@ libraryDependencies ++= Seq(
 
   // test dependencies
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
+  "org.scalamock" %% "scalamock" % "4.1.0" % "test",
   "com.github.andyglow" %% "scala-xml-diff" % "2.0.3" % "test",
 )
 

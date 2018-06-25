@@ -43,7 +43,8 @@ class GuardianArticlesProvider(capiClient: ContentApiClient,
 
   def fetchPrintSentResponse(): Future[SearchResponse] = {
     import ArticleFactory.{Blocks, ContentFields, ElementTypes}
-    val query = KindlePublishingSearchQuery(editionDate, Blocks, ElementTypes, ContentFields, Set(settings.sectionTagType))
+    val tagTypes = ArticleFactory.cartoonTags.map(_.`type`) + settings.sectionTagType // TODO move to settings
+    val query = KindlePublishingSearchQuery(editionDate, Blocks, ElementTypes, ContentFields, tagTypes)
     logger.debug(s"Querying CAPI: ${capiClient.url(query)}")
     capiClient.getResponse(query)
   }
@@ -83,5 +84,5 @@ class GuardianArticlesProvider(capiClient: ContentApiClient,
       logger.fatal("Failed to query CAPI!", error)
   }
 
-  private val articleFactory = new ArticleFactory(settings)
+  private val articleFactory = new ArticleFactory(settings, new ImageFactory(settings))
 }
