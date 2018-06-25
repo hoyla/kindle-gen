@@ -3,7 +3,6 @@ package com.gu.kindlegen
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-import scala.util.{Failure, Try}
 import scala.util.control.NonFatal
 import scala.xml._
 
@@ -82,7 +81,7 @@ case class ArticleNITF(article: Article) {
         <hedline>
           <hl1>{article.title}</hl1>
         </hedline>
-        <byline>{article.byline}</byline>
+        <byline>{nonEmpty(article.byline.trim, ifEmpty = "–")}</byline>
         <abstract>{articleAbstract}</abstract>
       </body.head>
       <body.content>
@@ -108,4 +107,6 @@ case class ArticleNITF(article: Article) {
         throw new TransformationException(s"Failed to generate NITF for <${elem.label}> in article ${article.id}: $error", error)
     }
   }
+
+  private def nonEmpty(str: String, ifEmpty: String) = if (str.nonEmpty) str else ifEmpty
 }

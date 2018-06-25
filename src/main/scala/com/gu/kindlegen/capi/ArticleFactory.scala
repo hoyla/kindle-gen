@@ -52,6 +52,12 @@ class ArticleFactory(settings: GuardianProviderSettings, imageFactory: ImageFact
     val captionFallback = if (isCartoon) content.fields.flatMap(_.trailText) else None
     val mainImage = imageFactory.mainImage(content, captionFallback)
 
+    val bodyBlocks = getBodyBlocks(content).map(_.trim)
+    val byline = fields.byline.map(_.trim).filter(_.nonEmpty).orElse {
+      if (isCartoon || bodyBlocks.forall(_.isEmpty)) mainImage.flatMap(_.credit)
+      else None
+    }
+
     Article(
       id = content.id,
       title = content.webTitle,
@@ -59,9 +65,9 @@ class ArticleFactory(settings: GuardianProviderSettings, imageFactory: ImageFact
       pageNumber = fields.newspaperPageNumber.getOrElse(Int.MaxValue),  // move to the end of the section
       link = Link.AbsoluteURL.from(content.webUrl),
       pubDate = newspaperDate.toOffsetDateTime,
-      byline = fields.byline.getOrElse(""),
+      byline = byline.getOrElse(""),
       articleAbstract = fields.standfirst.getOrElse(""),
-      bodyBlocks = getBodyBlocks(content),
+      bodyBlocks = bodyBlocks,
       mainImage = mainImage
     )
   }

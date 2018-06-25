@@ -46,12 +46,13 @@ class ArticleFactorySpec extends FunSpec with MockFactory {
     it("attempts to read the image") {
       val (imageFactory, articleFactory) = factories
 
-      imageFactory.mainImage _ expects (*, None)
+      imageFactory.mainImage _ expects (*, None) returning Some(ExampleImage)
       articleFactory(contentWithTrailText)
     }
 
     describe("when processing cartoons") {
-      val contentWithoutCaption = contentWithTrailText.adjustAssetFields(_.copy(caption = None))
+      val contentWithoutByline = contentWithTrailText.adjustFields(_.copy(byline = None))
+      val contentWithoutCaption = contentWithoutByline.adjustAssetFields(_.copy(caption = None))
 
       settings.cartoonTags.foreach { tag =>
         describe(s"with tag ${tag.id}") {
@@ -60,8 +61,18 @@ class ArticleFactorySpec extends FunSpec with MockFactory {
           it("uses trail text for the caption fallback") {
             val (imageFactory, articleFactory) = factories
 
-            imageFactory.mainImage _ expects (*, Some("trailText"))
+            imageFactory.mainImage _ expects (*, Some("trailText")) returning Some(ExampleImage)
             articleFactory(cartoon(contentWithoutCaption))
+          }
+
+          it("extracts the image credit as the byline") {
+            val (imageFactory, articleFactory) = factories
+
+            val creditByline = "Credit Byline"
+            imageFactory.mainImage _ expects (*, *) returning Some(ExampleImage.copy(credit = Some(creditByline)))
+
+            val article = articleFactory(cartoon(contentWithoutByline))
+            article.byline shouldBe creditByline
           }
         }
       }
