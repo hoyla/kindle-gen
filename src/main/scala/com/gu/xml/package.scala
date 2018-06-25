@@ -172,7 +172,27 @@ object `package` {
   implicit val defaultPrettyPrinter: PrettyPrinter = new PrettyPrinter(width = 150, step = 3)
 
   object TrimmingPrinter extends PrettyPrinter(width = Int.MaxValue, step = 0, minimizeEmpty = true) {
-    override def format(n: Node, pscope: NamespaceBinding, sb: StringBuilder): Unit =
-      sb.append(NodeSeq.fromSeq(Utility.trimProper(n)).toString)
+    override def format(n: Node, pscope: NamespaceBinding, sb: StringBuilder): Unit = {
+      sb.append(NodeSeq.fromSeq(trimProper(n)).toString)
+    }
+
+    // copied from https://github.com/scala/scala-xml/pull/113/files
+    // TODO use Utility.trimProper when scala-xml v1.1.1 is released
+    private def trimProper(x: Node): Seq[Node] = x match {
+      case Elem(pre, lab, md, scp, child@_*) =>
+        val children = combineAdjacentTextNodes(child) flatMap trimProper
+        Elem(pre, lab, md, scp, children.isEmpty, children: _*)
+      case Text(s) =>
+        new TextBuffer().append(s).toText
+      case _ =>
+        x
+    }
+
+    private def combineAdjacentTextNodes(nodes: Seq[Node]): Seq[Node] = {
+      nodes.foldRight(Seq.empty[Node]) {
+        case (Text(left), Text(right) +: accMinusLast) => Text(left + right) +: accMinusLast
+        case (n, acc) => n +: acc
+      }
+    }
   }
 }

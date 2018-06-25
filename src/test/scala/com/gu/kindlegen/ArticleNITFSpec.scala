@@ -67,5 +67,16 @@ class ArticleNITFSpec extends FunSpec {
 
       body.mkString shouldBe <block>{content}</block>.mkString
     }
+
+    it("removes links and preserves whitespaces") {
+      val article = simpleArticle.copy(bodyBlocks = Seq(
+        """<p>This is <a href="http://example.com">an example</a>""" +
+        """ that contains <a href="https://elsewhere.net">some links</a>.</p>"""
+      ))
+
+      val nitf = ArticleNITF(article).nitf
+      val paragraph = nitf \\ "body.content" \\ "p"
+      paragraph.mkString shouldBe "<p>This is an example that contains some links.</p>"
+    }
   }
 }
