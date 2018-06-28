@@ -1,4 +1,4 @@
-package com.gu.kindlegen.weather.accuweather
+package com.gu.kindlegen.accuweather
 
 import java.net.URI
 

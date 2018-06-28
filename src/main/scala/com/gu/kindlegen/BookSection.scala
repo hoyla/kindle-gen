@@ -2,10 +2,7 @@ package com.gu.kindlegen
 
 import java.time.LocalDate
 
-import scala.collection.breakOut
-
 import com.gu.io.{Link, Linkable}
-
 
 
 object BookSection {

@@ -10,7 +10,7 @@ import org.apache.logging.log4j.scala.Logging
 import com.gu.contentapi.client.{AbstractContentApiClient, ContentApiClient, SttpContentApiClient}
 import com.gu.contentapi.client.model.v1.{Content, SearchResponse}
 import com.gu.io.sttp.SttpDownloader
-import com.gu.kindlegen._
+import com.gu.kindlegen.{Article, ArticlesProvider}
 
 
 object GuardianArticlesProvider {
@@ -58,7 +58,7 @@ class GuardianArticlesProvider(capiClient: ContentApiClient,
     logger.info(s"Processing content $id")
     logger.trace(s"Processing content $id: $content")
 
-    Try(Article(content, settings)) match {
+    Try(articleFactory(content)) match {
       case Success(article) =>
         logger.trace(s"Processed content $id into $article")
         Some(article)
@@ -81,4 +81,6 @@ class GuardianArticlesProvider(capiClient: ContentApiClient,
     case Failure(error) =>
       logger.fatal("Failed to query CAPI!", error)
   }
+
+  private val articleFactory = new ArticleFactory(settings)
 }

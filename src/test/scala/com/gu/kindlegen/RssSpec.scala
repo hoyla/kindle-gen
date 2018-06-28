@@ -8,7 +8,7 @@ import org.scalatest.FunSpec
 import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
 
-import com.gu.kindlegen.TestContent._
+import com.gu.kindlegen.TestData._
 
 
 class RssSpec extends FunSpec {

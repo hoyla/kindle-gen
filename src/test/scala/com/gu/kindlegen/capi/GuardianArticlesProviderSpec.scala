@@ -9,9 +9,11 @@ import org.scalatest.Matchers._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 
 import com.gu.contentapi.client.model.v1.SearchResponse
+import com.gu.contentapi.client.utils.CapiModelEnrichment.RichOffsetDateTime
 import com.gu.io.sttp.OkHttpSttpDownloader
-import com.gu.kindlegen.{Settings, TestContent}
-import com.gu.kindlegen.TestContent._
+import com.gu.kindlegen.capi.TestContent._
+import com.gu.kindlegen.TestData._
+import com.gu.kindlegen.app.Settings
 
 class GuardianArticlesProviderSpec extends FlatSpec with ScalaFutures with IntegrationPatience {
   private val settings = Settings.load.get.copy(articles = ExampleGuardianProviderSettings)
@@ -23,7 +25,7 @@ class GuardianArticlesProviderSpec extends FlatSpec with ScalaFutures with Integ
 
   val totalArticles = 96  // on exampleDate = 2017-07-24
 
-  val capiDate = ExampleDate
+  val capiDate = ExampleOffsetDate.toCapiDateTime
   val testContent = TestContent("", "", 3, "", "", capiDate, "", "", "", None)
   val capiResponse = List(testContent.toContent)
 

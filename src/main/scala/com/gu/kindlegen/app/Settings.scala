@@ -1,4 +1,4 @@
-package com.gu.kindlegen
+package com.gu.kindlegen.app
 
 import java.nio.file.Path
 import java.time.DayOfWeek
@@ -7,16 +7,17 @@ import scala.util.Try
 
 import com.typesafe.config.Config
 import net.ceedubs.ficus.Ficus._
-import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.ceedubs.ficus.readers.ValueReader
+import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 
 import com.gu.config._
 import com.gu.contentapi.client.model.v1.TagType
 import com.gu.io.Link
 import com.gu.io.Link.AbsoluteURL
+import com.gu.kindlegen._
+import com.gu.kindlegen.accuweather.AccuWeatherSettings
 import com.gu.kindlegen.capi.{ContentApiCredentials, GuardianProviderSettings}
 import com.gu.kindlegen.weather.WeatherSettings
-import com.gu.kindlegen.weather.accuweather.AccuWeatherSettings
 
 
 /** Encapsulates the settings of this application */

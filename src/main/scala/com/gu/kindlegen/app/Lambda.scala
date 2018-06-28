@@ -1,4 +1,4 @@
-package com.gu.kindlegen
+package com.gu.kindlegen.app
 
 import java.nio.file.{Files, Path}
 import java.time.{Instant, LocalDate, LocalTime, ZoneId}
@@ -19,9 +19,10 @@ import org.apache.logging.log4j.scala.Logging
 
 import com.gu.io.aws.{S3Publisher, S3PublisherSettings}
 import com.gu.io.sttp.{OkHttpSttpDownloader, SttpDownloader}
+import com.gu.kindlegen._
+import com.gu.kindlegen.accuweather.AccuWeatherClient
 import com.gu.kindlegen.capi.GuardianArticlesProvider
 import com.gu.kindlegen.weather.DailyWeatherForecastProvider
-import com.gu.kindlegen.weather.accuweather.AccuWeatherClient
 
 
 /** @param localHour Run within 60 minutes of this hour
@@ -120,7 +121,8 @@ class Lambda(settings: Settings, date: LocalDate) extends Logging {
     val binder = MainSectionsBookBinder(settings.books.mainSections)
     val publisher = s3Publisher(settings)
 
-    val kindleGenerator = KindleGenerator(provider, binder, publisher, downloader, settings)
+    val kindleGenerator =
+      new KindleGenerator(provider, binder, publisher, downloader, settings.articles.downloadTimeout, settings.publishing)
 
     logger.info(s"Starting to publish files for $date; uploading to s3://${settings.s3.absolutePath.source}")
     val published = kindleGenerator.publish()

@@ -1,4 +1,4 @@
-package com.gu.kindlegen
+package com.gu.kindlegen.app
 
 import java.nio.file.Paths
 import java.time.{DayOfWeek, Duration}
@@ -15,9 +15,10 @@ import org.scalatest.Matchers._
 import com.gu.config.ConfigReader
 import com.gu.contentapi.client.model.v1.TagType
 import com.gu.io.Link.AbsoluteURL
+import com.gu.kindlegen._
+import com.gu.kindlegen.accuweather.AccuWeatherSettings
 import com.gu.kindlegen.capi.{ContentApiCredentials, GuardianProviderSettings}
 import com.gu.kindlegen.weather.{WeatherArticleSettings, WeatherSettings}
-import com.gu.kindlegen.weather.accuweather.AccuWeatherSettings
 import com.gu.scalatest.PathMatchers._
 
 

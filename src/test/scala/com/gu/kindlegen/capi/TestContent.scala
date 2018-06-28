@@ -1,22 +1,11 @@
-package com.gu.kindlegen
-
-import java.nio.file.{Files, Paths}
-import java.time.{OffsetDateTime, ZoneOffset}
+package com.gu.kindlegen.capi
 
 import scala.concurrent.duration._
 
 import com.gu.contentapi.client.model.v1._
-import com.gu.contentapi.client.utils.CapiModelEnrichment._
-import com.gu.io.Link
-import com.gu.kindlegen.capi.GuardianProviderSettings
 
 
 object TestContent {
-  val ExampleOffsetDate: OffsetDateTime = OffsetDateTime.of(2017, 7, 24, 0, 0, 0, 0, ZoneOffset.UTC)
-  val ExampleDate = ExampleOffsetDate.toCapiDateTime
-  val ExampleLink = Link.AbsoluteURL.from("https://www.example.com")
-  lazy val ExamplePath = Link.AbsolutePath.from(Files.createDirectories(Paths.get("target", "tmp")).toRealPath())
-
   val ExampleGuardianProviderSettings = GuardianProviderSettings(1.minute, TagType.NewspaperBook, maxImageResolution = 1000)
 }
 

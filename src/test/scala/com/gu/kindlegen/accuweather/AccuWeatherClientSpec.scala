@@ -1,4 +1,4 @@
-package com.gu.kindlegen.weather.accuweather
+package com.gu.kindlegen.accuweather
 
 import java.net.URI
 
@@ -15,7 +15,7 @@ import org.scalatest.OptionValues._
 
 import com.gu.concurrent.TestExecutionContext._
 import com.gu.io.sttp.{OkHttpSttpDownloader, SttpDownloaderStub}
-import com.gu.kindlegen.Settings
+import com.gu.kindlegen.app.Settings
 import com.gu.kindlegen.weather.WeatherClient._
 
 class AccuWeatherClientSpec extends FunSpec {

@@ -14,9 +14,10 @@ import org.scalatest.Matchers._
 import com.gu.io.{FilePublisher, TempFiles}
 import com.gu.io.Link.PathLink
 import com.gu.io.sttp.OkHttpSttpDownloader
+import com.gu.kindlegen.accuweather.AccuWeatherClient
+import com.gu.kindlegen.app.Settings
 import com.gu.kindlegen.capi.GuardianArticlesProvider
 import com.gu.kindlegen.weather.DailyWeatherForecastProvider
-import com.gu.kindlegen.weather.accuweather.AccuWeatherClient
 import com.gu.scalatest.PathMatchers._
 import com.gu.xml.XmlUtils._
 
@@ -43,7 +44,7 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
     val weatherProvider = new DailyWeatherForecastProvider(weatherClient, settings.weather.sections(editionDate.getDayOfWeek), settings.weather)
     val provider = new CompositeArticlesProvider(capiProvider, weatherProvider)
     val binder = MainSectionsBookBinder(settings.books.mainSections)
-    val generator = KindleGenerator(provider, binder, publisher, downloader, settings)
+    val generator = new KindleGenerator(provider, binder, publisher, downloader, settings.articles.downloadTimeout, settings.publishing)
 
     lazy val links = Await.result(generator.publish().map(_ => publisher.publications), settings.articles.downloadTimeout)
     lazy val paths = links.collect { case x: PathLink => x.toPath }.toSeq

@@ -1,11 +1,13 @@
 package com.gu.kindlegen
 
+import java.time.{OffsetDateTime, ZoneOffset}
+
 import scala.xml.Utility
 
 import org.scalatest.FunSpec
 import org.scalatest.Matchers._
 
-import com.gu.kindlegen.TestContent._
+import com.gu.kindlegen.TestData.ExampleLink
 import com.gu.xml.XmlUtils._
 
 
@@ -19,7 +21,7 @@ class ArticleNITFSpec extends FunSpec {
       title = "my title",
       docId = "section/date/title",
       link = ExampleLink,
-      pubDate = ExampleOffsetDate,
+      pubDate = OffsetDateTime.of(2017, 7, 24, 0, 0, 0, 0, ZoneOffset.UTC),
       byline = "my name",
       articleAbstract = "article abstract",
       bodyBlocks = Seq("content"),

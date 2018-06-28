@@ -1,6 +1,7 @@
 package com.gu.kindlegen
 
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 import scala.xml.Elem
 
@@ -8,20 +9,10 @@ import org.apache.logging.log4j.scala.Logging
 
 import com.gu.io.{Downloader, Link, Publisher}
 import com.gu.io.IOUtils._
-import com.gu.kindlegen.capi.GuardianProviderSettings
+import com.gu.io.Link.AbsoluteURL
 import com.gu.xml._
 
-
 object KindleGenerator {
-  def apply(provider: ArticlesProvider,
-            binder: BookBinder,
-            publisher: Publisher,
-            downloader: Downloader,
-            settings: Settings)
-           (implicit ec: ExecutionContext): KindleGenerator = {
-    new KindleGenerator(provider, binder, publisher, downloader, settings.publishing, settings.articles)
-  }
-
   // some NITF tags must be minimised to be valid (e.g. <doc-id/> instead of <doc-id>\n</doc-id>)
   private val prettyPrinter = new PrettyPrinter(width = 150, step = 3, minimizeEmpty = true)
 }
@@ -30,8 +21,8 @@ class KindleGenerator(provider: ArticlesProvider,
                       binder: BookBinder,
                       publisher: Publisher,
                       downloader: Downloader,
-                      publishingSettings: PublishingSettings,
-                      querySettings: GuardianProviderSettings)(implicit ec: ExecutionContext) extends Logging {
+                      downloadTimeout: FiniteDuration,
+                      publishingSettings: PublishingSettings)(implicit ec: ExecutionContext) extends Logging {
   logger.trace(s"Initialised with $publishingSettings")
 
   private def fileSettings = publishingSettings.files
@@ -53,27 +44,28 @@ class KindleGenerator(provider: ArticlesProvider,
       articles <- fetchNitfBundle()
       eventualArticlesWithImages = Future.sequence(articles.zipWithIndex.map((downloadMainImage _).tupled))
 
-      articlesWithImages <- Await.ready(eventualArticlesWithImages, querySettings.downloadTimeout)  // force the timeout
+      articlesWithImages <- Await.ready(eventualArticlesWithImages, downloadTimeout)  // force the timeout
       savedArticles <- Future.sequence(articlesWithImages.zipWithIndex.map((saveArticle _).tupled))
       savedSections <- Future.sequence(binder.group(savedArticles).map(saveSection))
       rootManifest <- saveRootManifest(savedSections)
-      _ <- publisher.publish()
+      result <- publisher.publish()
     }
-      yield ()
+      yield result
   }
 
   private def downloadMainImage(article: Article, fileNameIndex: Int): Future[Article] = {
-    val image = article.mainImage
-    if (publishingSettings.downloadImages && image.isDefined) {
-      ImageData.download(image.get, downloader)
-        .flatMap(save(_, fileNameIndex))
-        .map(newLink => article.copy(mainImage = Some(newLink)))
-        .recover { case error =>
-          logger.warn(s"Failed to download or save the image for article ${article.docId}. Falling back to URL link.")
-          article
-        }
-    } else {
-      Future.successful(article)  // with image sources as URLs
+    article.mainImage match {
+      case Some(image @ Image(_, AbsoluteURL(url), _, _, _)) if publishingSettings.downloadImages =>
+        downloader.download(url)
+          .map(ImageData(image, _))
+          .flatMap(save(_, fileNameIndex))
+          .map(newLink => article.copy(mainImage = Some(newLink)))
+          .recover { case error =>
+            logger.warn(s"Failed to download or save the image for article ${article.docId}. Falling back to URL link.")
+            article
+          }
+      case _ =>
+        Future.successful(article)  // with image sources as URLs
     }
   }
 
