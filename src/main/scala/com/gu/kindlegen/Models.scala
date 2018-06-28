@@ -1,8 +1,35 @@
 package com.gu.kindlegen
 
-import java.time.LocalDate
+import java.time.{LocalDate, OffsetDateTime}
 
 import com.gu.io.{Link, Linkable}
+
+
+case class Article(section: Section,
+                   newspaperPageNumber: Int,
+                   title: String,
+                   docId: String,
+                   link: Link,
+                   pubDate: OffsetDateTime,
+                   byline: String,
+                   articleAbstract: String,
+                   bodyBlocks: Seq[String],
+                   mainImage: Option[Image]) extends Linkable
+
+
+case class Image(id: String,
+                 link: Link,
+                 altText: Option[String],
+                 caption: Option[String],
+                 credit: Option[String]) extends Linkable
+
+
+case class ImageData(metadata: Image, data: Array[Byte]) {
+  def source: String = metadata.link.source
+}
+
+
+case class Section(id: String, title: String, link: Link)
 
 
 object BookSection {

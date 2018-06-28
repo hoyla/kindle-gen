@@ -9,7 +9,7 @@ import com.gu.io.TempFiles
 import com.gu.io.Link.RelativePath
 import com.gu.kindlegen.TestData._
 
-class SectionsManifestSpec extends FlatSpec with TempFiles {
+class ManifestsSpec extends FlatSpec with TempFiles {
 
   private val international = section("International", "theguardian/mainsection/international")
   private val topStories = section("Top Stories", "theguardian/mainsection/topstories")
@@ -36,7 +36,7 @@ class SectionsManifestSpec extends FlatSpec with TempFiles {
       link = RelativePath.from(id.replace('/', '_') + ".xml", null))
   }
 
-  "SectionManifest.apply" should "convert a sequence of bookSections to a section Manifest (Contents page)" in {
+  "SectionManifest" should "convert a sequence of bookSections to a section Manifest (Contents page)" in {
     val time = Instant.now()
     val manifest = SectionsManifest("", ExampleLink, bookSections, time)
     manifest.title shouldBe ""
