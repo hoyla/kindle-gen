@@ -16,7 +16,8 @@ import com.gu.config._
 import com.gu.contentapi.client.model.v1.TagType
 import com.gu.io.Link
 import com.gu.io.Link.AbsoluteURL
-import com.gu.kindlegen.weather.{WeatherArticleSettings, WeatherSettings}
+import com.gu.kindlegen.weather.WeatherSettings
+
 
 /** Encapsulates the settings of this application */
 final case class Settings(accuWeather: AccuWeatherSettings,
@@ -67,68 +68,37 @@ final case class S3Settings(bucketName: String, bucketDirectory: String, optiona
 object Settings extends RootConfigReader[Settings] {
   def apply(config: Config): Try[Settings] = {
     for {
-      accuWeather <- AccuWeatherSettings.fromParentConfig(config)
-      contentApi <- ContentApiCredentials.fromParentConfig(config)
-      publishing <- PublishingSettings.fromParentConfig(config)
-      articles <- GuardianProviderSettings.fromParentConfig(config)
-      weather <- WeatherSettingsReader.fromParentConfig(config)
-      books <- BookBindingSettings.fromParentConfig(config)
-      run <- RunSettings.fromParentConfig(config)
-      s3 <- S3Settings.fromParentConfig(config)
+      accuWeather <- accuWeatherSettingsReader.fromParentConfig(config)
+      contentApi <- contentApiCredentialsReader.fromParentConfig(config)
+      articles <- guardianProviderSettingsReader.fromParentConfig(config)
+      weather <- weatherSettingsReader.fromParentConfig(config)
+      books <- bookBindingSettingsReader.fromParentConfig(config)
+      publishing <- publishingSettingsReader.fromParentConfig(config)
+      run <- runSettingsReader.fromParentConfig(config)
+      s3 <- s3SettingsReader.fromParentConfig(config)
     } yield {
       Settings(accuWeather, contentApi, articles, weather, books, publishing, run, s3)
     }
   }
-}
 
-object AccuWeatherSettings extends AbstractConfigReader[AccuWeatherSettings]("accuweather") {
-  def apply(config: Config): Try[AccuWeatherSettings] = Try {
-    config.as[AccuWeatherSettings]
-  }
-}
-
-object BookBindingSettings extends AbstractConfigReader[BookBindingSettings]("books") {
-  def apply(config: Config): Try[BookBindingSettings] = Try {
-    implicit val linkReader = AbsoluteURLReader
-    config.as[BookBindingSettings]
-  }
-}
-
-object ContentApiCredentials extends AbstractConfigReader[ContentApiCredentials]("content-api") {
-  def apply(config: Config): Try[ContentApiCredentials] = Try {
-    config.as[ContentApiCredentials]
-  }
-}
-
-object GuardianProviderSettings extends AbstractConfigReader[GuardianProviderSettings]("gu-capi") {
-  def apply(config: Config): Try[GuardianProviderSettings] = Try {
-    config.as[GuardianProviderSettings]
-  }
-
+  private implicit val dailySectionsReader = WeatherSectionsReader
+  private implicit val linkReader = AbsoluteURLReader
+  private implicit val s3Reader = S3SettingsReader
   private implicit val tagTypeReader: ValueReader[TagType] =
     (config, path) => TagType.valueOf(config.as[String](path)).get
+
+  val accuWeatherSettingsReader      = ConfigReader[AccuWeatherSettings]("accuweather")
+  val bookBindingSettingsReader      = ConfigReader[BookBindingSettings]("books")
+  val contentApiCredentialsReader    = ConfigReader[ContentApiCredentials]("content-api")
+  val guardianProviderSettingsReader = ConfigReader[GuardianProviderSettings]("gu-capi")
+  val publishingSettingsReader       = ConfigReader[PublishingSettings]("publishing")
+  val runSettingsReader              = ConfigReader[RunSettings]("run")
+  val s3SettingsReader               = ConfigReader[S3Settings]("s3")
+  val weatherSettingsReader          = ConfigReader[WeatherSettings]("weather")
 }
 
-object PublishingSettings extends AbstractConfigReader[PublishingSettings]("publishing") {
-  def apply(config: Config): Try[PublishingSettings] = Try {
-    config.as[PublishingSettings]
-  }
-}
-
-object PublishedFileSettings extends AbstractConfigReader[PublishedFileSettings]("files") {
-  def apply(config: Config): Try[PublishedFileSettings] = Try {
-    config.as[PublishedFileSettings]
-  }
-}
-
-object RunSettings extends AbstractConfigReader[RunSettings]("run") {
-  override def apply(config: Config): Try[RunSettings] = Try {
-    config.as[RunSettings]
-  }
-}
-
-object S3Settings extends AbstractConfigReader[S3Settings]("s3") {
-  override def apply(config: Config): Try[S3Settings] = Try {
+object S3SettingsReader extends ValueReader[S3Settings] {
+  override def read(config: Config, path: String): S3Settings = {
     val bucketName      = config.as[String](BucketName)
     val bucketDirectory = config.as[String](BucketDirectory).stripSuffix("/")
     val tmpDirOnDisk    = config.as[Option[Path]](TmpDirOnDisk)
@@ -140,25 +110,19 @@ object S3Settings extends AbstractConfigReader[S3Settings]("s3") {
   private final val TmpDirOnDisk = "tmpDirOnDisk"
 }
 
-object WeatherSettingsReader extends AbstractConfigReader[WeatherSettings]("weather") {
-  private implicit val linkReader = AbsoluteURLReader
+object WeatherSectionsReader extends ValueReader[Map[DayOfWeek, Section]] {
+  override def read(config: Config, path: String): Map[DayOfWeek, Section] = {
+    implicit val linkReader = AbsoluteURLReader
 
-  override def apply(config: Config): Try[WeatherSettings] = Try {
-    config.as[WeatherSettings]
-  }
-
-  private implicit val dailySectionsReader: ValueReader[Map[DayOfWeek, Section]] = {
-    implicitly[ValueReader[Map[String, Section]]]
-      .map { sectionsByDayName =>
-        val dailySections = sectionsByDayName.map {
-          case (dayName, section) => Try(DayOfWeek.valueOf(dayName)).toOption -> section
-        }
-
-        val defaultSection = dailySections(None)
-        dailySections
-          .collect { case (Some(dayOfWeek), section) => dayOfWeek -> section }
-          .withDefaultValue(defaultSection)
+    val dailySections = config.as[Map[String, Section]](path)
+      .map {
+        case (dayName, section) => Try(DayOfWeek.valueOf(dayName)).toOption -> section
       }
+
+    val defaultSection = dailySections(None)
+    dailySections
+      .collect { case (Some(dayOfWeek), section) => dayOfWeek -> section }
+      .withDefaultValue(defaultSection)
   }
 }
 

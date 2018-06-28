@@ -4,7 +4,7 @@ import java.nio.file.Paths
 import java.time.{DayOfWeek, Duration}
 
 import scala.collection.JavaConverters._
-import scala.collection.immutable.ListMap
+import scala.reflect._
 import scala.util.{Failure, Success, Try}
 
 import com.typesafe.config._
@@ -20,19 +20,24 @@ import com.gu.scalatest.PathMatchers._
 
 
 class SettingsSpec extends FunSpec {
+  import Settings._
   import SettingsSpec._
 
-  testReader(ContentApiCredentials, contentApiConfig)(validateValues)
+  testReader(accuWeatherSettingsReader, accuWeatherConfig)(validateValues)
 
-  testReader(PublishedFileSettings, publishedFilesConfig)(validateValues)
+  testReader(bookBindingSettingsReader, bookConfig)(validateValues)
 
-  testReader(PublishingSettings, publishingConfig)(validateValues)
+  testReader(contentApiCredentialsReader, contentApiConfig)(validateValues)
 
-  testReader(GuardianProviderSettings, capiConfig)(validateValues)
+  testReader(publishingSettingsReader, publishingConfig)(validateValues)
 
-  testReader(S3Settings, s3Config)(validateValues)
+  testReader(guardianProviderSettingsReader, capiConfig)(validateValues)
 
-  testReader(WeatherSettingsReader, weatherConfig)(validateValues)
+  testReader(runSettingsReader, runConfig)(validateValues)
+
+  testReader(s3SettingsReader, s3Config)(validateValues)
+
+  testReader(weatherSettingsReader, weatherConfig)(validateValues)
 
   testReader(Settings, settingsConfig)(validateValues)
 
@@ -42,8 +47,8 @@ class SettingsSpec extends FunSpec {
     }
   }
 
-  private def testReader[T](reader: ConfigReader[T], sampleConfig: ConfigObject)(validator: T => Assertion) = {
-    describe(reader.getClass.getSimpleName) {
+  private def testReader[T: ClassTag](reader: ConfigReader[T], sampleConfig: ConfigObject)(validator: T => Assertion) = {
+    describe(classTag[T].runtimeClass.getSimpleName + "Reader") {
       it("reads a sample configuration correctly") {
         validateSettings(reader(sampleConfig.toConfig))(validator)
       }
