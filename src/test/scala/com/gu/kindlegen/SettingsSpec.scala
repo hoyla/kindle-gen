@@ -191,8 +191,8 @@ object SettingsSpec {
   }
 
   private def validateValues(contentApiSettings: ContentApiCredentials): Assertion = {
-    contentApiSettings.apiKey shouldBe contentApiValues("key")
-    contentApiSettings.targetUrl shouldBe contentApiValues("url")
+    contentApiSettings.key shouldBe contentApiValues("key")
+    contentApiSettings.url shouldBe contentApiValues("url")
   }
 
   private def validateValues(bookBindingSettings: BookBindingSettings): Assertion = {

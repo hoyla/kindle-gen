@@ -35,7 +35,7 @@ final case class AccuWeatherSettings(apiKey: String, baseUrl: URI)
 
 final case class BookBindingSettings(mainSections: Seq[MainSectionTemplate])
 
-final case class ContentApiCredentials(apiKey: String, targetUrl: String)
+final case class ContentApiCredentials(key: String, url: String)
 
 final case class PublishedFileSettings(outputDir: Path,
                                        nitfExtension: String,
@@ -96,27 +96,17 @@ object BookBindingSettings extends AbstractConfigReader[BookBindingSettings]("bo
 
 object ContentApiCredentials extends AbstractConfigReader[ContentApiCredentials]("content-api") {
   def apply(config: Config): Try[ContentApiCredentials] = Try {
-    val key    = config.as[String](Key)
-    val apiUrl = config.as[String](TargetUrl)
-    ContentApiCredentials(key, apiUrl)
+    config.as[ContentApiCredentials]
   }
-
-  private final val Key = "key"
-  private final val TargetUrl = "url"
 }
 
 object GuardianProviderSettings extends AbstractConfigReader[GuardianProviderSettings]("gu-capi") {
   def apply(config: Config): Try[GuardianProviderSettings] = Try {
-    val downloadDuration   = config.as[FiniteDuration](DownloadDuration)
-    val maxImageResolution = config.as[Int](MaxImageResolution)
-    val sectionTagTypeName = config.as[String](SectionTagType)
-    val sectionTagType     = TagType.valueOf(sectionTagTypeName).get
-    GuardianProviderSettings(downloadDuration, sectionTagType, maxImageResolution)
+    config.as[GuardianProviderSettings]
   }
 
-  private final val DownloadDuration = "downloadTimeout"
-  private final val MaxImageResolution = "maxImageResolution"
-  private final val SectionTagType = "sectionTagType"
+  private implicit val tagTypeReader: ValueReader[TagType] =
+    (config, path) => TagType.valueOf(config.as[String](path)).get
 }
 
 object PublishingSettings extends AbstractConfigReader[PublishingSettings]("publishing") {
@@ -142,8 +132,6 @@ object PublishedFileSettings extends AbstractConfigReader[PublishedFileSettings]
   def apply(config: Config): Try[PublishedFileSettings] = Try {
     config.as[PublishedFileSettings]
   }
-
-  // configuration properties have the same names as the class fields
 }
 
 object RunSettings extends AbstractConfigReader[RunSettings]("run") {
@@ -169,27 +157,22 @@ object WeatherSettingsReader extends AbstractConfigReader[WeatherSettings]("weat
   private implicit val linkReader = AbsoluteURLReader
 
   override def apply(config: Config): Try[WeatherSettings] = Try {
-    val minForecastsPercentage = config.as[Int](MinForecastsPercentage)
-    val articles = config.as[Seq[WeatherArticleSettings]](Articles)
-    val sections = dailySections(config)
-    WeatherSettings(minForecastsPercentage, articles, sections)
+    config.as[WeatherSettings]
   }
 
-  private def dailySections(config: Config): Map[DayOfWeek, Section] = {
-    val sections = config.as[Map[String, Section]](Sections)
-    val defaultSection = sections(DefaultSection)
-    sections
-      .filterKeys(_ != DefaultSection)
-      .map {
-        case (dayName, section) => DayOfWeek.valueOf(dayName.toUpperCase) -> section
+  private implicit val dailySectionsReader: ValueReader[Map[DayOfWeek, Section]] = {
+    implicitly[ValueReader[Map[String, Section]]]
+      .map { sectionsByDayName =>
+        val dailySections = sectionsByDayName.map {
+          case (dayName, section) => Try(DayOfWeek.valueOf(dayName)).toOption -> section
+        }
+
+        val defaultSection = dailySections(None)
+        dailySections
+          .collect { case (Some(dayOfWeek), section) => dayOfWeek -> section }
+          .withDefaultValue(defaultSection)
       }
-      .withDefaultValue(defaultSection)
   }
-
-  private final val Articles = "articles"
-  private final val DefaultSection = "default"
-  private final val MinForecastsPercentage = "minForecastsPercentage"
-  private final val Sections = "sections"
 }
 
 private object AbsoluteURLReader extends ValueReader[Link] {

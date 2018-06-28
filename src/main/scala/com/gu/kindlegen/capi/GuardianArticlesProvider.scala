@@ -23,7 +23,7 @@ object GuardianArticlesProvider {
   }
 
   private def contentApiClient(credentials: ContentApiCredentials, sttpDownloader: SttpDownloader): ContentApiClient = {
-    new AbstractContentApiClient(credentials.apiKey, Some(credentials.targetUrl)) with SttpContentApiClient {
+    new AbstractContentApiClient(credentials.key, Some(credentials.url)) with SttpContentApiClient {
       override protected def downloader = sttpDownloader
     }
   }
