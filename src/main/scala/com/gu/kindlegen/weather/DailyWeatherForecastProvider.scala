@@ -44,10 +44,10 @@ class DailyWeatherForecastProvider(client: WeatherClient,
         val id = IOUtils.asFileName(s"${section.id}_${articleSettings.title}").replace(' ', '_')
 
         Article(
-          section = section,
-          newspaperPageNumber = articleSettings.pageNumber,
+          id = id,
           title = articleSettings.title,
-          docId = id,
+          section = section,
+          pageNumber = articleSettings.pageNumber,
           link = link,
           pubDate = OffsetDateTime.now,
           byline = articleSettings.byline,

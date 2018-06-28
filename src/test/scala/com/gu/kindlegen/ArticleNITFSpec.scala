@@ -16,10 +16,10 @@ class ArticleNITFSpec extends FunSpec {
   describe("ArticleNITF") {
 
     val simpleArticle = Article(
-      section = Section(id = "theguardian/mainsection/international", title = "International", link = ExampleLink),
-      newspaperPageNumber = 2,
+      id = "section/date/title",
       title = "my title",
-      docId = "section/date/title",
+      section = Section(id = "theguardian/mainsection/international", title = "International", link = ExampleLink),
+      pageNumber = 2,
       link = ExampleLink,
       pubDate = OffsetDateTime.of(2017, 7, 24, 0, 0, 0, 0, ZoneOffset.UTC),
       byline = "my name",

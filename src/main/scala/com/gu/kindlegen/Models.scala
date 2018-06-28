@@ -5,10 +5,10 @@ import java.time.{LocalDate, OffsetDateTime}
 import com.gu.io.{Link, Linkable}
 
 
-case class Article(section: Section,
-                   newspaperPageNumber: Int,
+case class Article(id: String,
                    title: String,
-                   docId: String,
+                   section: Section,
+                   pageNumber: Int,
                    link: Link,
                    pubDate: OffsetDateTime,
                    byline: String,
@@ -37,12 +37,12 @@ object BookSection {
     (section.firstPageNumber, section.lastPageNumber, section.title))
 
   def apply(section: Section, articles: Seq[Article]): BookSection = {
-    new BookSection(section, articles.sortBy(_.newspaperPageNumber))
+    new BookSection(section, articles.sortBy(_.pageNumber))
   }
 }
 
 case class BookSection private(section: Section, articles: Seq[Article]) extends Linkable {
-  private lazy val pageNumbers: Seq[Int] = articles.map(_.newspaperPageNumber)
+  private lazy val pageNumbers: Seq[Int] = articles.map(_.pageNumber)
   lazy val firstPageNumber: Int = pageNumbers.min
   lazy val lastPageNumber: Int = pageNumbers.max
 

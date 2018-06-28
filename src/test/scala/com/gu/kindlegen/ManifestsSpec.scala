@@ -5,11 +5,11 @@ import java.time.Instant
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 
-import com.gu.io.TempFiles
 import com.gu.io.Link.RelativePath
 import com.gu.kindlegen.TestData._
 
-class ManifestsSpec extends FlatSpec with TempFiles {
+
+class ManifestsSpec extends FlatSpec {
 
   private val international = section("International", "theguardian/mainsection/international")
   private val topStories = section("Top Stories", "theguardian/mainsection/topstories")
@@ -17,7 +17,6 @@ class ManifestsSpec extends FlatSpec with TempFiles {
   private val sections = Seq(international, topStories, nonXmlChars)
 
   private lazy val bookSections = MainSectionsBookBinder.default.group(articles)
-  private val article = Article(section = null, 1, "", "", ExampleLink, ExampleOffsetDate, "", "", Nil, None)
   private val articles = Seq(
       (international, 1),
       (international, 2),
@@ -27,8 +26,7 @@ class ManifestsSpec extends FlatSpec with TempFiles {
       (topStories   , 4),
       (nonXmlChars  , 5)
     ).map { case (section, page) =>
-        Article(section = section, newspaperPageNumber = page,
-          "", "", ExampleLink, ExampleOffsetDate, "", "", Nil, None)
+      article(section = section, pageNum = page)
     }
 
   private def section(title: String, id: String) = {
@@ -41,7 +39,7 @@ class ManifestsSpec extends FlatSpec with TempFiles {
     val manifest = SectionsManifest("", ExampleLink, bookSections, time)
     manifest.title shouldBe ""
     manifest.link shouldBe ExampleLink
-    manifest.publicationDate shouldBe ExampleOffsetDate.toLocalDate
+    manifest.publicationDate shouldBe ExampleDate.toLocalDate
     manifest.buildInstant shouldBe time
 
     manifest.items should have length bookSections.length

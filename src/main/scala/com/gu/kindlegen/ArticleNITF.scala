@@ -67,7 +67,7 @@ case class ArticleNITF(article: Article) {
     <head>
       <title>{article.title}</title>
       <docdata management-status="usable">
-        <doc-id id-string={article.docId}/>
+        <doc-id id-string={article.id}/>
         <urgency ed-urg="2"/>
         <date.release norm={pubDate}/>
         <doc.copyright holder="guardian.co.uk"/>
@@ -105,7 +105,7 @@ case class ArticleNITF(article: Article) {
       XhtmlToNitfTransformer(elem)
     } catch {
       case NonFatal(error) =>
-        throw new TransformationException(s"Failed to generate NITF for <${elem.label}> in article ${article.docId}: $error", error)
+        throw new TransformationException(s"Failed to generate NITF for <${elem.label}> in article ${article.id}: $error", error)
     }
   }
 }

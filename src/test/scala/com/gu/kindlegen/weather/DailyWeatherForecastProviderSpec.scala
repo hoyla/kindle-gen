@@ -90,7 +90,7 @@ class DailyWeatherForecastProviderSpec extends FunSpec {
       article.title shouldBe articleSettings.title
       article.byline shouldBe articleSettings.byline
       article.mainImage shouldBe articleSettings.image
-      article.newspaperPageNumber shouldBe articleSettings.pageNumber
+      article.pageNumber shouldBe articleSettings.pageNumber
       article.articleAbstract shouldBe articleSettings.articleAbstract.getOrElse("")
 
       val xhtml = XML.loadString(article.bodyBlocks.mkString)

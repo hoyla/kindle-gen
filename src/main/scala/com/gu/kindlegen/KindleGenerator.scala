@@ -61,7 +61,7 @@ class KindleGenerator(provider: ArticlesProvider,
           .flatMap(save(_, fileNameIndex))
           .map(newLink => article.copy(mainImage = Some(newLink)))
           .recover { case error =>
-            logger.warn(s"Failed to download or save the image for article ${article.docId}. Falling back to URL link.")
+            logger.warn(s"Failed to download or save the image for article ${article.id}. Falling back to URL link.")
             article
           }
       case _ =>
@@ -75,7 +75,7 @@ class KindleGenerator(provider: ArticlesProvider,
   }
 
   private def saveArticle(article: Article, fileNameIndex: Int): Future[Article] = {
-    val fileName = s"${fileNameIndex}_${asFileName(article.docId)}.${fileSettings.nitfExtension}"
+    val fileName = s"${fileNameIndex}_${asFileName(article.id)}.${fileSettings.nitfExtension}"
     logger.debug(s"Generating NITF for $fileName...")
 
     Future.fromTry(Try(ArticleNITF(article)))

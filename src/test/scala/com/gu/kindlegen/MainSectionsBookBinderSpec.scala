@@ -45,7 +45,7 @@ class MainSectionsBookBinderSpec extends FunSpec {
 
       val articles = books.flatMap(_.articles)
       articles should contain theSameElementsAs allArticles
-      articles.map(_.newspaperPageNumber) shouldBe sorted
+      articles.map(_.pageNumber) shouldBe sorted
     }
 
     it("sorts sections according to configuration") {
@@ -57,7 +57,7 @@ class MainSectionsBookBinderSpec extends FunSpec {
       books should have size mainSections.size
 
       forEvery(books.zip(expectedArticleGroups)) { case (book, expectedArticles) =>
-        book.articles.map(_.docId) should contain theSameElementsAs expectedArticles.map(_.docId)
+        book.articles.map(_.id) should contain theSameElementsAs expectedArticles.map(_.id)
       }
     }
 
@@ -80,7 +80,7 @@ class MainSectionsBookBinderSpec extends FunSpec {
   private val allArticles = articlesInA ++ articlesInX ++ articlesInZ
 
   private def article(section: Section, pageNum: Int) =
-    Article(section, pageNum, title = "", docId = s"${section.id}${pageNum.toString}", ExampleLink, ExampleOffsetDate, "", "", Nil, None)
+    TestData.article(id = s"${section.id}${pageNum.toString}", section = section, pageNum = pageNum)
 
   private def section(sectionId: String) =
     Section(id = sectionId, title = sectionId.toUpperCase, link = ExampleLink)

@@ -27,10 +27,10 @@ class ArticleFactory(settings: GuardianProviderSettings) {
             sectionTag: Tag,
             settings: GuardianProviderSettings): Article = {
     Article(
-      section = sectionFrom(sectionTag),
-      newspaperPageNumber = fields.newspaperPageNumber.getOrElse(Int.MaxValue),  // move to the end of the section
+      id = content.id,
       title = content.webTitle,
-      docId = content.id,
+      section = sectionFrom(sectionTag),
+      pageNumber = fields.newspaperPageNumber.getOrElse(Int.MaxValue),  // move to the end of the section
       link = Link.AbsoluteURL.from(content.webUrl),
       pubDate = newspaperDate.toOffsetDateTime,
       byline = fields.byline.getOrElse(""),
