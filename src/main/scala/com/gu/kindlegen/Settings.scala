@@ -110,22 +110,9 @@ object GuardianProviderSettings extends AbstractConfigReader[GuardianProviderSet
 }
 
 object PublishingSettings extends AbstractConfigReader[PublishingSettings]("publishing") {
-  def apply(config: Config): Try[PublishingSettings] = {
-    PublishedFileSettings.fromParentConfig(config).map { fileSettings =>
-      val downloadImages  = config.as[Boolean](DownloadImages)
-      val prettifyXml     = config.as[Boolean](PrettifyXml)
-      val minArticles     = config.as[Int](MinArticlesPerEdition)
-      val publicationName = config.as[String](PublicationName)
-      val publicationLink = config.as[String](PublicationLink)
-      PublishingSettings(minArticles, downloadImages, prettifyXml, publicationName, publicationLink, fileSettings)
-    }
+  def apply(config: Config): Try[PublishingSettings] = Try {
+    config.as[PublishingSettings]
   }
-
-  private final val DownloadImages = "images.download"
-  private final val PrettifyXml = "prettifyXml"
-  private final val MinArticlesPerEdition = "minArticlesPerEdition"
-  private final val PublicationName = "publicationName"
-  private final val PublicationLink = "publicationLink"
 }
 
 object PublishedFileSettings extends AbstractConfigReader[PublishedFileSettings]("files") {

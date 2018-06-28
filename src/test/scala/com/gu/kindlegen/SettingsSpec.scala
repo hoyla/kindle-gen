@@ -101,7 +101,7 @@ object SettingsSpec {
     "publicationLink" -> "http://example.com",
     "prettifyXml" -> "on",
     "files" -> publishedFilesConfig,
-    "images" -> Map("download" -> "on").toConfigObj
+    "downloadImages" -> "on",
   )
 
   private val sectionTagType = TagType.Keyword
