@@ -4,9 +4,22 @@ import scala.collection.breakOut
 
 import org.apache.logging.log4j.scala.Logging
 
+import com.gu.io.Link
+
 
 trait BookBinder {
   def group(articles: Seq[Article]): Seq[BookSection]
+}
+
+
+case class MainSectionTemplate(id: String,
+                               title: Option[String] = None,
+                               link: Option[Link] = None,
+                               overrides: Seq[String] = Nil) {
+  val sectionIds = id +: overrides
+
+  def withDefaults(title: String, link: Link) =
+    Section(id, this.title.getOrElse(title), this.link.getOrElse(link))
 }
 
 

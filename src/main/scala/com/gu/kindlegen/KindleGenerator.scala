@@ -8,7 +8,9 @@ import org.apache.logging.log4j.scala.Logging
 
 import com.gu.io.{Downloader, Link, Publisher}
 import com.gu.io.IOUtils._
+import com.gu.kindlegen.capi.GuardianProviderSettings
 import com.gu.xml._
+
 
 object KindleGenerator {
   def apply(provider: ArticlesProvider,

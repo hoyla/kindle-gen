@@ -16,7 +16,13 @@ import com.gu.kindlegen.weather.WeatherClient
 import com.gu.kindlegen.weather.WeatherClient._
 
 
+final case class AccuWeatherSettings(apiKey: String, baseUrl: URI)
+
 object AccuWeatherClient {
+  def apply(settings: AccuWeatherSettings, downloader: SttpDownloader)(implicit ec: ExecutionContext): AccuWeatherClient = {
+    apply(settings.apiKey, settings.baseUrl, downloader)
+  }
+
   def apply(apiKey: String,
             apiBaseUri: URI,
             downloader: SttpDownloader)(implicit ec: ExecutionContext): AccuWeatherClient = {

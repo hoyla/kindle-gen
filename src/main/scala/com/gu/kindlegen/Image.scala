@@ -2,6 +2,7 @@ package com.gu.kindlegen
 
 import com.gu.contentapi.client.model.v1.{Asset, Content, Element, ElementType}
 import com.gu.io.{Link, Linkable}
+import com.gu.kindlegen.capi.GuardianProviderSettings
 
 
 case class Image(id: String,

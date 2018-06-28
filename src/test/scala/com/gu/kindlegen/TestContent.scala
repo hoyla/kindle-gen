@@ -8,6 +8,7 @@ import scala.concurrent.duration._
 import com.gu.contentapi.client.model.v1._
 import com.gu.contentapi.client.utils.CapiModelEnrichment._
 import com.gu.io.Link
+import com.gu.kindlegen.capi.GuardianProviderSettings
 
 
 object TestContent {

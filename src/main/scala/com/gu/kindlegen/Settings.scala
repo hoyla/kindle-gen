@@ -1,10 +1,8 @@
 package com.gu.kindlegen
 
-import java.net.URI
-import java.nio.file.{Files, Path}
-import java.time.{DayOfWeek, LocalTime, ZoneId}
+import java.nio.file.Path
+import java.time.DayOfWeek
 
-import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
 import com.typesafe.config.Config
@@ -16,7 +14,9 @@ import com.gu.config._
 import com.gu.contentapi.client.model.v1.TagType
 import com.gu.io.Link
 import com.gu.io.Link.AbsoluteURL
+import com.gu.kindlegen.capi.{ContentApiCredentials, GuardianProviderSettings}
 import com.gu.kindlegen.weather.WeatherSettings
+import com.gu.kindlegen.weather.accuweather.AccuWeatherSettings
 
 
 /** Encapsulates the settings of this application */
@@ -30,39 +30,6 @@ final case class Settings(accuWeather: AccuWeatherSettings,
                           s3: S3Settings) {
   def withPublishingFiles(files: PublishedFileSettings): Settings =
     copy(publishing = publishing.copy(files = files))
-}
-
-final case class AccuWeatherSettings(apiKey: String, baseUrl: URI)
-
-final case class BookBindingSettings(mainSections: Seq[MainSectionTemplate])
-
-final case class ContentApiCredentials(key: String, url: String)
-
-final case class PublishedFileSettings(outputDir: Path,
-                                       nitfExtension: String,
-                                       rssExtension: String,
-                                       rootManifestFileName: String) {
-  def encoding = "UTF-8"
-}
-
-final case class PublishingSettings(minArticlesPerEdition: Int,
-                                    downloadImages: Boolean,
-                                    prettifyXml: Boolean,
-                                    publicationName: String,
-                                    publicationLink: String,
-                                    files: PublishedFileSettings)
-
-final case class GuardianProviderSettings(downloadTimeout: FiniteDuration,
-                                          sectionTagType: TagType,
-                                          maxImageResolution: Int)
-
-/** @param localHour Run within 60 minutes of this hour
-  * @param zone the zone used to interpret ''localHour''
-  */
-final case class RunSettings(localHour: LocalTime, zone: ZoneId)
-
-final case class S3Settings(bucketName: String, bucketDirectory: String, optionalTmpDirOnDisk: Option[Path]) extends com.gu.io.aws.S3Settings {
-  lazy val tmpDirOnDisk: Path = optionalTmpDirOnDisk.getOrElse(Files.createTempDirectory(""))
 }
 
 object Settings extends RootConfigReader[Settings] {
@@ -97,6 +64,10 @@ object Settings extends RootConfigReader[Settings] {
   val weatherSettingsReader          = ConfigReader[WeatherSettings]("weather")
 }
 
+private object AbsoluteURLReader extends ValueReader[Link] {
+  override def read(config: Config, path: String): Link = AbsoluteURL.from(config.as[String](path))
+}
+
 object S3SettingsReader extends ValueReader[S3Settings] {
   override def read(config: Config, path: String): S3Settings = {
     val bucketName      = config.as[String](BucketName)
@@ -124,8 +95,4 @@ object WeatherSectionsReader extends ValueReader[Map[DayOfWeek, Section]] {
       .collect { case (Some(dayOfWeek), section) => dayOfWeek -> section }
       .withDefaultValue(defaultSection)
   }
-}
-
-private object AbsoluteURLReader extends ValueReader[Link] {
-  override def read(config: Config, path: String): Link = AbsoluteURL.from(config.as[String](path))
 }

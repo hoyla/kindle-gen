@@ -1,6 +1,7 @@
 package com.gu.kindlegen
 
-import java.time.{Instant, LocalDate, LocalTime}
+import java.nio.file.{Files, Path}
+import java.time.{Instant, LocalDate, LocalTime, ZoneId}
 import java.time.ZoneOffset.UTC
 import java.time.temporal.ChronoUnit.HOURS
 
@@ -16,11 +17,24 @@ import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.core.config.Configurator
 import org.apache.logging.log4j.scala.Logging
 
-import com.gu.io.aws.S3Publisher
+import com.gu.io.aws.{S3Publisher, S3PublisherSettings}
 import com.gu.io.sttp.{OkHttpSttpDownloader, SttpDownloader}
 import com.gu.kindlegen.capi.GuardianArticlesProvider
 import com.gu.kindlegen.weather.DailyWeatherForecastProvider
 import com.gu.kindlegen.weather.accuweather.AccuWeatherClient
+
+
+/** @param localHour Run within 60 minutes of this hour
+  * @param zone the zone used to interpret ''localHour''
+  */
+final case class RunSettings(localHour: LocalTime, zone: ZoneId)
+
+
+final case class S3Settings(bucketName: String, bucketDirectory: String, optionalTmpDirOnDisk: Option[Path])
+    extends S3PublisherSettings {
+  lazy val tmpDirOnDisk: Path = optionalTmpDirOnDisk.getOrElse(Files.createTempDirectory(""))
+}
+
 
 object Lambda extends Logging {
   private val ConfigSettingsEnvKey = "ConfigSettings"
@@ -130,9 +144,7 @@ class Lambda(settings: Settings, date: LocalDate) extends Logging {
 
   private def weatherProvider(settings: Settings, downloader: SttpDownloader)
                              (implicit ec: ExecutionContext): ArticlesProvider = {
-    val credentials = settings.accuWeather
-    val client = AccuWeatherClient(credentials.apiKey, credentials.baseUrl, downloader)
-
+    val client = AccuWeatherClient(settings.accuWeather, downloader)
     val section = settings.weather.sections(date.getDayOfWeek)
     new DailyWeatherForecastProvider(client, section, settings.weather)
   }

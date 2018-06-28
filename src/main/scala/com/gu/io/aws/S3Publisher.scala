@@ -10,7 +10,8 @@ import org.apache.logging.log4j.scala.Logging
 import com.gu.io.{FilePublisher, Link, Publisher}
 import com.gu.io.Link.{AbsolutePath, RelativePath}
 
-trait S3Settings {
+
+trait S3PublisherSettings {
   def bucketName: String
   def bucketDirectory: String
   def tmpDirOnDisk: Path
@@ -18,7 +19,7 @@ trait S3Settings {
   val absolutePath: AbsolutePath = AbsolutePath.from(s"/$bucketName/$bucketDirectory")
 }
 
-case class S3Publisher(s3: AmazonS3, settings: S3Settings)
+case class S3Publisher(s3: AmazonS3, settings: S3PublisherSettings)
                       (implicit ec: ExecutionContext) extends Publisher with Logging {
   logger.trace(s"Initialised with $settings")
   import settings._
