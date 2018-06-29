@@ -52,7 +52,7 @@ Resources:
       FunctionName: !Sub ${App}-${Stage}
       Description: Converting content to NITF format
       Runtime: java8
-      Handler: com.gu.kindlegen.Lambda::handler
+      Handler: com.gu.kindlegen.app.Lambda::handler
       MemorySize: 3008  # We usually use < 300 MB of RAM. However, we're I/O-bound so increasing cores improves speed drastically.
       Timeout: 300
       Tracing: Active
