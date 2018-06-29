@@ -6,6 +6,7 @@ import java.time.DayOfWeek
 import scala.util.Try
 
 import com.typesafe.config.Config
+import com.typesafe.config.ConfigException.BadValue
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ValueReader
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
@@ -52,8 +53,12 @@ object Settings extends RootConfigReader[Settings] {
   private implicit val dailySectionsReader = WeatherSectionsReader
   private implicit val linkReader = AbsoluteURLReader
   private implicit val s3Reader = S3SettingsReader
-  private implicit val tagTypeReader: ValueReader[TagType] =
-    (config, path) => TagType.valueOf(config.as[String](path)).get
+  private implicit val tagTypeReader: ValueReader[TagType] = { (config, path) =>
+    val tagTypeName = config.as[String](path)
+    TagType.valueOf(tagTypeName)
+      .getOrElse(throw new BadValue(config.origin(), path,
+        s"$tagTypeName isn't a valid value for c.g.c.c.m.v1.TagType; allowed values: ${TagType.list.mkString(", ")}"))
+  }
 
   val accuWeatherSettingsReader      = ConfigReader[AccuWeatherSettings]("accuweather")
   val bookBindingSettingsReader      = ConfigReader[BookBindingSettings]("books")
