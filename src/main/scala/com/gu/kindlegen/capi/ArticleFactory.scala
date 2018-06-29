@@ -24,24 +24,9 @@ object ArticleFactory {
     * @see [[com.gu.contentapi.client.model.v1.Content.elements]]
     */
   val ElementTypes = Set[ElementType](ElementType.Image)
-
-  private def tag(id: String, tagType: TagType): Tag =
-    Tag(id, tagType, webTitle = "", webUrl = "", apiUrl = "")
-
-  // TODO move to settings
-  private[capi] val cartoonTags = Set(
-    tag("type/cartoon", TagType.Type),
-    tag("tone/cartoons", TagType.Tone),
-    tag("commentisfree/series/guardian-comment-cartoon", TagType.Series),
-    tag("commentisfree/series/observer-comment-cartoon", TagType.Series),
-  )
-
-  private[capi] val cartoonTagIds = cartoonTags.map(_.id)
 }
 
 class ArticleFactory(settings: GuardianProviderSettings, imageFactory: ImageFactory) extends Logging {
-  import com.gu.kindlegen.capi.ArticleFactory._
-
   def apply(content: Content): Article = {
     val sectionTagType = settings.sectionTagType
     val maybeSectionTag = content.tags.find(_.`type` == sectionTagType)
@@ -91,4 +76,6 @@ class ArticleFactory(settings: GuardianProviderSettings, imageFactory: ImageFact
 
   private def sectionFrom(tag: Tag): Section =
     Section(tag.id, tag.webTitle, AbsoluteURL.from(tag.webUrl))
+
+  private val cartoonTagIds: Set[String] = settings.cartoonTags.map(_.id)
 }

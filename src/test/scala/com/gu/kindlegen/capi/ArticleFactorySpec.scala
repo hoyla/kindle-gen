@@ -53,7 +53,7 @@ class ArticleFactorySpec extends FunSpec with MockFactory {
     describe("when processing cartoons") {
       val contentWithoutCaption = contentWithTrailText.adjustAssetFields(_.copy(caption = None))
 
-      ArticleFactory.cartoonTags.foreach { tag =>
+      settings.cartoonTags.foreach { tag =>
         describe(s"with tag ${tag.id}") {
           def cartoon(content: Content) = content.copy(tags = content.tags :+ tag)
 

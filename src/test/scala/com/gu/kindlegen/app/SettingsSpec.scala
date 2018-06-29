@@ -13,7 +13,7 @@ import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
 
 import com.gu.config.ConfigReader
-import com.gu.contentapi.client.model.v1.TagType
+import com.gu.contentapi.client.model.v1.{Tag, TagType}
 import com.gu.io.Link.AbsoluteURL
 import com.gu.kindlegen._
 import com.gu.kindlegen.accuweather.AccuWeatherSettings
@@ -112,11 +112,16 @@ object SettingsSpec {
     "downloadImages" -> "on",
   )
 
+  private val cartoonTags = (1 to 3).map { i => Tag(s"tag$i", TagType(i), apiUrl = "", webUrl = "", webTitle = "")}
   private val sectionTagType = TagType.Keyword
   private val capiValues = Map(
     "downloadTimeout" -> Duration.ofSeconds(30),
     "maxImageResolution" -> 500,
-    "sectionTagType" -> sectionTagType.name
+    "sectionTagType" -> sectionTagType.name,
+    "cartoonTags" -> cartoonTags.map { tag => Map(
+      "id" -> tag.id,
+      "type" -> tag.`type`.name
+    ).toConfigObj }.asJava
   )
 
   private val runValues = Map(
@@ -233,6 +238,7 @@ object SettingsSpec {
     Duration.ofNanos(providerSettings.downloadTimeout.toNanos) shouldBe capiValues("downloadTimeout")
     providerSettings.maxImageResolution shouldBe capiValues("maxImageResolution")
     providerSettings.sectionTagType shouldBe sectionTagType
+    providerSettings.cartoonTags should contain theSameElementsAs cartoonTags
   }
 
   private def validateValues(runSettings: RunSettings): Assertion = {

@@ -12,7 +12,7 @@ import net.ceedubs.ficus.readers.ValueReader
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 
 import com.gu.config._
-import com.gu.contentapi.client.model.v1.TagType
+import com.gu.contentapi.client.model.v1.{Tag, TagType}
 import com.gu.io.Link
 import com.gu.io.Link.AbsoluteURL
 import com.gu.kindlegen._
@@ -53,12 +53,8 @@ object Settings extends RootConfigReader[Settings] {
   private implicit val dailySectionsReader = WeatherSectionsReader
   private implicit val linkReader = AbsoluteURLReader
   private implicit val s3Reader = S3SettingsReader
-  private implicit val tagTypeReader: ValueReader[TagType] = { (config, path) =>
-    val tagTypeName = config.as[String](path)
-    TagType.valueOf(tagTypeName)
-      .getOrElse(throw new BadValue(config.origin(), path,
-        s"$tagTypeName isn't a valid value for c.g.c.c.m.v1.TagType; allowed values: ${TagType.list.mkString(", ")}"))
-  }
+  private implicit val tagReader = TagReader
+  private implicit val tagTypeReader = TagTypeReader
 
   val accuWeatherSettingsReader      = ConfigReader[AccuWeatherSettings]("accuweather")
   val bookBindingSettingsReader      = ConfigReader[BookBindingSettings]("books")
@@ -85,6 +81,30 @@ object S3SettingsReader extends ValueReader[S3Settings] {
   private final val BucketName = "bucket"
   private final val BucketDirectory = "prefix"
   private final val TmpDirOnDisk = "tmpDirOnDisk"
+}
+
+object TagReader extends ValueReader[Tag] {
+  override def read(parentConfig: Config, path: String): Tag = {
+    implicit val tagTypeReader = TagTypeReader
+    val config = parentConfig.as[Config](path)
+
+    val id = config.as[String](Id)
+    val tagType = config.as[TagType](Type)
+    Tag(id, tagType, apiUrl = "", webUrl = "", webTitle = "")
+  }
+
+  private final val Id = "id"
+  private final val Type = "type"
+}
+
+object TagTypeReader extends ValueReader[TagType] {
+  override def read(config: Config, path: String): TagType = {
+    val tagTypeName = config.as[String](path)
+
+    TagType.valueOf(tagTypeName)
+      .getOrElse(throw new BadValue(config.origin(), path,
+        s"$tagTypeName isn't a valid value for c.g.c.c.m.v1.TagType; allowed values: ${TagType.list.mkString(", ")}"))
+  }
 }
 
 object WeatherSectionsReader extends ValueReader[Map[DayOfWeek, Section]] {

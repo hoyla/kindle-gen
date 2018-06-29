@@ -8,7 +8,12 @@ import com.gu.kindlegen.TestData._
 
 
 object TestContent {
-  val ExampleGuardianProviderSettings = GuardianProviderSettings(1.minute, TagType.NewspaperBookSection, maxImageResolution = 1000)
+  val ExampleGuardianProviderSettings = GuardianProviderSettings(
+    downloadTimeout = 1.minute,
+    maxImageResolution = 1000,
+    sectionTagType = TagType.NewspaperBookSection,
+    cartoonTags = (1 to 3).map(i => Tag(s"cartoon/tag/$i", TagType(i), apiUrl = "", webUrl = "", webTitle = "")).toSet
+  )
 
   val Sample =
     TestContent("sample-article", "Sample Article", "sample-section", 0, ExampleDate.toCapiDateTime,
