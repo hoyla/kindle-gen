@@ -258,12 +258,16 @@ object SettingsSpec {
       validateValues(article, weatherArticleValues(index))
     }
 
-    val weatherSections = this.weatherSections.map { case (day, section) => day.toUpperCase -> section }
+    val weatherSections = this.weatherSections.collect { case (day, section) if day != "default" => day.toUpperCase -> section }
     val sectionKeys = weatherSections.keySet  // day names + "default"
 
     forEvery(weather.sections) { case (day, section) =>
       section shouldBe weatherSections(day.toString)
     }
+    forEvery(weatherSections) { case (dayName, section) =>
+      weather.sections(DayOfWeek.valueOf(dayName)) shouldBe section
+    }
+
     forEvery(DayOfWeek.values.filterNot(day => sectionKeys.contains(day.toString))) { unconfiguredDay =>
       weather.sections(unconfiguredDay) shouldBe defaultSection
     }

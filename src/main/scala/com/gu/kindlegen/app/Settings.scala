@@ -113,7 +113,7 @@ object WeatherSectionsReader extends ValueReader[Map[DayOfWeek, Section]] {
 
     val dailySections = config.as[Map[String, Section]](path)
       .map {
-        case (dayName, section) => Try(DayOfWeek.valueOf(dayName)).toOption -> section
+        case (dayName, section) => Try(DayOfWeek.valueOf(dayName.toUpperCase)).toOption -> section
       }
 
     val defaultSection = dailySections(None)
