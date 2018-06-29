@@ -7,6 +7,23 @@ import com.gu.io.Link.AbsoluteURL
 import com.gu.kindlegen.{Section, _}
 
 
+object ArticleFactory {
+  /** Content fields processed by this factory
+    * @see [[com.gu.contentapi.client.model.v1.Content.fields]]
+    */
+  val ContentFields = Set("byline", "newspaper-edition-date", "newspaper-page-number", "standfirst")
+
+  /** Content blocks processed by this factory
+    * @see [[com.gu.contentapi.client.model.v1.Content.blocks]]
+    */
+  val Blocks = Set("body")
+
+  /** Content element types processed by this factory
+    * @see [[com.gu.contentapi.client.model.v1.Content.elements]]
+    */
+  val ElementTypes = Set[ElementType](ElementType.Image)
+}
+
 class ArticleFactory(settings: GuardianProviderSettings) {
   def apply(content: Content): Article = {
     val sectionTagType = settings.sectionTagType

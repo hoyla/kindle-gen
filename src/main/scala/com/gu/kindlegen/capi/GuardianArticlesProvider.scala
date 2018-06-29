@@ -42,7 +42,8 @@ class GuardianArticlesProvider(capiClient: ContentApiClient,
       .map(response => articles(response.results))
 
   def fetchPrintSentResponse(): Future[SearchResponse] = {
-    val query = KindlePublishingSearchQuery(editionDate, responseTagTypes = Seq(settings.sectionTagType))
+    import ArticleFactory.{Blocks, ContentFields, ElementTypes}
+    val query = KindlePublishingSearchQuery(editionDate, Blocks, ElementTypes, ContentFields, Set(settings.sectionTagType))
     logger.debug(s"Querying CAPI: ${capiClient.url(query)}")
     capiClient.getResponse(query)
   }
