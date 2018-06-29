@@ -164,7 +164,7 @@ object WeatherSettingsReader extends AbstractConfigReader[WeatherSettings]("weat
     implicitly[ValueReader[Map[String, Section]]]
       .map { sectionsByDayName =>
         val dailySections = sectionsByDayName.map {
-          case (dayName, section) => Try(DayOfWeek.valueOf(dayName)).toOption -> section
+          case (dayName, section) => Try(DayOfWeek.valueOf(dayName.toUpperCase)).toOption -> section
         }
 
         val defaultSection = dailySections(None)
