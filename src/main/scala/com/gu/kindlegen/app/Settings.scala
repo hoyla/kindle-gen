@@ -74,12 +74,14 @@ object S3SettingsReader extends ValueReader[S3Settings] {
   override def read(config: Config, path: String): S3Settings = {
     val bucketName      = config.as[String](BucketName)
     val bucketDirectory = config.as[String](BucketDirectory).stripSuffix("/")
+    val publicDirectory = config.as[String](PublicDirectory).stripSuffix("/")
     val tmpDirOnDisk    = config.as[Option[Path]](TmpDirOnDisk)
-    S3Settings(bucketName, bucketDirectory, tmpDirOnDisk)
+    S3Settings(bucketName, bucketDirectory, publicDirectory, tmpDirOnDisk)
   }
 
   private final val BucketName = "bucket"
   private final val BucketDirectory = "prefix"
+  private final val PublicDirectory = "publicDirectory"
   private final val TmpDirOnDisk = "tmpDirOnDisk"
 }
 

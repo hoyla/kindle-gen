@@ -38,7 +38,7 @@ class KindleGenerator(provider: ArticlesProvider,
   }
 
   // this implementation fails if any of the operations fails
-  // we might want to modify that so that failed operations, e.g. downloading an image, don't affect other operations
+  // we might want to modify that so that failed operations don't affect other operations
   def publish(): Future[Unit] = {
     for {
       articles <- fetchNitfBundle()

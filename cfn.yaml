@@ -36,6 +36,10 @@ Parameters:
     Description: The bucket where the output (NITF files) should be stored
     Type: String
     Default: kindle-gen-published-files
+  PublicDirectory:
+    Description: The publicly accessible prefix through which the published files will be available after every run
+    Type: String
+    Default: CurrentIssue
   CustomConfig:
     Description: 'Overrides application configuration settings. Should be in JSON format.'
     Type: String
@@ -53,7 +57,7 @@ Resources:
       Description: Converting content to NITF format
       Runtime: java8
       Handler: com.gu.kindlegen.app.Lambda::handler
-      MemorySize: 3008  # We usually use < 300 MB of RAM. However, we're I/O-bound so increasing cores improves speed drastically.
+      MemorySize: 3008  # We usually use < 384 MB of RAM. However, we're I/O-bound so increasing cores improves speed drastically.
       Timeout: 300
       Tracing: Active
       Environment:
@@ -71,7 +75,8 @@ Resources:
                 },
                 "s3": {
                   "bucket": "${OutputBucket}",
-                  "prefix": "${Stage}/"
+                  "prefix": "${Stage}",
+                  "publicDirectory": "${Stage}/${PublicDirectory}"
                 },
                 ${CustomConfig}
               }
@@ -95,3 +100,9 @@ Resources:
             Action:
               - s3:PutObject
             Resource: !Sub "arn:aws:s3:::${OutputBucket}/${Stage}/*"
+        - Statement:
+            Effect: Allow
+            Action:
+              - s3:GetBucketWebsite
+              - s3:PutBucketWebsite
+            Resource: !Sub "arn:aws:s3:::${OutputBucket}"

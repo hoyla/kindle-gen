@@ -14,6 +14,7 @@ import org.scalatest.Matchers._
 
 import com.gu.config.ConfigReader
 import com.gu.contentapi.client.model.v1.{Tag, TagType}
+import com.gu.io.TempFiles
 import com.gu.io.Link.AbsoluteURL
 import com.gu.kindlegen._
 import com.gu.kindlegen.accuweather.AccuWeatherSettings
@@ -22,9 +23,10 @@ import com.gu.kindlegen.weather.{WeatherArticleSettings, WeatherSettings}
 import com.gu.scalatest.PathMatchers._
 
 
-class SettingsSpec extends FunSpec {
+class SettingsSpec extends FunSpec with TempFiles {
   import Settings._
   import SettingsSpec._
+  implicit val _: TempFiles = this
 
   testReader(accuWeatherSettingsReader, accuWeatherConfig)(validateValues)
 
@@ -132,6 +134,7 @@ object SettingsSpec {
   private val s3Values = Map(
     "bucket" -> "My Bucket",
     "prefix" -> "A_Prefix",
+    "publicDirectory" -> "CurrentIssue",
     "tmpDirOnDisk" -> "/tmp"
   )
 
@@ -187,7 +190,7 @@ object SettingsSpec {
   private def s3Config = s3Values.toConfigObj
   private def weatherConfig = weatherValues.toConfigObj
 
-  private def validateValues(settings: Settings): Assertion = {
+  private def validateValues(settings: Settings)(implicit tmpHelper: TempFiles): Assertion = {
     validateValues(settings.accuWeather)
     validateValues(settings.contentApi)
     validateValues(settings.articles)
@@ -246,9 +249,12 @@ object SettingsSpec {
     runSettings.zone.toString shouldBe runValues("zone")
   }
 
-  private def validateValues(s3Settings: S3Settings): Assertion = {
+  private def validateValues(s3Settings: S3Settings)(implicit tmpHelper: TempFiles): Assertion = {
     s3Settings.bucketName shouldBe s3Values("bucket")
     s3Settings.bucketDirectory shouldBe s3Values("prefix")
+    s3Settings.publicDirectory shouldBe s3Values("publicDirectory")
+
+    tmpHelper.trackTempFile(s3Settings.tmpDirOnDisk)  // the generated file should be deleted after the test
     s3Settings.tmpDirOnDisk.toString shouldBe s3Values("tmpDirOnDisk")
   }
 

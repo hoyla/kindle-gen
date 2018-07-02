@@ -6,8 +6,9 @@ import java.time.ZoneOffset.UTC
 import java.time.temporal.ChronoUnit.HOURS
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.util.Failure
 
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
@@ -31,7 +32,10 @@ import com.gu.kindlegen.weather.DailyWeatherForecastProvider
 final case class RunSettings(localHour: LocalTime, zone: ZoneId)
 
 
-final case class S3Settings(bucketName: String, bucketDirectory: String, optionalTmpDirOnDisk: Option[Path])
+final case class S3Settings(bucketName: String,
+                            bucketDirectory: String,
+                            publicDirectory: String,
+                            optionalTmpDirOnDisk: Option[Path])
     extends S3PublisherSettings {
   lazy val tmpDirOnDisk: Path = optionalTmpDirOnDisk.getOrElse(Files.createTempDirectory(""))
 }
@@ -113,22 +117,41 @@ class Lambda(settings: Settings, date: LocalDate) extends Logging {
   def doRun(remainingTimeInMillis: => Long): Unit = {
     import scala.concurrent.ExecutionContext.Implicits.global
 
+    val publisher = s3Publisher(settings)
+    logger.info(s"Starting to publish files for $date; uploading to s3://${settings.s3.absolutePath.source}")
+
+    val deletePublicDir = publisher
+      .undirect(settings.s3.publicDirectory)
+      .andThen { case Failure(error) => logger.warn("Deleting the public directory failed!", error) }
+
+    val generateFiles = deletePublicDir
+      .flatMap(_ => doRun(publisher))
+      .andThen { case Failure(error) =>
+        logger.error("Generating and publishing failed!", error)
+      }
+
+    val publishPublicly = generateFiles
+      .flatMap(_ => publisher.redirect(settings.s3.publicDirectory))
+      .andThen { case Failure(error) => logger.error("Making the directory public failed!", error) }
+
+    Await.ready(publishPublicly, Duration(remainingTimeInMillis - ErrorReportingTimeInMillis, MILLISECONDS))
+    logger.debug("Publishing finished successfully.")
+  }
+
+  private def doRun(publisher: S3Publisher)(implicit ec: ExecutionContext): Future[Unit] = {
     val downloader = OkHttpSttpDownloader()
+
     val provider = new CompositeArticlesProvider(
       capiProvider(settings, downloader),
       weatherProvider(settings, downloader)
     )
+
     val binder = MainSectionsBookBinder(settings.books.mainSections)
-    val publisher = s3Publisher(settings)
 
     val kindleGenerator =
       new KindleGenerator(provider, binder, publisher, downloader, settings.articles.downloadTimeout, settings.publishing)
 
-    logger.info(s"Starting to publish files for $date; uploading to s3://${settings.s3.absolutePath.source}")
-    val published = kindleGenerator.publish()
-
-    Await.ready(published, Duration(remainingTimeInMillis - ErrorReportingTimeInMillis, MILLISECONDS))
-    logger.debug("Publishing finished successfully.")
+    kindleGenerator.publish()
   }
 
   private def isTimeToRun: Boolean = {

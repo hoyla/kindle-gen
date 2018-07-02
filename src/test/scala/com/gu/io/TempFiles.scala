@@ -11,8 +11,8 @@ import org.scalatest.{BeforeAndAfterAll, Suite}
 trait TempFiles extends BeforeAndAfterAll { this: Suite =>
   import Files._
 
-  protected var createdTempPaths: ListSet[Path] = ListSet.empty
-  protected def trackTempFile(x: Path): Path = { createdTempPaths += x; x }
+  var createdTempPaths: ListSet[Path] = ListSet.empty
+  def trackTempFile(x: Path): Path = { createdTempPaths += x; x }
 
   protected def newTempDir: Path = trackTempFile(createTempDirectory(null))
   protected def newTempFile: Path = trackTempFile(createTempFile(null, null))
