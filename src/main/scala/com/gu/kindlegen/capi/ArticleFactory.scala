@@ -3,6 +3,7 @@ package com.gu.kindlegen.capi
 import org.apache.logging.log4j.scala.Logging
 
 import com.gu.contentapi.client.model.v1._
+import com.gu.contentapi.client.model.v1.ElementType._
 import com.gu.contentapi.client.utils.CapiModelEnrichment._
 import com.gu.io.Link
 import com.gu.io.Link.AbsoluteURL
@@ -75,9 +76,11 @@ class ArticleFactory(settings: GuardianProviderSettings, imageFactory: ImageFact
   private def getBodyBlocks(content: Content): Seq[String] = {
     val blocks = content.blocks
     val bodyBlocks = blocks.flatMap(_.body).getOrElse(Nil)
-    val bodyElements = bodyBlocks.flatMap(_.elements).filter(_.`type` == ElementType.Text)
-    val htmlBlocks = bodyElements.flatMap(_.textTypeData.flatMap(_.html))
-    htmlBlocks
+    val htmlBlocks = bodyBlocks.flatMap(_.elements).collect {
+      case element if element.`type` == Text => element.textTypeData.flatMap(_.html)
+      case element if element.`type` == Tweet => element.tweetTypeData.flatMap(_.html)
+    }
+    htmlBlocks.flatten
   }
 
   private def sectionFrom(tag: Tag): Section =
