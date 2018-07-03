@@ -2,28 +2,92 @@
 
 Publishing our print-sent content to the Amazon Kindle API.
 
-# Architecture
+## Architecture
 
 ![Architecture diagram](docs/kindle-gen-diagram.png)
 
-# Quick Reference
+<!-- TODO Fix the diagram:
+2. Content returned as "JSON" => "Thrift"
+3. Content uploaded to "SFTP server" => "S3"
+-->
 
-```sh
-# Run the tests
-sbt test
-```
+This application runs as an AWS Lambda, configured via [a CloudFormation template](cfn.yaml).
+It then queries CAPI for print-sent content, i.e. content published in the printed newspaper.
+The content is transformed into [News Industry Text Format (NITF)](https://iptc.org/standards/nitf/)
+that is indexed into RSS feeds. The output is stored in AWS S3 and exposed publicly to be consumed
+by Amazon's
+[Kindle Publishing for Periodicals (KPP)](https://kindlepublishing.amazon.com/gp/vendor/kindlepubs/kpp/kpp-home)
+in order to be published on the
+[Kindle Newsstand](https://www.amazon.co.uk/Magazines-Journals-Kindle/b?ie=UTF8&node=341690031).
 
-# Prerequisites for development 
+## Design
+The application has been designed with extensibility in mind. It should be possible to use its
+core, unmodified, to support the generation of different newsletters. The Guardian's Kindle Edition
+is is one example that is baked into this repository.
 
-In order to run locally, you need to supply an API key in the `content-api.key` configuration property. 
-You can get a key from [Bonobo](https://bonobo.capi.gutools.co.uk). You can supply the key dynamically using:
-```sh
-sbt -Dcontent-api.key="<your-key>" [yourCommand]
-```
+### The Core
+The main entrypoint is `KindleGenerator`. It accepts an `ArticlesProvider` that is responsible
+for providing the HTML articles to be published in the edition. An example implementation is the
+`DailyWeatherForecastProvider`.
 
+With the provided articles, the `KindleGenerator` proceeds to (optionally) download the articles'
+main images. It accepts a `Downloader`, such as `OkHttpSttpDownloader`, give the caller full
+control over downloading options. 
 
-# To Do
+Following this, the `KindleGenerator` divides the articles into sections using a `BookBinder`.
+The standard implementation is `MainSectionsBookBinder`, which
+[supports customisation](src/main/resources/guardian-sections.conf) of section names and section
+order, as well as combining multiple sections into one.
 
-- switch all config to encrypted lambda variables during the set up of the lambda.
+The next step is to convert the articles into a format supported by the Kindle publishing platform.
+We use NITF as one of the
+[formats supported by KPP](https://images-na.ssl-images-amazon.com/images/G/01/kindle-publication/feedGuide-new/KPPUserGuide.html).
+The logic for this transformation starts with `ArticleNITF`, which converts the HTML into XHTML,
+cleans it to remove external links, and uses `XhtmlToNitfTransformer` to convert the XHTML into
+valid NITF.
 
+Because different versions of NITF may support different tags, and because
+[KPP's version of NITF](src/main/resources/kpp-nitf-3.5.7.xsd) has custom extensions, the
+`XhtmlToNitfTransformer` uses `NitfConfig` and `HtmlToNitfConfig` to abstract away the knowledge of
+NITF versions. Concrete implementations of `KindleNitfConfig` and `KindleHtmlToNitfConfig` have been
+configured with the KPP-specific extensions.
 
+The NITF outputs are then saved to a `Publisher`, which gets to decide where and how to publish
+the generated files. In the tests, we use a `FilePublisher`.
+
+Finally, an `RssManifest` is generated for each section, and a main RSS manifest is generated to
+point to the other manifests. These manifests are saved to the `Publisher`.
+
+### The Guardian's App
+The Guardian's Kindle-Gen app lives in an AWS Lambda.
+
+The main entrypoint is the `Lambda` class in the `app` package. Its purpose is to wire up the
+application and configure its settings properly.
+
+We use the `GuardianArticlesProvider` and a `DailyWeatherForecastProvider`, with the latter
+configured to use an `AccuWeatherClient`.
+Files are published using an `S3Publisher` that also manages public redirects.
+
+## Configuration
+Each component declares its required configuration in its constructor or factory method.
+This can be in the form of individual properties or, more commonly, a "Settings" case class in the
+same package. Typically, an application would read these settings from a configuration file.
+
+The main configuration file is [reference.conf](src/main/resources/reference.conf). It is written
+using the [HOCON](https://github.com/lightbend/config/blob/master/HOCON.md) syntax, which is a
+superset of JSON. Configuration can be customised using an
+[application.conf](src/main/resources/application.conf) file, as described in the documentation of
+the [Typesafe Config](https://github.com/lightbend/config) library.
+
+In most cases, the configuration is parsed using
+[Ficus' `ArbitraryTypeReader`](https://github.com/iheartradio/ficus#arbitrary-type-support),
+so that the configuration properties have the same names as the settings class fields.
+Special cases can be found in [app/Settings.scala](src/main/scala/com/gu/kindlegen/app/Settings.scala).
+
+There are a few keys required to run and to test the application. You can find them documented in
+[reference.conf](src/main/resources/reference.conf). Each key in this file shows where you can get
+one for your use. You can add these keys to your
+[application.conf](src/main/resources/application.conf). Please do _not_ commit this file.
+
+To support Continuous Integration servers, the test keys can be supplied via environment variables.
+Check [test/reference.conf](src/test/resources/reference.conf) for details.

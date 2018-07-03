@@ -27,7 +27,7 @@ class KindleGenerator(provider: ArticlesProvider,
 
   private def fileSettings = publishingSettings.files
 
-  def fetchNitfBundle(): Future[Seq[Article]] = {
+  def fetchArticles(): Future[Seq[Article]] = {
     provider.fetchArticles()
       .map { results =>
         val minArticles = publishingSettings.minArticlesPerEdition
@@ -41,7 +41,7 @@ class KindleGenerator(provider: ArticlesProvider,
   // we might want to modify that so that failed operations don't affect other operations
   def publish(): Future[Unit] = {
     for {
-      articles <- fetchNitfBundle()
+      articles <- fetchArticles()
       eventualArticlesWithImages = Future.sequence(articles.zipWithIndex.map((downloadMainImage _).tupled))
 
       articlesWithImages <- Await.ready(eventualArticlesWithImages, downloadTimeout)  // force the timeout
