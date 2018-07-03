@@ -65,6 +65,7 @@ object Lambda extends Logging {
       .map(withOutputDirForDate(date))
       .map(new Lambda(_, date).run(forceRun, context.getRemainingTimeInMillis))
       .recover(fatalError("Generation failed!"))
+      .get  // throw any errors to indicate failure
   }
 
   private def resolveConfig(): Config = {
@@ -134,7 +135,7 @@ class Lambda(settings: Settings, date: LocalDate) extends Logging {
       .flatMap(_ => publisher.redirect(settings.s3.publicDirectory))
       .andThen { case Failure(error) => logger.error("Making the directory public failed!", error) }
 
-    Await.ready(publishPublicly, Duration(remainingTimeInMillis - ErrorReportingTimeInMillis, MILLISECONDS))
+    Await.result(publishPublicly, Duration(remainingTimeInMillis - ErrorReportingTimeInMillis, MILLISECONDS))
     logger.debug("Publishing finished successfully.")
   }
 
