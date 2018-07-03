@@ -1,5 +1,7 @@
 package com.gu.kindlegen.weather
 
+import java.time.OffsetDateTime
+
 import scala.concurrent.Future
 import scala.xml.{Elem, XML}
 
@@ -51,7 +53,7 @@ class DailyWeatherForecastProviderSpec extends FunSpec {
 
   private def provider(settings: WeatherSettings) = {
     implicit val ec = SideEffectsExecutionContext  // discard errors reported by Future#andThen and FutureUtils.successfulSequence
-    new DailyWeatherForecastProvider(client, section, settings = settings)
+    new DailyWeatherForecastProvider(client, section, OffsetDateTime.now, settings)
   }
 
   it("creates an article with a forecast for each city") {

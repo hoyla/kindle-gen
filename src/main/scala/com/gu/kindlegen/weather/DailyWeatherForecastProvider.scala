@@ -20,6 +20,7 @@ object DailyWeatherForecastProvider {
 
 class DailyWeatherForecastProvider(client: WeatherClient,
                                    section: Section,
+                                   editionDate: OffsetDateTime,
                                    settings: WeatherSettings)(implicit ec: ExecutionContext)
     extends ArticlesProvider with Logging {
 
@@ -49,7 +50,7 @@ class DailyWeatherForecastProvider(client: WeatherClient,
           section = section,
           pageNumber = articleSettings.pageNumber,
           link = link,
-          pubDate = OffsetDateTime.now,
+          pubDate = editionDate,
           byline = articleSettings.byline,
           articleAbstract = articleSettings.articleAbstract.getOrElse(""),
           bodyBlocks = Seq(content.mkString),

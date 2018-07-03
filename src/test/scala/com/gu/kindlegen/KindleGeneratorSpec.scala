@@ -2,6 +2,7 @@ package com.gu.kindlegen
 
 import java.nio.file.{Files, Path}
 import java.time.LocalDate
+import java.time.ZoneOffset.UTC
 
 import scala.concurrent.Await
 import scala.xml.XML
@@ -41,7 +42,8 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
     val weatherClient = AccuWeatherClient(settings.accuWeather.apiKey, settings.accuWeather.baseUrl, downloader)
     val publisher = FilePublisher(fileSettings.outputDir.resolve(editionDate.toString))
     val capiProvider = GuardianArticlesProvider(settings.contentApi, settings.articles, downloader, editionDate)
-    val weatherProvider = new DailyWeatherForecastProvider(weatherClient, settings.weather.sections(editionDate.getDayOfWeek), settings.weather)
+    val weatherProvider = new DailyWeatherForecastProvider(
+      weatherClient, settings.weather.sections(editionDate.getDayOfWeek), editionDate.atStartOfDay.atOffset(UTC), settings.weather)
     val provider = new CompositeArticlesProvider(capiProvider, weatherProvider)
     val binder = MainSectionsBookBinder(settings.books.mainSections)
     val generator = new KindleGenerator(provider, binder, publisher, downloader, settings.articles.downloadTimeout, settings.publishing)
