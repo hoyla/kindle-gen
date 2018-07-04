@@ -1,5 +1,8 @@
 package com.gu.kindlegen
 
+import javax.xml.transform.Source
+import javax.xml.validation.Schema
+
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
@@ -11,6 +14,7 @@ import com.gu.io.{Downloader, Link, Publisher}
 import com.gu.io.IOUtils._
 import com.gu.io.Link.AbsoluteURL
 import com.gu.xml._
+import com.gu.xml.validation.XmlSchemaValidator
 
 object KindleGenerator {
   // some NITF tags must be minimised to be valid (e.g. <doc-id/> instead of <doc-id>\n</doc-id>)
@@ -80,7 +84,10 @@ class KindleGenerator(provider: ArticlesProvider,
 
     Future.fromTry(Try(ArticleNITF(article)))
       .flatMap { nitfGenerator =>
-        saveXml(nitfGenerator.nitf, fileName).map { newLink => article.copy(link = newLink) }
+        val nitf = nitfGenerator.nitf
+        logNitfIssues(nitf, fileName)
+        saveXml(nitf, fileName)
+          .map { newLink => article.copy(link = newLink) }
       }
   }
 
@@ -108,7 +115,54 @@ class KindleGenerator(provider: ArticlesProvider,
   }
 
   private def saveXml(content: Elem, fileName: String): Future[Link] = {
+    val xmlBytes = toBytes(content)
+    publisher.save(xmlBytes, fileName)
+  }
+
+  private def toBytes(content: Elem): Array[Byte] = {
     val prettifier = if (publishingSettings.prettifyXml) KindleGenerator.prettyPrinter else TrimmingPrinter
-    publisher.save(content.toXmlBytes(fileSettings.encoding)(prettifier), fileName)
+    content.toXmlBytes(fileSettings.encoding)(prettifier)
+  }
+
+  private def logNitfIssues(nitf: Elem, fileName: String): Unit = {
+    // XML validation is optional; it shouldn't stop the generation process
+    nitfSchema.foreach { schema =>
+      try {
+        val qualifiedNitf = toBytes(ArticleNITF.qualify(nitf)) // our validator requires the namespace while Amazon rejects it!
+        val validationResult = XmlSchemaValidator.validateXml(xmlSource(qualifiedNitf), schema)
+        val issues = validationResult.issues.mkString("\n", "\n", "\n")
+
+        if (!validationResult.isSuccessful) {
+          logger.warn(s"Found invalid NITF in $fileName! $issues")
+        } else if (validationResult.issues.nonEmpty) { // some warnings
+          logger.debug(s"Found validation issues in $fileName: $issues")
+        } else {
+          logger.debug(s"Valid NITF found in $fileName.")
+        }
+      } catch {
+        case e: Throwable =>
+          logger.warn(s"Failed to validate XML for $fileName", e)
+        // ignore the error
+      }
+    }
+  }
+
+  private val nitfSchema: Option[Schema] = schema("nitf", Resources.NitfSchemaContents.map(xmlSource))
+  // sadly, I couldn't find an official XSD for RSS
+
+  private def schema(name: String, xsdSources: Seq[Source]): Option[Schema] = {
+    // XML validation is optional; it shouldn't stop the generation process
+    if (xsdSources.nonEmpty) {
+      try {
+        Some(xmlSchema(xsdSources))
+      } catch {
+        case e: Throwable =>
+          logger.warn(s"Couldn't create validation schema for $name!", e)
+          None
+      }
+    } else {
+      logger.warn(s"Couldn't load schema files for $name!")
+      None
+    }
   }
 }
