@@ -57,7 +57,7 @@ Resources:
   Lambda:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub ${App}-${Stage}  # must be kept in sync with FunctionName everywhere in the file
+      FunctionName: !Sub ${App}-${Stage}  # must be kept in sync with FunctionName and LogGroupName everywhere in the file
       Description: Converting content to NITF format
       Runtime: java8
       Handler: com.gu.kindlegen.app.Lambda::handler
@@ -110,6 +110,31 @@ Resources:
               - s3:GetBucketWebsite
               - s3:PutBucketWebsite
             Resource: !Sub "arn:aws:s3:::${OutputBucket}"
+
+  LambdaLogErrors:
+    Type: "AWS::Logs::MetricFilter"
+    Properties:
+      FilterPattern: "?ERROR ?WARN"
+      LogGroupName: !Sub "/aws/lambda/${App}-${Stage}"  # must be kept in sync with Lambda.FunctionName
+      MetricTransformations:
+        - MetricValue: 1
+          MetricNamespace: content-api/kindle-gen
+          MetricName: LogErrors
+
+  LambdaLogErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Trigger a notification if the Lambda logs an error
+      Namespace: content-api/kindle-gen
+      MetricName:         LogErrors
+      Statistic:          Sum
+      ComparisonOperator: GreaterThanThreshold
+      Threshold:          0
+      Period: 60
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching  # no invocations -> no errors -> no alarm
+      AlarmActions:
+      - !Ref AlarmTopic
 
   LambdaErrorAlarm:
     Type: AWS::CloudWatch::Alarm
