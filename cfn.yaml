@@ -114,7 +114,7 @@ Resources:
   LambdaLogErrors:
     Type: "AWS::Logs::MetricFilter"
     Properties:
-      FilterPattern: "?ERROR ?WARN"
+      FilterPattern: "?FATAL ?ERROR ?WARN"
       LogGroupName: !Sub "/aws/lambda/${App}-${Stage}"  # must be kept in sync with Lambda.FunctionName
       MetricTransformations:
         - MetricValue: 1
