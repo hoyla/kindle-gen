@@ -48,12 +48,16 @@ Parameters:
     Description: Bucket where RiffRaff uploads artifacts on deploy
     Type: String
     Default: content-api-dist
+  AlarmTopic:
+    Description: SNS Topic ARN to receive alarm notifications
+    Type: String
+    AllowedPattern: arn:aws:sns:.+
 
 Resources:
   Lambda:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub ${App}-${Stage}
+      FunctionName: !Sub ${App}-${Stage}  # must be kept in sync with FunctionName everywhere in the file
       Description: Converting content to NITF format
       Runtime: java8
       Handler: com.gu.kindlegen.app.Lambda::handler
@@ -106,3 +110,41 @@ Resources:
               - s3:GetBucketWebsite
               - s3:PutBucketWebsite
             Resource: !Sub "arn:aws:s3:::${OutputBucket}"
+
+  LambdaErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Trigger a notification if the Lambda fails with an error
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub ${App}-${Stage}  # must be kept in sync with Lambda.FunctionName
+      MetricName:         Errors
+      Statistic:          Sum
+      ComparisonOperator: GreaterThanThreshold
+      Threshold:          0
+      Period: 60
+      EvaluationPeriods: 1
+      TreatMissingData: notBreaching  # no invocations -> no errors -> no alarm
+      AlarmActions:
+        - !Ref AlarmTopic
+
+  LambdaNotInvokedAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Trigger a notification if the Lambda is not invoked in a day
+      Namespace: AWS/Lambda
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub ${App}-${Stage}  # must be kept in sync with Lambda.FunctionName
+      MetricName:         Invocations
+      Statistic:          Sum
+      ComparisonOperator: LessThanThreshold
+      Threshold:          1
+      Period: 86700  # 1 day and 5 minutes
+      EvaluationPeriods: 1
+      TreatMissingData: breaching
+      AlarmActions:
+        - !Ref AlarmTopic
+      OKActions:
+        - !Ref AlarmTopic
