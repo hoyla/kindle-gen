@@ -31,7 +31,7 @@ object XmlUtils {
     }
   }
 
-  def validateXml(xmlContents: NodeSeq, schemaContents: Seq[Array[Byte]]): Unit = {
+  def validateXml(xmlContents: NodeSeq, schemaContents: Seq[String]): Unit = {
     val xsdSources = schemaContents.map(xmlSource)
 
     val prettyXml = xmlContents.prettyPrint

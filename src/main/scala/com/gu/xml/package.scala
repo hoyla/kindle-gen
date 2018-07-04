@@ -1,6 +1,6 @@
 package com.gu.xml
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream, StringReader}
 
 import javax.xml.transform.Source
 import javax.xml.transform.stream.StreamSource
@@ -15,6 +15,9 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 object `package` {
   def xmlSource(xmlContents: Array[Byte]): Source =
     new StreamSource(new ByteArrayInputStream(xmlContents))
+
+  def xmlSource(xmlContents: String): Source =
+    new StreamSource(new StringReader(xmlContents))
 
   /** Returns a schema that can be used to validate XML.
     *

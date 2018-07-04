@@ -1,7 +1,7 @@
 package com.gu.kpp.nitf
 
 import java.io.File
-import java.nio.file.Path
+import java.nio.file.{Path, Paths}
 
 import scala.xml._
 
@@ -22,14 +22,14 @@ class XhtmlToNitfTransformationSpec extends FunSpec {
   filesToTest.foreach(test)
 
   protected def filesToTest: TraversableOnce[Path] =
-    IOUtils.resourceAsPath("xhtml-example.nitf").ensuring(_.isDefined)
+    IOUtils.resourceUrl("xhtml-example.nitf").map(url => Paths.get(url.toURI))
 
   protected def test(nitfFilePath: Path): Unit = {
       describe("NITF file " + nitfFilePath) {
         it("should match the schema") {
           try {
             val xml = loadAndTransform(nitfFilePath.toFile)
-            validateXml(xml, Resources.NitfSchemaContents)
+            validateXml(xml, Resources.NitfSchemasContents)
             if (printTransformedResult) println(xml.prettyPrint)  // for manual inspection
 
             // the transformer should be idempotent: applying the transformation to valid NITF should do nothing

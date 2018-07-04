@@ -3,6 +3,7 @@ package com.gu.io
 import java.net.URL
 import java.nio.file.{Files, Path, Paths}
 
+import scala.io.Source
 import scala.util.Try
 import scala.util.matching.Regex
 
@@ -26,10 +27,18 @@ object IOUtils {
     deleteIfExists(path)
   }
 
+  /** Tries to find the resource on the local file system */
   def resourceAsPath(resourcePath: String): Option[Path] =
     resourceUrl(resourcePath)
       .flatMap { url =>
         Try { Paths.get(url.toURI) }.toOption
+      }
+
+  def resourceAsString(resourcePath: String): Option[String] =
+    resourceUrl(resourcePath)
+      .map { url =>
+        val source = Source.fromURL(url)
+        try { source.mkString } finally { source.close }
       }
 
   def resourceUrl(resourcePath: String): Option[URL] =

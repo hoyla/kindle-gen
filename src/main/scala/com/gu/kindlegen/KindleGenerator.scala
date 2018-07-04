@@ -147,7 +147,7 @@ class KindleGenerator(provider: ArticlesProvider,
     }
   }
 
-  private val nitfSchema: Option[Schema] = schema("nitf", Resources.NitfSchemaContents.map(xmlSource))
+  private val nitfSchema: Option[Schema] = schema("nitf", Resources.NitfSchemasContents.map(xmlSource))
   // sadly, I couldn't find an official XSD for RSS
 
   private def schema(name: String, xsdSources: Seq[Source]): Option[Schema] = {
