@@ -1,11 +1,34 @@
 package com.gu.xml
 
+import java.io.ByteArrayInputStream
+
+import javax.xml.transform.Source
+import javax.xml.transform.stream.StreamSource
+import javax.xml.validation.{Schema, SchemaFactory}
+import javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI
+
 import scala.util.Try
 import scala.util.control.NonFatal
 import scala.xml.{PrettyPrinter => _, _}
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 object `package` {
+  def xmlSource(xmlContents: Array[Byte]): Source =
+    new StreamSource(new ByteArrayInputStream(xmlContents))
+
+  /** Returns a schema that can be used to validate XML.
+    *
+    * The schema sources must be in a topological order, i.e. a schema file must precede other files that refer to it.
+    * For example, if your schema references "xml.xsd", then the call should look like:
+    * {{{
+    * val xmlSchema: Source = xmlSource("xml.xsd")
+    * val mySchema: Source = xmlSource("my.xsd")
+    * validateXml(???, xmlSchema, mySchema)
+    * }}}
+    */
+  def xmlSchema(xsdSources: Seq[Source]): Schema =
+    SchemaFactory.newInstance(W3C_XML_SCHEMA_NS_URI).newSchema(xsdSources.toArray)
+
   /** Creates a [[scala.xml.transform.RewriteRule]] that can be used to transform nodes.
     *
     * @see [[RichNode.transform]]

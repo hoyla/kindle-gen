@@ -81,7 +81,7 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
       forEvery(nitfFiles) { path => withClue(path) {
         val bareNitf = XML.loadFile(path.toFile)
         val nitf = ArticleNITF.qualify(bareNitf)  // specify the `xmlns` to validate against
-        validateXml(nitf, resource("kpp-nitf-3.5.7.xsd").toURI)
+        validateXml(nitf, Resources.NitfSchemaContents)
       }}
     }
 

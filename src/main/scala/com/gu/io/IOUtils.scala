@@ -1,7 +1,9 @@
 package com.gu.io
 
-import java.nio.file.{Files, Path}
+import java.net.URL
+import java.nio.file.{Files, Path, Paths}
 
+import scala.util.Try
 import scala.util.matching.Regex
 
 
@@ -23,4 +25,18 @@ object IOUtils {
       walk(path).filter(_ != path).forEach(deleteRecursively)
     deleteIfExists(path)
   }
+
+  def resourceAsPath(resourcePath: String): Option[Path] =
+    resourceUrl(resourcePath)
+      .flatMap { url =>
+        Try { Paths.get(url.toURI) }.toOption
+      }
+
+  def resourceUrl(resourcePath: String): Option[URL] =
+    classLoader.flatMap(cl => Option(cl.getResource(resourcePath)))
+
+  private def classLoader: Option[ClassLoader] =
+    Option(Thread.currentThread.getContextClassLoader)
+      .orElse(Option(this.getClass.getClassLoader))
+      .orElse(Option(ClassLoader.getSystemClassLoader))
 }

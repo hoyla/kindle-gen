@@ -1,6 +1,5 @@
 package com.gu.xml
 
-import java.net.{URI, URL}
 import java.nio.file.{Files, Path, Paths}
 
 import scala.xml._
@@ -13,11 +12,6 @@ import com.gu.xml.validation.XmlSchemaValidator
 
 
 object XmlUtils {
-  def resource(fileName: String): URL =
-    Option(Thread.currentThread.getContextClassLoader)
-      .getOrElse(this.getClass.getClassLoader)
-      .getResource(fileName)
-
   def writeTemporaryFile(xmlContents: Node, fileName: String, outputSubDir: Path = Paths.get(".")): Path = {
     val outputDir = Files.createDirectories(Paths.get("target", "tmp").resolve(outputSubDir))
     val outputPath = outputDir.toRealPath().resolve(fileName)
@@ -37,13 +31,12 @@ object XmlUtils {
     }
   }
 
-  def validateXml(xmlContents: NodeSeq, schemaURI: URI): Unit = {
-    val schemaPath = Paths.get(schemaURI)
-    val xsdSources = Seq(schemaPath.resolveSibling("xml.xsd"), schemaPath).map(XmlSchemaValidator.xmlSource)
+  def validateXml(xmlContents: NodeSeq, schemaContents: Seq[Array[Byte]]): Unit = {
+    val xsdSources = schemaContents.map(xmlSource)
 
-    val prettyXml = XML.loadString(xmlContents.prettyPrint)
+    val prettyXml = xmlContents.prettyPrint
     withClue(prettyXml + "\n") {
-      val validationResult = XmlSchemaValidator.validateXml(prettyXml, xsdSources: _*)
+      val validationResult = XmlSchemaValidator.validateXml(xmlSource(prettyXml.getBytes), xmlSchema(xsdSources))
       withClue(validationResult.issues.mkString("", "\n", "\n")) {
         validationResult shouldBe 'successful
       }
