@@ -3,6 +3,7 @@ package com.gu.kindlegen.app
 import java.nio.file.{Files, Path}
 import java.time._
 import java.time.ZoneOffset.UTC
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit.HOURS
 
 import scala.collection.JavaConverters._
@@ -29,7 +30,7 @@ import com.gu.kindlegen.weather.DailyWeatherForecastProvider
 /** @param localHour Run within 60 minutes of this hour
   * @param zone the zone used to interpret ''localHour''
   */
-final case class RunSettings(localHour: LocalTime, zone: ZoneId)
+final case class RunSettings(localHour: LocalTime, zone: ZoneId, outputDirDateFormat: String)
 
 
 final case class S3Settings(bucketName: String,
@@ -86,15 +87,23 @@ object Lambda extends Logging {
   }
 
   private def withOutputDirForDate(date: LocalDate)(settings: Settings): Settings = {
-    val fileSettings = settings.publishing.files
-    val originalOutputDir = fileSettings.outputDir.toAbsolutePath
-    val customFileSettings = fileSettings.copy(outputDir = originalOutputDir.resolve(date.toString))
+    val dateTime = date.atTime(LocalTime.now(settings.run.zone))
+    val formatter = DateTimeFormatter.ofPattern(settings.run.outputDirDateFormat)
+    val formattedDate = formatter.format(dateTime)
 
-    val s3Settings = settings.s3
-    val bucketDir = s3Settings.bucketDirectory
-    val customS3Settings = s3Settings.copy(bucketDirectory = s"$bucketDir/$date")
+    if (formattedDate.isEmpty) {
+      settings
+    } else {
+      val fileSettings = settings.publishing.files
+      val originalOutputDir = fileSettings.outputDir.toAbsolutePath
+      val customFileSettings = fileSettings.copy(outputDir = originalOutputDir.resolve(formattedDate))
 
-    settings.withPublishingFiles(customFileSettings).copy(s3 = customS3Settings)
+      val s3Settings = settings.s3
+      val bucketDir = s3Settings.bucketDirectory
+      val customS3Settings = s3Settings.copy(bucketDirectory = s"$bucketDir/$formattedDate")
+
+      settings.withPublishingFiles(customFileSettings).copy(s3 = customS3Settings)
+    }
   }
 
   private def fatalError(msg: String): PartialFunction[Throwable, Settings] = { case error =>

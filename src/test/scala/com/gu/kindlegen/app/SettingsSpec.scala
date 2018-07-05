@@ -128,7 +128,8 @@ object SettingsSpec {
 
   private val runValues = Map(
     "localHour" -> "06:00",
-    "zone" -> "Antarctica/South_Pole"
+    "zone" -> "Antarctica/South_Pole",
+    "outputDirDateFormat" -> "yyyy-MM-ddTHH-mm",
   )
 
   private val s3Values = Map(
@@ -247,6 +248,7 @@ object SettingsSpec {
   private def validateValues(runSettings: RunSettings): Assertion = {
     runSettings.localHour.toString shouldBe runValues("localHour")
     runSettings.zone.toString shouldBe runValues("zone")
+    runSettings.outputDirDateFormat shouldBe runValues("outputDirDateFormat")
   }
 
   private def validateValues(s3Settings: S3Settings)(implicit tmpHelper: TempFiles): Assertion = {
