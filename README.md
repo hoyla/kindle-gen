@@ -109,3 +109,33 @@ one for your use. You can add these keys to your
 
 To support Continuous Integration servers, the test keys can be supplied via environment variables.
 Check [test/reference.conf](src/test/resources/reference.conf) for details.
+
+AWS configuration resides in a [CloudFormation file](cfn.yaml).
+
+## Running on AWS
+The application is [configured](cfn.yaml) to run daily, using the parameters defined in the
+CloudFormation stack. To make persistent changes to the application's configuration, please
+update the stack parameters.
+
+To run the application manually, open the AWS Lambda and configure a test event like this:
+```json
+{
+  "date": "2018-06-29",
+  "forceRun": "true"
+}
+```
+The `forceRun` parameter is required to tell the Lambda that it's safe to run outside its normal schedule.
+
+The `date` parameter is optional; if it's missing then the application will use today's date.
+
+In the **Environment Variables** section, it's possible to modify the `ConfigSettings` variable to
+customise the behaviour of the lambda on the fly.
+
+The results will be stored in the S3 bucket, and the bucket's `CurrentIssue` redirect will point
+to the generated data. Depending on the date you use, this may be different from today's data.
+
+## Development
+This repository contains a standard [sbt project](build.sbt).
+
+To run tests, simply use `sbt test`. Make sure you have an `application.conf`
+[configured](#configuration) with the required keys.
