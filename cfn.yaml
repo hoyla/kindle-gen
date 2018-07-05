@@ -111,6 +111,26 @@ Resources:
               - s3:PutBucketWebsite
             Resource: !Sub "arn:aws:s3:::${OutputBucket}"
 
+  LambdaOutputBucket:
+    Type: "AWS::S3::Bucket"
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Ref OutputBucket
+      AccessControl: PublicRead
+      LifecycleConfiguration:
+        Rules:
+          - ExpirationInDays: 366
+            Status: Enabled
+      WebsiteConfiguration:
+        IndexDocument: index.html  # not actually used
+      Tags:
+        - Key: App
+          Value: !Ref App
+        - Key: Stack
+          Value: !Ref Stack
+        - Key: Stage
+          Value: !Ref Stage
+
   LambdaLogErrors:
     Type: "AWS::Logs::MetricFilter"
     Properties:
