@@ -126,8 +126,9 @@ object SettingsSpec {
     ).toConfigObj }.asJava
   )
 
+  private val localHours = Seq("06:00", "07:00")
   private val runValues = Map(
-    "localHour" -> "06:00",
+    "localHours" -> localHours.asJava,
     "zone" -> "Antarctica/South_Pole",
     "outputDirDateFormat" -> "yyyy-MM-ddTHH-mm",
   )
@@ -246,7 +247,7 @@ object SettingsSpec {
   }
 
   private def validateValues(runSettings: RunSettings): Assertion = {
-    runSettings.localHour.toString shouldBe runValues("localHour")
+    runSettings.localHours.map(_.toString) should contain theSameElementsAs localHours
     runSettings.zone.toString shouldBe runValues("zone")
     runSettings.outputDirDateFormat shouldBe runValues("outputDirDateFormat")
   }

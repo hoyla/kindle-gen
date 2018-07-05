@@ -27,10 +27,11 @@ import com.gu.kindlegen.capi.GuardianArticlesProvider
 import com.gu.kindlegen.weather.DailyWeatherForecastProvider
 
 
-/** @param localHour Run within 60 minutes of this hour
-  * @param zone the zone used to interpret ''localHour''
+/** @param localHours Run within 60 minutes of any of these hours
+  * @param zone the zone used to interpret ''localHours'' and to format the date for ''outputDirDateFormat''
+  * @param outputDirDateFormat a date/time format used to generate the output directory name
   */
-final case class RunSettings(localHour: LocalTime, zone: ZoneId, outputDirDateFormat: String)
+final case class RunSettings(localHours: Seq[LocalTime], zone: ZoneId, outputDirDateFormat: String)
 
 
 final case class S3Settings(bucketName: String,
@@ -120,7 +121,8 @@ class Lambda(settings: Settings, date: LocalDate) extends Logging {
       logger.debug(s"Running with settings $settings")
       doRun(remainingTimeInMillis)
     } else {
-      logger.info(s"Skipping run; it's either too early or too late for ${settings.run.localHour} ${settings.run.zone}.")
+      logger.info(s"Skipping run; it's either too early or too late for " +
+        s"${settings.run.localHours.mkString("[", ", ", "]")} ${settings.run.zone}.")
     }
   }
 
@@ -168,8 +170,10 @@ class Lambda(settings: Settings, date: LocalDate) extends Logging {
     val runSettings = settings.run
     val localNow = LocalTime.now(runSettings.zone)
 
-    localNow.isAfter(runSettings.localHour) &&
-      HOURS.between(runSettings.localHour, localNow) == 0
+    runSettings.localHours.exists { localHour =>
+      localNow.isAfter(localHour) &&
+        HOURS.between(localHour, localNow) == 0
+    }
   }
 
   private def capiProvider(settings: Settings, downloader: OkHttpSttpDownloader)
