@@ -1,13 +1,13 @@
 package com.gu.kindlegen.app
 
 import java.nio.file.{Files, Path}
-import java.time.{Instant, LocalDate, LocalTime, ZoneId}
+import java.time._
 import java.time.ZoneOffset.UTC
 import java.time.temporal.ChronoUnit.HOURS
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration._
+import scala.concurrent.duration.{Duration, _}
 import scala.util.Failure
 
 import com.amazonaws.services.lambda.runtime.Context
@@ -123,7 +123,7 @@ class Lambda(settings: Settings, date: LocalDate) extends Logging {
 
     val deletePublicDir = publisher
       .undirect(settings.s3.publicDirectory)
-      .andThen { case Failure(error) => logger.warn("Deleting the public directory failed!", error) }
+      .andThen { case Failure(error) => logger.error("Deleting the public directory failed!", error) }
 
     val generateFiles = deletePublicDir
       .flatMap(_ => doRun(publisher))
@@ -172,7 +172,8 @@ class Lambda(settings: Settings, date: LocalDate) extends Logging {
                              (implicit ec: ExecutionContext): ArticlesProvider = {
     val client = AccuWeatherClient(settings.accuWeather, downloader)
     val section = settings.weather.sections(date.getDayOfWeek)
-    new DailyWeatherForecastProvider(client, section, settings.weather)
+    val editionDate = date.atStartOfDay.atOffset(ZoneOffset.UTC)  // same offset as CAPI articles
+    new DailyWeatherForecastProvider(client, section, editionDate, settings.weather)
   }
 
   private def s3Publisher(settings: Settings)(implicit ec: ExecutionContext): S3Publisher = {

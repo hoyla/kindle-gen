@@ -6,13 +6,13 @@ import com.gu.io.Link
 
 
 object ArticlesManifest {
-  def apply(section: BookSection, buildInstant: Instant = Instant.now): RssManifest = {
+  def apply(book: BookSection, buildInstant: Instant = Instant.now): RssManifest = {
     RssManifest(
-      title = section.title,
-      link = section.link,
+      title = book.title,
+      link = book.link,
       buildInstant = buildInstant,
-      publicationDate = section.publicationDate,
-      items = section.articles.map(article => RssItem(article.title, article.link))
+      publicationDate = book.publicationDate,
+      items = book.articles.map(article => RssItem(article.title, article.link))
     )
   }
 }
