@@ -15,7 +15,7 @@ class XmlSpec extends FunSpec {
 
     it("maintains spaces inside contiguous text nodes") {
       val xml = <a/>.copy(child = Seq("   ", "Some ", "text", " with", " spaces ", "...", "   ").map(Text.apply))
-      TrimmingPrinter.format(xml) shouldBe "<a>Some text with spaces ...</a>"
+      TrimmingPrinter.format(xml) shouldBe "<a> Some text with spaces ... </a>"
     }
   }
 }

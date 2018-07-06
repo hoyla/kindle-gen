@@ -209,14 +209,15 @@ object `package` {
       sb.append(NodeSeq.fromSeq(trimProper(n)).toString)
     }
 
-    // copied from https://github.com/scala/scala-xml/pull/113/files
-    // TODO use Utility.trimProper when scala-xml v1.1.1 is released
+    // adapted from https://github.com/scala/scala-xml/pull/113/files
     private def trimProper(x: Node): Seq[Node] = x match {
       case Elem(pre, lab, md, scp, child@_*) =>
         val children = combineAdjacentTextNodes(child) flatMap trimProper
         Elem(pre, lab, md, scp, children.isEmpty, children: _*)
+      case Text(spaces) if spaces.forall(_.isWhitespace) =>
+          Nil
       case Text(s) =>
-        new TextBuffer().append(s).toText
+        Text(leadingOrTrailingSpaces.replaceAllIn(s, " "))  // keep a leading or trailing space if one already exists
       case _ =>
         x
     }
@@ -227,5 +228,7 @@ object `package` {
         case (n, acc) => n +: acc
       }
     }
+
+    private val leadingOrTrailingSpaces = raw"\A\s+|\s+\z".r
   }
 }
