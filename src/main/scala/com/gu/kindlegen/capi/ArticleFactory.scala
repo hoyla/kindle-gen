@@ -80,7 +80,10 @@ class ArticleFactory(settings: GuardianProviderSettings, imageFactory: ImageFact
       case element if element.`type` == Text => element.textTypeData.flatMap(_.html)
       case element if element.`type` == Tweet => element.tweetTypeData.flatMap(_.html)
     }
-    htmlBlocks.flatten
+    // sadly, starting from the second block, the first paragraph of each block is not indented
+    // to work around this, we combine all blocks into one.
+    val combinedBlocks = htmlBlocks.flatten.mkString("\n")
+    Seq(combinedBlocks)
   }
 
   private def sectionFrom(tag: Tag): Section =
