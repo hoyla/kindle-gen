@@ -26,6 +26,7 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
     convertMisplacedLists,
     removeUnsupportedAttributes,
     removeTagsMissingRequiredAttributes,
+    replaceBreaksInAbstract,
     wrapTextIntoBlockContent,
     wrapSpecialElements,
     unwrapTopLevelTags
@@ -107,6 +108,13 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
     rewriteRule("Remove tags missing required attributes") {
       case e: Elem if tags.contains(e.label) && e.attributes.isEmpty =>
         e.unwrapChildren(_ => true)
+    }
+  }
+
+  private val replaceBreaksInAbstract = {
+    rewriteRule("Replace <br/> in <abstract> with a dash") {
+      case e: Elem if e.label == "abstract" =>
+        e.replaceDescendantsOrSelf { case n if n.label == "br" => Text(" – ") }
     }
   }
 

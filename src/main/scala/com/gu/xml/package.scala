@@ -97,6 +97,13 @@ object `package` {
       }
     }
 
+    def replaceDescendantsOrSelf(replacement: PartialFunction[Node, Node]): Seq[Node] = node match {
+      case n if replacement.isDefinedAt(n) => replacement(n)
+      case e: Elem if e.descendant.exists(replacement.isDefinedAt) =>
+        e.copy(child = e.child.flatMap(_.replaceDescendantsOrSelf(replacement)))
+      case n => n
+    }
+
     /** Creates an element that matches this node, unless this node is a [[scala.xml.SpecialNode]]. */
     def toElem: Option[Elem] = node match {
       case e: Elem => Some(e)
