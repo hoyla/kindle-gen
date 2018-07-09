@@ -48,10 +48,6 @@ Parameters:
     Description: Bucket where RiffRaff uploads artifacts on deploy
     Type: String
     Default: content-api-dist
-  AlarmTopic:
-    Description: SNS Topic ARN to receive alarm notifications
-    Type: String
-    AllowedPattern: arn:aws:sns:.+
 
 Resources:
   Lambda:
@@ -135,6 +131,14 @@ Resources:
         - Key: Stage
           Value: !Ref Stage
 
+  AlarmsTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: !Sub ${App}-${Stage}-alarms
+
+  # !!! Must be created AFTER the whole stack!
+  # The metric references a log group that won't be created until after the stack is created _and_ the lambda executed.
+  # For this reason, this resource MUST be commented out to create the stack, and then uncommented to update the stack.
   LambdaLogErrors:
     Type: "AWS::Logs::MetricFilter"
     Properties:
@@ -158,7 +162,7 @@ Resources:
       EvaluationPeriods: 1
       TreatMissingData: notBreaching  # no invocations -> no errors -> no alarm
       AlarmActions:
-      - !Ref AlarmTopic
+      - !Ref AlarmsTopic
 
   LambdaErrorAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -176,7 +180,7 @@ Resources:
       EvaluationPeriods: 1
       TreatMissingData: notBreaching  # no invocations -> no errors -> no alarm
       AlarmActions:
-        - !Ref AlarmTopic
+        - !Ref AlarmsTopic
 
   LambdaNotInvokedAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -194,6 +198,6 @@ Resources:
       EvaluationPeriods: 1
       TreatMissingData: breaching
       AlarmActions:
-        - !Ref AlarmTopic
+        - !Ref AlarmsTopic
       OKActions:
-        - !Ref AlarmTopic
+        - !Ref AlarmsTopic
