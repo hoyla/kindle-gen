@@ -1,6 +1,6 @@
 package com.gu.xml
 
-import scala.xml.{Elem, NamespaceBinding, Node}
+import scala.xml.{Elem, NamespaceBinding, Node, Text}
 
 
 /** A thread-safe pretty printer that respects the setting of `minimizeEmpty` even for tags with lengthy attributes. */
@@ -11,6 +11,9 @@ class PrettyPrinter(val width: Int, val step: Int, val minimizeEmpty: Boolean = 
     node match {
       case e: Elem if e.child.isEmpty && (minimizeEmpty || e.minimizeEmpty) =>
         makeBox(indent, leafTag(e))
+
+      case e: Elem =>
+        super.traverse(e.adjacentTextChildrenCombined, pscope, indent)
 
       case _ =>
         super.traverse(node, pscope, indent)

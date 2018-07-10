@@ -81,6 +81,9 @@ object `package` {
     def hasChildrenMatching(predicate: Node => Boolean): Boolean =
       node.child.exists(predicate)
 
+    def isText = node.label == "#PCDATA"
+    def isWhitespace = isText && node.text.forall(_.isWhitespace)
+
     /** Transforms the node using the specified rules.
       * @see [[rewriteRule]]
       */
@@ -132,6 +135,14 @@ object `package` {
   }
 
   implicit class RichElem(val elem: Elem) extends AnyVal {
+    def adjacentTextChildrenCombined = {
+      val combinedChildren = elem.child.adjacentTextNodesCombined
+      if (elem.child.length == combinedChildren.length)
+        elem
+      else
+        elem.copy(child = combinedChildren)
+    }
+
     def withAttributes(attributes: Attribute*): Elem = attributes.foldLeft(elem)(_ % _)
     def withAttribute(prefix: String, key: String, value: String): Elem = withAttributes(Attribute(prefix, key, value, Null))
     def withoutAttributes(unwanted: String*): Elem = elem.copy(attributes = elem.attributes.without(unwanted))
@@ -200,6 +211,13 @@ object `package` {
         adaptUnlessEmpty(middle, adaptMatching) ++
         adaptUnlessEmpty(after, _.adaptPartitions(matches, adaptMatching = adaptMatching, adaptUnmatching = adaptUnmatching))
     }
+
+    def adjacentTextNodesCombined: Seq[Node] = {
+      nodes.foldRight(Seq.empty[Node]) {
+        case (Text(left), Text(right) +: accMinusLast) => Text(left + right) +: accMinusLast
+        case (n, acc) => n +: acc
+      }
+    }
   }
 
   implicit val defaultPrettyPrinter: PrettyPrinter = new PrettyPrinter(width = 150, step = 3)
@@ -211,22 +229,18 @@ object `package` {
 
     // adapted from https://github.com/scala/scala-xml/pull/113/files
     private def trimProper(x: Node): Seq[Node] = x match {
-      case Elem(pre, lab, md, scp, child@_*) =>
-        val children = combineAdjacentTextNodes(child) flatMap trimProper
-        Elem(pre, lab, md, scp, children.isEmpty, children: _*)
+      case e: Elem =>
+        val children = e.child.adjacentTextNodesCombined flatMap trimProper
+        e.copy(minimizeEmpty = children.isEmpty, child = children)
+
       case Text(spaces) if spaces.forall(_.isWhitespace) =>
           Nil
+
       case Text(s) =>
         Text(leadingOrTrailingSpaces.replaceAllIn(s, " "))  // keep a leading or trailing space if one already exists
+
       case _ =>
         x
-    }
-
-    private def combineAdjacentTextNodes(nodes: Seq[Node]): Seq[Node] = {
-      nodes.foldRight(Seq.empty[Node]) {
-        case (Text(left), Text(right) +: accMinusLast) => Text(left + right) +: accMinusLast
-        case (n, acc) => n +: acc
-      }
     }
 
     private val leadingOrTrailingSpaces = raw"\A\s+|\s+\z".r

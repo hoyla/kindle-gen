@@ -122,7 +122,6 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
   private val enrichedTextParentTags = config.nitf.enrichedTextParentTags
   private def enrichedTextNode(node: Node) = config.nitf.enrichedTextTags.contains(node.label)
   private def nonEnrichedTextNode(node: Node) = !enrichedTextNode(node)
-  private def justSpaces(node: Node) = node.label == "#PCDATA" && node.text.forall(_.isWhitespace)
 
   private val wrapTextIntoBlockContent: RewriteRule = {
     rewriteRule("Wrap text (and enriched text) in block (non-mixed) elements") {
@@ -132,7 +131,7 @@ class XhtmlToNitfTransformer(config: HtmlToNitfConfig) {
         e.copy(child = apply(block))  // apply all transformations to the blockquote contents
 
       case e: Elem if !enrichedTextParentTags(e.label) &&
-                      e.hasChildrenMatching(n => enrichedTextNode(n) && !justSpaces(n)) =>
+                      e.hasChildrenMatching(n => enrichedTextNode(n) && !n.isWhitespace) =>
         e.wrapChildren(enrichedTextNode, e.copy(label = "p", attributes = Null))
     }
   }
