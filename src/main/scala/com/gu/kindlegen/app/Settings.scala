@@ -3,7 +3,7 @@ package com.gu.kindlegen.app
 import java.nio.file.Path
 import java.time.DayOfWeek
 
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigException.BadValue
@@ -67,7 +67,12 @@ object Settings extends RootConfigReader[Settings] {
 }
 
 private object AbsoluteURLReader extends ValueReader[Link] {
-  override def read(config: Config, path: String): Link = AbsoluteURL.from(config.as[String](path))
+  override def read(config: Config, path: String): Link = {
+    val url = config.as[String](path)
+    AbsoluteURL(url)
+      .recoverWith { case e => Failure(new BadValue(config.origin, path, s"""Value "$url" is not a valid AbsoluteURL """, e)) }
+      .get
+  }
 }
 
 object S3SettingsReader extends ValueReader[S3Settings] {
