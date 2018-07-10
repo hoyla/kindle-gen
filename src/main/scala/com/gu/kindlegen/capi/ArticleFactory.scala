@@ -74,11 +74,12 @@ class ArticleFactory(settings: GuardianProviderSettings, imageFactory: ImageFact
   }
 
   private def getBodyBlocks(content: Content): Seq[String] = {
+    def addSpacesAround(html: String) = s"<p>&nbsp;</p>$html<p>&nbsp;</p>"
     val blocks = content.blocks
     val bodyBlocks = blocks.flatMap(_.body).getOrElse(Nil)
     val htmlBlocks = bodyBlocks.flatMap(_.elements).collect {
       case element if element.`type` == Text => element.textTypeData.flatMap(_.html)
-      case element if element.`type` == Tweet => element.tweetTypeData.flatMap(_.html)
+      case element if element.`type` == Tweet => element.tweetTypeData.flatMap(_.html).map(addSpacesAround)
     }
     // sadly, starting from the second block, the first paragraph of each block is not indented
     // to work around this, we combine all blocks into one.
