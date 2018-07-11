@@ -3,9 +3,12 @@ package com.gu.kindlegen
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
+import scala.collection.JavaConverters._
+import scala.collection.concurrent.TrieMap
 import scala.util.control.NonFatal
 import scala.xml._
 
+import com.vdurmont.emoji.{Emoji, EmojiParser}
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document.OutputSettings.Syntax
 import org.jsoup.nodes.Entities.EscapeMode
@@ -33,8 +36,9 @@ object ArticleNITF {
 
   private def htmlToXhtml(html: String, cleaner: Cleaner = htmlCleaner): NodeSeq = {
     val saferHtml = if (html.exists(_.isControl)) html.filterNot(_.isControl) else html
+    val htmlWithoutEmoji = replaceEmoji(saferHtml)  // kindle fonts don't support emojis
 
-    val document = cleaner.clean(Jsoup.parseBodyFragment(saferHtml.trim))
+    val document = cleaner.clean(Jsoup.parseBodyFragment(htmlWithoutEmoji.trim))
     document.outputSettings
       .syntax(Syntax.xml)
       .escapeMode(EscapeMode.xhtml)
@@ -49,6 +53,24 @@ object ArticleNITF {
         throw new RuntimeException(s"Failed to parse XHTML: $e\n$xhtml", e)
     }
   }
+
+  private def replaceEmoji(source: String): String = {
+    EmojiParser.parseFromUnicode(source, { unicodeCandidate =>
+      val emoji = unicodeCandidate.getEmoji
+      emojiCache.getOrElseUpdate(emoji, {
+        val description = emoji.getDescription
+        val text =
+          if (description.count(_ == ' ') <= maxEmojiDescriptionWords)
+            description.replace(' ', '_')
+          else
+            emoji.getAliases.asScala.maxBy(_.length)  // longest alias is clearer, e.g. :+1: vs :thumbs_up:
+        s":$text:"
+      })
+    })
+  }
+
+  private val maxEmojiDescriptionWords = 3
+  private val emojiCache = TrieMap.empty[Emoji, String]
 }
 
 case class ArticleNITF(article: Article) {

@@ -80,5 +80,15 @@ class ArticleNITFSpec extends FunSpec {
       val paragraph = nitf \\ "body.content" \\ "p"
       paragraph.mkString shouldBe "<p>This is an example that contains some<em> links</em>.</p>"
     }
+
+    it("replaces emoji with their names") {
+      val article = simpleArticle.copy(bodyBlocks = Seq(
+        """<p>Nice! 😀 <a href="http://example.com">🦌</a>"""
+      ))
+
+      val nitf = ArticleNITF(article).nitf
+      val paragraph = nitf \\ "body.content" \\ "p"
+      paragraph.mkString shouldBe "<p>Nice! :grinning_face: :deer:</p>"
+    }
   }
 }

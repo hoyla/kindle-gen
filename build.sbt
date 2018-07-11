@@ -35,6 +35,7 @@ libraryDependencies ++= Seq(
 
   // HTML parsing, cleanup, and conversion to NITF XML
   "org.jsoup" % "jsoup" % "1.11.3",
+  "com.vdurmont" % "emoji-java" % "4.0.0",
   "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
 
