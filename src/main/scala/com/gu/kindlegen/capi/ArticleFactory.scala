@@ -1,6 +1,7 @@
 package com.gu.kindlegen.capi
 
 import org.apache.logging.log4j.scala.Logging
+import org.jsoup.Jsoup
 
 import com.gu.contentapi.client.model.v1._
 import com.gu.contentapi.client.model.v1.ElementType._
@@ -74,12 +75,11 @@ class ArticleFactory(settings: GuardianProviderSettings, imageFactory: ImageFact
   }
 
   private def getBodyBlocks(content: Content): Seq[String] = {
-    def addSpacesAround(html: String) = s"<p>&nbsp;</p>$html<p>&nbsp;</p>"
     val blocks = content.blocks
     val bodyBlocks = blocks.flatMap(_.body).getOrElse(Nil)
     val htmlBlocks = bodyBlocks.flatMap(_.elements).collect {
       case element if element.`type` == Text => element.textTypeData.flatMap(_.html)
-      case element if element.`type` == Tweet => element.tweetTypeData.flatMap(_.html).map(addSpacesAround)
+      case element if element.`type` == Tweet => element.tweetTypeData.flatMap(_.html).map(h => addSpacesAround(emphasiseTweet(h)))
     }
     // sadly, starting from the second block, the first paragraph of each block is not indented
     // to work around this, we combine all blocks into one.
@@ -90,5 +90,14 @@ class ArticleFactory(settings: GuardianProviderSettings, imageFactory: ImageFact
   private def sectionFrom(tag: Tag): Section =
     Section(tag.id, tag.webTitle, AbsoluteURL.from(tag.webUrl))
 
+  private def addSpacesAround(html: String) = s"<p>&nbsp;</p>$html<p>&nbsp;</p>"
+
+  private def emphasiseTweet(html: String): String = {
+    val doc = Jsoup.parseBodyFragment(html)
+    doc.select("blockquote p").forEach { p => p.html(s"<em>${p.html}</em>") }
+    doc.body.html
+  }
+
   private val cartoonTagIds: Set[String] = settings.cartoonTags.map(_.id)
+
 }
