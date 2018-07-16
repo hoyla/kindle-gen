@@ -157,14 +157,14 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${App}-${Stage}"  # must be kept in sync with Lambda.FunctionName
       MetricTransformations:
         - MetricValue: 1
-          MetricNamespace: content-api/kindle-gen
+          MetricNamespace: !Sub "content-api/${App}-${Stage}"
           MetricName: LogErrors
 
   LambdaLogErrorAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: Trigger a notification if the Lambda logs an error
-      Namespace: content-api/kindle-gen
+      Namespace: !Sub "content-api/${App}-${Stage}"
       MetricName:         LogErrors
       Statistic:          Sum
       ComparisonOperator: GreaterThanThreshold
