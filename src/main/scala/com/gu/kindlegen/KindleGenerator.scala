@@ -33,11 +33,13 @@ class KindleGenerator(provider: ArticlesProvider,
 
   def fetchArticles(): Future[Seq[Article]] = {
     provider.fetchArticles()
-      .map { results =>
-        val minArticles = publishingSettings.minArticlesPerEdition
-        require(results.length >= minArticles,
-          s"Not enough articles to generate an edition! Expected >= $minArticles, Found ${results.length}")
-        results
+      .flatMap { results =>
+        if(results.length >= publishingSettings.minArticlesPerEdition)
+          Future.successful(results)
+        else
+          Future.failed(new IllegalArgumentException(
+            s"Not enough articles to generate an edition!" +
+              s" Expected >= ${publishingSettings.minArticlesPerEdition}, Found ${results.length}"))
       }
   }
 

@@ -14,7 +14,9 @@ case class FilePublisher(outputDirectory: Path)
   private val dir = Files.createDirectories(outputDirectory).toRealPath()
   private val dirLink = Link.AbsolutePath.from(dir)
 
-  override def persist(content: Array[Byte], fileName: String): Future[RelativePath] = Future {
+  override type PublishedLink = RelativePath
+
+  override def persist(content: Array[Byte], fileName: String): Future[PublishedLink] = Future {
     val path = toPath(fileName)
     logger.debug(s"Writing $fileName to $path")
 
