@@ -4,15 +4,8 @@ Publishing our print-sent content to the Amazon Kindle API.
 
 ## Architecture
 
-![Architecture diagram](docs/kindle-gen-diagram.png)
-
-<!-- TODO Fix the diagram:
-2. Content returned as "JSON" => "Thrift"
-3. Content uploaded to "SFTP server" => "S3"
--->
-
-This application runs as an AWS Lambda, configured via [a CloudFormation template](cfn.yaml).
-It then queries CAPI for print-sent content, i.e. content published in the printed newspaper.
+This application runs as an AWS Lambda, configured via [a CloudFormation template](cfn.yaml) to run daily.
+It queries CAPI for print-sent content, i.e. content published in the printed newspaper.
 The content is transformed into [News Industry Text Format (NITF)](https://iptc.org/standards/nitf/)
 that is indexed into RSS feeds. The output is stored in AWS S3 and exposed publicly to be consumed
 by Amazon's
