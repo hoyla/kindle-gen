@@ -45,7 +45,7 @@ trait SttpDownloader extends Downloader with Logging {
         logger.debug(s"Downloaded ${request.uri}: HTTP ${response.code}")
         logger.trace(s"Downloaded $request: $response")
       } else {
-        logger.debug(s"Failed to download ${request.uri}: HTTP ${response.code}! ${response.body.swap.getOrElse("")}")
+        logger.debug(s"Failed to download ${request.uri}: HTTP ${response.code}! $response")
       }
     case Failure(error) =>
       logger.debug(s"Could not download ${request.uri}! $error")

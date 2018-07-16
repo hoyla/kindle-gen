@@ -30,8 +30,8 @@ libraryDependencies ++= Seq(
   "com.iheart" %% "ficus" % "1.4.3",
 
   // HTTP client
-  "com.softwaremill.sttp" %% "okhttp-backend" % "1.2.1",
-  "com.softwaremill.sttp" %% "json4s" % "1.2.1",
+  "com.softwaremill.sttp" %% "okhttp-backend" % "1.2.3",
+  "com.softwaremill.sttp" %% "json4s" % "1.2.3",
 
   // HTML parsing, cleanup, and conversion to NITF XML
   "org.jsoup" % "jsoup" % "1.11.3",
@@ -49,7 +49,7 @@ libraryDependencies ++= Seq(
   // AWS
   "com.amazonaws" % "aws-lambda-java-core" % "1.2.0",
   "com.amazonaws" % "aws-lambda-java-log4j2" % "1.1.0",
-  "com.amazonaws" % "aws-java-sdk-s3" % "1.11.344",
+  "com.amazonaws" % "aws-java-sdk-s3" % "1.11.368",
 
   // test dependencies
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
