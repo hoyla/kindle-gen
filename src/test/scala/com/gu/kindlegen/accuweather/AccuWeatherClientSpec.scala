@@ -37,23 +37,31 @@ class AccuWeatherClientSpec extends FunSpec {
 
     it("contains valid locations") {
       forEvery(knownLocations) { location: Location =>
-        location.name should not be empty
-        location.key should not be empty
+        location.name.trim should not be empty
+        location.key.trim should not be empty
       }
     }
 
-    it("contains unique locations") {
-      def checkUniqueness(property: Location => String) =
-        forEvery(knownLocations.map(property)) { value => knownLocations.count(property(_) == value) shouldBe 1 }
+    it("contains unique location names") {
       checkUniqueness(_.name)
+    }
+
+    it("contains unique location keys") {
       checkUniqueness(_.key)
+    }
+
+    def checkUniqueness(property: Location => String) = {
+      forEvery(knownLocations.map(property)) { value =>
+        withClue(s"$value: ") {
+          knownLocations.count(property(_) == value) shouldBe 1
+        }
+      }
     }
 
     it("contains all the locations in the default config") {
       withSettings { settings =>
-        val knownCities = knownLocations.map(_.name)
         val defaultCities = settings.weather.articles.flatMap(_.cities)
-        knownCities should contain allElementsOf defaultCities
+        forEvery(defaultCities) { location(_) shouldBe defined }
       }
     }
   }

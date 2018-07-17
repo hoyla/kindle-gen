@@ -39,7 +39,7 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
   def test(editionDate: LocalDate): Unit = describe(s"publish($editionDate)") {
     import scala.concurrent.ExecutionContext.Implicits.global
     val downloader = OkHttpSttpDownloader()
-    val weatherClient = AccuWeatherClient(settings.accuWeather.apiKey, settings.accuWeather.baseUrl, downloader)
+    val weatherClient = AccuWeatherClient(settings.accuWeather, downloader)
     val publisher = FilePublisher(fileSettings.outputDir.resolve(editionDate.toString))
     val capiProvider = GuardianArticlesProvider(settings.contentApi, settings.articles, downloader, editionDate)
     val weatherProvider = new DailyWeatherForecastProvider(
