@@ -49,7 +49,7 @@ class DailyWeatherForecastProviderSpec extends FunSpec {
   private def articleSettingsWithCities(cities: Iterable[Location]) =
     WeatherArticleSettings(articleTitle, byline, articleAbstract, pageNumber = 0, cities = cities.map(_.name).toSeq, image = None)
   private def settingsWithArticles(articles: WeatherArticleSettings*) =
-    WeatherSettings(minForecastsPercentage = 50, articles, Map.empty.withDefaultValue(section))
+    WeatherSettings(minForecastsPercentage = 50, headlines = Some(Map.empty), articles, Map.empty.withDefaultValue(section))
 
   private def provider(settings: WeatherSettings) = {
     implicit val ec = SideEffectsExecutionContext  // discard errors reported by Future#andThen and FutureUtils.successfulSequence

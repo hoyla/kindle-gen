@@ -162,8 +162,12 @@ object SettingsSpec {
     "saturday" -> weekendSection,
     "Sunday" -> specialSection,
   )
+
+  private val weatherHeadlines = Map("heat" -> "Heat", "cold" -> "Cold")
+
   private val weatherValues = Map(
     "articles" -> weatherArticleValues.map(_.toConfigObj).asJava,
+    "headlines" -> weatherHeadlines.toConfigObj,
     "minForecastsPercentage" -> 75,
     "sections" -> weatherSections.mapValues(toMap(_).toConfigObj).toConfigObj,
   )
@@ -263,6 +267,8 @@ object SettingsSpec {
 
   private def validateValues(weather: WeatherSettings): Assertion = {
     weather.minForecastsPercentage shouldBe weatherValues("minForecastsPercentage")
+    weather.customHeadlines should contain theSameElementsAs weatherHeadlines
+
     forEvery(weather.articles.zipWithIndex) { case (article, index) =>
       validateValues(article, weatherArticleValues(index))
     }
