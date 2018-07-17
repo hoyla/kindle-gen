@@ -2,9 +2,12 @@ package com.gu.io
 
 import java.nio.file.{Files, Path, Paths}
 
+import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 
+import better.files._
 import org.scalatest.FunSpec
+import org.scalatest.Inspectors._
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
 
@@ -26,8 +29,8 @@ class FilePublisherSpec extends FunSpec with TempFiles {
     }
 
     it("tracks saved files") {
-      val saved = save("empty.txt")
-      publisher.publications.map(_.toPath.toRealPath()) should contain(saved)
+      val saved = (1 to 3).map { i => save(s"empty$i.txt") }
+      publisher.publications.map(_.toPath.toRealPath()) should contain allElementsOf saved
     }
   }
 
@@ -48,6 +51,32 @@ class FilePublisherSpec extends FunSpec with TempFiles {
       val saved = save("empty.txt")
       publisher.publish().futureValue
       Files.exists(saved) shouldBe true
+    }
+  }
+
+  describe(".zipPublications") {
+    it("saves a zip file with all published contents") {
+      val entries = Set("Hi.txt", "Hello.bin", "Ahlan").map { x =>
+        val bytes = x.getBytes
+        save(x, bytes)
+        x -> bytes
+      }.toMap
+
+      val zipped = publisher.zipPublications("my.zip").futureValue.toPath
+      trackTempFile(zipped)
+
+      val zippedFileSizes = mutable.Map.empty[String, Long]
+      File(zipped).unzipTo("/dev"/"null", { zipEntry =>
+        zippedFileSizes.put(zipEntry.getName, zipEntry.getSize)
+        false  // no actual extraction
+      })
+
+      zippedFileSizes should not contain key("my.zip")
+
+      forAll(entries) { case (name, bytes) =>
+        zippedFileSizes should contain key name
+        zippedFileSizes(name) shouldBe bytes.length
+      }
     }
   }
 

@@ -1,6 +1,5 @@
 package com.gu.io
 
-import java.io.File
 import java.nio.file.{Files, Path}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -26,6 +25,16 @@ case class FilePublisher(outputDirectory: Path)
     toLink(path)
   }
 
+  def zipPublications(archiveName: String = "archive.zip"): Future[PublishedLink] = Future {
+    import better.files._
+    val files = publications.map(x => File(x.toPath)).toSeq
+
+    logger.debug(s"Compressing ${files.size} files into $archiveName")
+    val archive = (File(dir) / archiveName).zipIn(files.iterator)()
+
+    toLink(archive.path)
+  }
+
   def delete(fileName: String): Future[Unit] = {
     val path = toPath(fileName)
     logger.debug(s"Deleting $path...")
@@ -41,7 +50,7 @@ case class FilePublisher(outputDirectory: Path)
   }
 
   private def toPath(fileName: String) = {
-    require(!fileName.contains(File.separatorChar), s"Invalid file name! $fileName")
+    require(!fileName.contains(java.io.File.separatorChar), s"Invalid file name! $fileName")
     dir.resolve(fileName)
   }
 

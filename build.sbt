@@ -29,6 +29,8 @@ libraryDependencies ++= Seq(
   "com.typesafe" % "config" % "1.3.3",
   "com.iheart" %% "ficus" % "1.4.3",
 
+  "com.github.pathikrit" %% "better-files" % "3.5.0",
+
   // HTTP client
   "com.softwaremill.sttp" %% "okhttp-backend" % "1.2.3",
   "com.softwaremill.sttp" %% "json4s" % "1.2.3",

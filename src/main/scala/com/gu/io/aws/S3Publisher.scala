@@ -41,15 +41,21 @@ case class S3Publisher(s3: AmazonS3, settings: S3PublisherSettings)
 
   override def persist(content: Array[Byte], fileName: String): Future[PublishedLink] = {
     // write the file to disk temporarily; the S3 client API infers the metadata from files automatically
-    tmpPublisher.persist(content, fileName).map { relativePath =>
-      val s3Path = normalizeDir(bucketDirectory) + fileName
+    tmpPublisher.persist(content, fileName).map(persist(fileName, _))
+  }
 
-      logger.debug(s"Uploading $fileName to $s3Path...")
-      s3.putObject(bucketName, s3Path, relativePath.toPath.toFile)
-      logger.info(s"Uploaded file to $s3Path")
+  private def persist(fileName: String, relativePath: RelativePath) = {
+    val s3Path = normalizeDir(bucketDirectory) + fileName
 
-      RelativePath.from(fileName, relativeTo = settings.absolutePath)
-    }
+    logger.debug(s"Uploading $fileName to $s3Path...")
+    s3.putObject(bucketName, s3Path, relativePath.toPath.toFile)
+    logger.info(s"Uploaded file to $s3Path")
+
+    RelativePath.from(fileName, relativeTo = settings.absolutePath)
+  }
+
+  def zipPublications(archiveName: String = "archive.zip"): Future[PublishedLink] = {
+    tmpPublisher.zipPublications(archiveName).map(persist(archiveName, _))
   }
 
   override def close(): Unit = {

@@ -185,6 +185,10 @@ class Lambda(settings: Settings, date: LocalDate) extends Logging {
       new KindleGenerator(provider, binder, publisher, downloader, settings.articles.downloadTimeout, settings.publishing)
 
     kindleGenerator.publish()
+      .andThen { case _ =>
+        publisher.zipPublications()
+          .failed.foreach(logger.warn("Publishing the zip archive failed!", _))
+      }
       .andThen { case _ => publisher.close() }
   }
 
