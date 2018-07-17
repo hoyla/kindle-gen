@@ -1,6 +1,6 @@
 package com.gu.kindlegen.app
 
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 import java.time._
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit.HOURS
@@ -10,6 +10,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.{Duration, _}
 import scala.util.Failure
 
+import better.files._
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.typesafe.config.{Config, ConfigFactory}
@@ -40,7 +41,7 @@ final case class S3Settings(bucketName: String,
                             publicDirectory: String,
                             optionalTmpDirOnDisk: Option[Path])
     extends S3PublisherSettings {
-  lazy val tmpDirOnDisk: Path = optionalTmpDirOnDisk.getOrElse(Files.createTempDirectory(""))
+  lazy val tmpDirOnDisk = optionalTmpDirOnDisk.map(File.apply).getOrElse(File.newTemporaryDirectory())
 }
 
 

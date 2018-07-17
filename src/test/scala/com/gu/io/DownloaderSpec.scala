@@ -1,12 +1,9 @@
 package com.gu.io
 
-import java.nio.file.{Files, Path}
-
+import better.files._
 import org.scalatest.FunSpec
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-
-import com.gu.scalatest.PathMatchers._
 
 
 abstract class DownloaderSpec(downloader: Downloader) extends FunSpec with ScalaFutures with IntegrationPatience with TempFiles {
@@ -26,11 +23,11 @@ abstract class DownloaderSpec(downloader: Downloader) extends FunSpec with Scala
       download(sampleUrl).futureValue shouldBe sampleContents
     }
 
-    def testDownloadAs(tempFile: Path) = {
-      val downloadedFile = downloadAs(tempFile, sampleUrl).futureValue
+    def testDownloadAs(tempFile: File) = {
+      val downloadedFile: File = downloadAs(tempFile.path, sampleUrl).futureValue
 
-      downloadedFile should beTheSameFileAs(tempFile)
-      Files.readAllBytes(downloadedFile) shouldBe sampleContents
+      downloadedFile shouldBe tempFile
+      downloadedFile.byteArray shouldBe sampleContents
     }
 
     it("downloads data from a URL into a file") {
@@ -39,8 +36,8 @@ abstract class DownloaderSpec(downloader: Downloader) extends FunSpec with Scala
 
     it("downloads data from a URL into a file in a new directory") {
       val tempDir = newTempDir
-      val newDir = tempDir.resolve("newdir")
-      val newFile = newDir.resolve("newfile")
+      val newDir = tempDir / "newdir"
+      val newFile = newDir / "newfile"
 
       testDownloadAs(newFile)
     }

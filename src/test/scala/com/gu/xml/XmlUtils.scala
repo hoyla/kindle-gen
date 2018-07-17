@@ -1,7 +1,5 @@
 package com.gu.xml
 
-import java.nio.file.{Files, Path, Paths}
-
 import scala.xml._
 
 import com.github.andyglow.xml.diff._
@@ -12,12 +10,6 @@ import com.gu.xml.validation.XmlSchemaValidator
 
 
 object XmlUtils {
-  def writeTemporaryFile(xmlContents: Node, fileName: String, outputSubDir: Path = Paths.get(".")): Path = {
-    val outputDir = Files.createDirectories(Paths.get("target", "tmp").resolve(outputSubDir))
-    val outputPath = outputDir.toRealPath().resolve(fileName)
-    XML.save(filename = outputPath.toString, node = xmlContents, xmlDecl = true, enc = "UTF-8")
-    outputPath
-  }
 
   def prettify(xml: NodeSeq): Elem = {
     XML.loadString(xml.prettyPrint)

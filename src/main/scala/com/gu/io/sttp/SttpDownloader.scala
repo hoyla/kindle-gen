@@ -18,13 +18,16 @@ trait SttpDownloader extends Downloader with Logging {
 
   type Request[T] = com.softwaremill.sttp.Request[T, StreamingCapability]
 
-  override def download(url: String): Future[Array[Byte]] = {
-    val request = sttp.get(uri"$url").response(asByteArray)
+  override def download(url: String): Future[Array[Byte]] = download(uri"$url")
+  override def downloadAs(path: Path, url: String): Future[Path] = downloadAs(path, uri"$url")
+
+  def download(uri: Uri): Future[Array[Byte]] = {
+    val request = sttp.get(uri).response(asByteArray)
     download(request)
   }
 
-  override def downloadAs(path: Path, url: String): Future[Path] = {
-    val request = sttp.get(uri"$url").response(asPath(path, overwrite = true))
+  def downloadAs(path: Path, uri: Uri): Future[Path] = {
+    val request = sttp.get(uri).response(asPath(path, overwrite = true))
     download(request)
   }
 

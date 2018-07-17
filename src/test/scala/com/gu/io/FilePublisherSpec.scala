@@ -1,7 +1,5 @@
 package com.gu.io
 
-import java.nio.file.{Files, Path, Paths}
-
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 
@@ -17,7 +15,7 @@ import com.gu.concurrent.TestExecutionContext
 class FilePublisherSpec extends FunSpec with TempFiles {
   private implicit val ec: ExecutionContext = TestExecutionContext
 
-  private val tempDir = newTempDir(Paths.get("target", "tmp"))
+  private val tempDir = newTempDir("target" / "tmp")
   private val publisher = FilePublisher(tempDir)
 
   describe(".save") {
@@ -25,24 +23,24 @@ class FilePublisherSpec extends FunSpec with TempFiles {
       val bytes = "Hello".getBytes()
 
       val saved = save("hello.txt", bytes)
-      Files.readAllBytes(saved) shouldBe bytes
+      saved.byteArray shouldBe bytes
     }
 
     it("tracks saved files") {
-      val saved = (1 to 3).map { i => save(s"empty$i.txt") }
+      val saved = (1 to 3).map { i => save(s"empty$i.txt").path }
       publisher.publications.map(_.toPath.toRealPath()) should contain allElementsOf saved
     }
   }
 
   describe(".delete") {
+    it("is graceful with non-existing files") {
+      publisher.delete("non-existing").futureValue  // must not throw an exception
+    }
+
     it("deletes the file") {
       val saved = save("empty.txt")
       publisher.delete("empty.txt").futureValue
-      Files.exists(saved) shouldBe false
-    }
-
-    it("is graceful with non-existing files") {
-      publisher.delete("non-existing").futureValue  // must not throw an exception
+      saved.exists() shouldBe false
     }
   }
 
@@ -50,7 +48,7 @@ class FilePublisherSpec extends FunSpec with TempFiles {
     it("leaves published files as-is (i.e. doesn't delete them)") {
       val saved = save("empty.txt")
       publisher.publish().futureValue
-      Files.exists(saved) shouldBe true
+      saved.exists() shouldBe true
     }
   }
 
@@ -62,11 +60,11 @@ class FilePublisherSpec extends FunSpec with TempFiles {
         x -> bytes
       }.toMap
 
-      val zipped = publisher.zipPublications("my.zip").futureValue.toPath
+      val zipped: File = publisher.zipPublications("my.zip").futureValue.toPath
       trackTempFile(zipped)
 
       val zippedFileSizes = mutable.Map.empty[String, Long]
-      File(zipped).unzipTo("/dev"/"null", { zipEntry =>
+      zipped.unzipTo("/dev"/"null", { zipEntry =>
         zippedFileSizes.put(zipEntry.getName, zipEntry.getSize)
         false  // no actual extraction
       })
@@ -80,12 +78,12 @@ class FilePublisherSpec extends FunSpec with TempFiles {
     }
   }
 
-  private def save(fileName: String, content: Array[Byte] = Array.emptyByteArray): Path = {
+  private def save(fileName: String, content: Array[Byte] = Array.emptyByteArray): File = {
     publisher.save(content, fileName)
       .map { link =>
         val path = link.toPath.toRealPath()
         trackTempFile(path)
-          .ensuring(_ == tempDir.resolve(fileName).toRealPath())
+          .ensuring(_ == (tempDir / fileName).path.toRealPath())
       }.futureValue
   }
 }

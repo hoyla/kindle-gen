@@ -2,7 +2,8 @@ package com.gu.kindlegen
 
 import scala.collection.breakOut
 
-import com.gu.io.IOUtils.resourceAsString
+import better.files._
+
 
 object Resources {
   val NitfSchemaPath = "kpp-nitf-3.5.7.xsd"
@@ -10,7 +11,8 @@ object Resources {
 
   // an ordered list of schema in topological order (schema references earlier ones)
   lazy val NitfSchemasContents: Seq[String] = {
-    (resourceAsString(XmlSchemaPath) zip resourceAsString(NitfSchemaPath)).flatMap {
+    implicit val c = DefaultCharset
+    (Resource.asString(XmlSchemaPath) zip Resource.asString(NitfSchemaPath)).flatMap {
       case (x, y) => Seq(x, y)
     }(breakOut)
   }

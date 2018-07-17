@@ -1,12 +1,12 @@
 package com.gu.kindlegen
 
-import java.nio.file.{Files, Path}
 import java.time.LocalDate
 import java.time.ZoneOffset.UTC
 
 import scala.concurrent.Await
 import scala.xml.XML
 
+import better.files._
 import com.typesafe.config.ConfigFactory
 import org.scalatest.FunSpec
 import org.scalatest.Inspectors._
@@ -50,25 +50,25 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
 
     def publish() = generator.publish().andThen { case _ => publisher.close() }
     lazy val links = Await.result(publish().map(_ => publisher.publications), settings.articles.downloadTimeout)
-    lazy val paths = links.collect { case x: PathLink => x.toPath }.toSeq
-    lazy val fileNames = paths.map(_.getFileName.toString)
+    lazy val files = links.collect { case x: PathLink => File(x.toPath) }.toSeq
+    lazy val fileNames = files.map(_.name)
 
-    lazy val rssFiles = pathsEndingWith(fileSettings.rssExtension)
-    lazy val nitfFiles = pathsEndingWith(fileSettings.nitfExtension)
+    lazy val rssFiles = filesEndingWith(fileSettings.rssExtension)
+    lazy val nitfFiles = filesEndingWith(fileSettings.nitfExtension)
 
-    def pathsEndingWith(fileNameSuffix: String) =
-      paths.filter(_.getFileName.toString.endsWith(fileNameSuffix))
+    def filesEndingWith(fileNameSuffix: String) =
+      files.filter(_.name.endsWith(fileNameSuffix))
 
 
     it("returns the generated files") {
       // execute the method under test inside a test case by evaluating (the lazy vals) `paths` and/or `fileNames`
-      if (deleteGeneratedFiles) paths.foreach(trackTempFile)
+      if (deleteGeneratedFiles) files.foreach(trackTempFile)
       fileNames should not be empty
 
-      forEvery(paths) { path =>
-        path should beAChildOf(fileSettings.outputDir)
-        path.toFile should exist
-        withClue(path) { path.toFile.length.toInt should be > 0 }  // file shouldn't be empty and shouldn't be larger than 2GB
+      forEvery(files) { file =>
+        file.path should beAChildOf(fileSettings.outputDir)
+        file.toJava should exist
+        withClue(file) { file.size.toInt should be > 0 }  // file shouldn't be empty and shouldn't be larger than 2GB
       }
     }
 
@@ -81,8 +81,8 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
     }
 
     it("generates valid NITF files") {
-      forEvery(nitfFiles) { path => withClue(path) {
-        val bareNitf = XML.loadFile(path.toFile)
+      forEvery(nitfFiles) { file => withClue(file) {
+        val bareNitf = XML.loadFile(file.toJava)
         val nitf = ArticleNITF.qualify(bareNitf)  // specify the `xmlns` to validate against
         validateXml(nitf, Resources.NitfSchemasContents)
       }}
@@ -101,7 +101,7 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
     }
 
     it("generates a root RSS file linking to all other RSS files") {
-      val rootManifestPath = pathsEndingWith(fileSettings.rootManifestFileName).head
+      val rootManifestPath = filesEndingWith(fileSettings.rootManifestFileName).head
 
       val linkedManifests = linkedFiles(rootManifestPath)
       val otherManifests = rssFiles.filterNot(_ == rootManifestPath)
@@ -109,20 +109,20 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
       assertLinkedFilesCoverAllLinkableFiles(linkedManifests, otherManifests)
     }
 
-    def linkedFiles(manifestPath: Path) = { withClue(manifestPath) {
-      val xml = XML.loadFile(manifestPath.toFile)
+    def linkedFiles(manifestFile: File) = { withClue(manifestFile) {
+      val xml = XML.loadFile(manifestFile.toJava)
       xml.label shouldBe "rss"
 
       val items = xml \ "channel" \ "item" \ "link"
       items should not be empty
 
-      items.map(_.text.trim).map(manifestPath.resolveSibling)
+      items.map(_.text.trim).map(manifestFile.sibling)
     }}
 
-    def assertLinkedFilesCoverAllLinkableFiles(linkedFiles: Seq[Path], linkables: Seq[Path]) = {
-      assume(linkables.forall(Files.exists(_)))
-      forEvery(linkedFiles) { _.toFile should exist }
-      linkedFiles.map(_.toRealPath()) should contain theSameElementsAs linkables.map(_.toRealPath())
+    def assertLinkedFilesCoverAllLinkableFiles(linkedFiles: Seq[File], linkables: Seq[File]) = {
+      assume(linkables.forall(_.exists()))
+      forEvery(linkedFiles) { _.toJava should exist }
+      linkedFiles should contain theSameElementsAs linkables
     }
   }
 }

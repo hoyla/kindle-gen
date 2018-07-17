@@ -5,10 +5,10 @@ import java.nio.file.{Path, Paths}
 
 import scala.xml._
 
+import better.files.Resource
 import org.scalatest.FunSpec
 import org.scalatest.Matchers._
 
-import com.gu.io.IOUtils
 import com.gu.kindlegen.Resources
 import com.gu.xml._
 import com.gu.xml.XmlUtils._
@@ -22,7 +22,7 @@ class XhtmlToNitfTransformationSpec extends FunSpec {
   filesToTest.foreach(test)
 
   protected def filesToTest: TraversableOnce[Path] =
-    IOUtils.resourceUrl("xhtml-example.nitf").map(url => Paths.get(url.toURI))
+    Resource.url("xhtml-example.nitf").map(url => Paths.get(url.toURI))
 
   protected def test(nitfFilePath: Path): Unit = {
       describe("NITF file " + nitfFilePath) {

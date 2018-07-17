@@ -1,24 +1,23 @@
 package com.gu.io.aws
 
 import java.util
-import java.nio.file.Path
 
-import scala.collection.JavaConverters._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration._
 
+import better.files._
 import com.amazonaws.services.s3.AmazonS3
 import com.amazonaws.services.s3.model.{BucketWebsiteConfiguration, RedirectRule, RoutingRule, RoutingRuleCondition}
 import org.apache.logging.log4j.scala.Logging
 
-import com.gu.io.{FilePublisher, Link, Publisher}
+import com.gu.io.{FilePublisher, Publisher}
 import com.gu.io.Link.{AbsolutePath, RelativePath}
 
 
 trait S3PublisherSettings {
   def bucketName: String
   def bucketDirectory: String
-  def tmpDirOnDisk: Path
+  def tmpDirOnDisk: File
 
   val absolutePath: AbsolutePath = AbsolutePath.from(s"/$bucketName/$bucketDirectory")
 }
@@ -31,7 +30,7 @@ case class S3Publisher(s3: AmazonS3, settings: S3PublisherSettings)
   logger.trace(s"Initialised with $settings")
   import settings._
 
-  private val tmpPublisher = FilePublisher(tmpDirOnDisk.resolve(bucketDirectory))
+  private val tmpPublisher = FilePublisher(tmpDirOnDisk / bucketDirectory)
 
   private lazy val websiteConfig =
     Option(s3.getBucketWebsiteConfiguration(bucketName)).getOrElse(new BucketWebsiteConfiguration())

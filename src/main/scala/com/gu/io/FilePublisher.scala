@@ -1,42 +1,42 @@
 package com.gu.io
 
-import java.nio.file.{Files, Path}
+import java.nio.file.Files
 
 import scala.concurrent.{ExecutionContext, Future}
 
+import better.files._
 import org.apache.logging.log4j.scala.Logging
 
 import com.gu.io.Link.RelativePath
 
-case class FilePublisher(outputDirectory: Path)
+case class FilePublisher(outputDirectory: File)
                         (implicit ec: ExecutionContext) extends Publisher with Logging {
-  private val dir = Files.createDirectories(outputDirectory).toRealPath()
-  private val dirLink = Link.AbsolutePath.from(dir)
+  private val dir = outputDirectory.createDirectories()
+  private val dirLink = Link.AbsolutePath.from(dir.path)
 
   override type PublishedLink = RelativePath
 
   override def persist(content: Array[Byte], fileName: String): Future[PublishedLink] = Future {
-    val path = toPath(fileName)
-    logger.debug(s"Writing $fileName to $path")
+    val file = resolve(fileName)
+    logger.debug(s"Writing $fileName to $file")
 
-    Files.write(path, content)
-    logger.info(s"Wrote file to $path")
+    file.writeByteArray(content)
+    logger.info(s"Wrote file to $file")
 
-    toLink(path)
+    toLink(file)
   }
 
   def zipPublications(archiveName: String = "archive.zip"): Future[PublishedLink] = Future {
-    import better.files._
     val files = publications.map(x => File(x.toPath)).toSeq
 
     logger.debug(s"Compressing ${files.size} files into $archiveName")
-    val archive = (File(dir) / archiveName).zipIn(files.iterator)()
+    val archive = resolve(archiveName).zipIn(files.iterator)()
 
-    toLink(archive.path)
+    toLink(archive)
   }
 
   def delete(fileName: String): Future[Unit] = {
-    val path = toPath(fileName)
+    val path = resolve(fileName).path
     logger.debug(s"Deleting $path...")
 
     savedLinks.remove(toLink(path))
@@ -49,12 +49,12 @@ case class FilePublisher(outputDirectory: Path)
     }
   }
 
-  private def toPath(fileName: String) = {
+  private def resolve(fileName: String) = {
     require(!fileName.contains(java.io.File.separatorChar), s"Invalid file name! $fileName")
-    dir.resolve(fileName)
+    dir / fileName
   }
 
-  private def toLink(path: Path) = {
-    RelativePath.from(dir.relativize(path), relativeTo = dirLink)
+  private def toLink(file: File): PublishedLink = {
+    RelativePath.from(dir.relativize(file), relativeTo = dirLink)
   }
 }

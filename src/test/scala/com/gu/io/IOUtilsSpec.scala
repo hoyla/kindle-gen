@@ -1,7 +1,5 @@
 package com.gu.io
 
-import java.nio.file.{Files, Path}
-
 import org.scalatest.FunSpec
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -35,38 +33,6 @@ class IOUtilsSpec extends FunSpec with ScalaFutures with IntegrationPatience wit
 
     it("ignores file names that don't contain a dot") {
       pendingUntilFixed { fileExtension("fileWithoutExtension") shouldBe "" }
-    }
-  }
-
-  describe("deleteRecursively") {
-    def testDelete(path: Path, createNestedFiles: Path => Unit = _ => ()): Unit = {
-      assume(Files.exists(path))
-      createNestedFiles(path)
-      deleteRecursively(path) shouldBe true
-      Files.exists(path) shouldBe false
-    }
-
-    it("deletes a file") {
-      testDelete(newTempFile)
-    }
-
-    it("deletes an empty directory") {
-      testDelete(newTempDir)
-    }
-
-    it("deletes nested empty directories") {
-      testDelete(newTempDir, newTempDir(_))
-    }
-
-    it("deletes full directories") {
-      testDelete(newTempDir, parent => {
-        newTempFile(parent)
-        newTempFile(newTempDir(parent))
-      })
-    }
-
-    it("fails gracefully if the file doesn't exist") {
-      deleteRecursively(newTempDir.resolve("non-existent")) shouldBe false
     }
   }
 }
