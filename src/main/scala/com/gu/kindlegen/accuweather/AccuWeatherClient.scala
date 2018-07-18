@@ -32,8 +32,8 @@ object AccuWeatherClient {
   def location(cityName: String): Option[Location] =
     knownLocationsMap.get(cityName.toLowerCase)
 
-  lazy val knownLocationsMap = knownLocations
-    .flatMap { location =>
+  lazy val knownLocationsMap: Map[String, Location] =
+    knownLocations.flatMap { location =>
       (location.aliases + location.name).map(_.toLowerCase -> location)
     }.toMap
 
