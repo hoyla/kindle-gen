@@ -1,6 +1,6 @@
 # Kindle-gen
 
-Publishing our print-sent content to the Amazon Kindle API.
+Generating [The Guardian and The Observer, Kindle Edition](https://www.amazon.co.uk/gp/product/B004MME3M8/).
 
 ## Architecture
 
