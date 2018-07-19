@@ -48,6 +48,5 @@ trait Publisher extends AutoCloseable with Logging {
     savedLinks.add(link)
   }
 
-  // Map is the only concurrent collection type in Scala 2.12!
   protected val savedLinks = new java.util.concurrent.ConcurrentLinkedQueue[PublishedLink]()
 }

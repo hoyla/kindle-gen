@@ -5,7 +5,7 @@ import javax.xml.validation.Schema
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.FiniteDuration
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 import scala.xml.Elem
 
 import org.apache.logging.log4j.scala.Logging
@@ -33,13 +33,14 @@ class KindleGenerator(provider: ArticlesProvider,
 
   def fetchArticles(): Future[Seq[Article]] = {
     provider.fetchArticles()
-      .flatMap { results =>
-        if(results.length >= publishingSettings.minArticlesPerEdition)
-          Future.successful(results)
-        else
-          Future.failed(new IllegalArgumentException(
+      .transform {
+        case Success(results) if results.length < publishingSettings.minArticlesPerEdition =>
+          Failure(new IllegalArgumentException(
             s"Not enough articles to generate an edition!" +
               s" Expected >= ${publishingSettings.minArticlesPerEdition}, Found ${results.length}"))
+
+        case eitherEnoughResultsOrFailure =>
+          eitherEnoughResultsOrFailure
       }
   }
 
