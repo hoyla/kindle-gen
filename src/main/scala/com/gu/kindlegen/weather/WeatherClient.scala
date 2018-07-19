@@ -14,7 +14,7 @@ trait WeatherClient {
 
 object WeatherClient {
   /** Unique identifier of a location */
-  final case class Location(name: String, key: String)
+  final case class Location(name: String, key: String, aliases: Set[String] = Set.empty)
 
   /** A row in our forecasts table */
   case class Forecast(headline: Option[String],

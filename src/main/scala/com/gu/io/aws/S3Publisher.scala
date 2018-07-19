@@ -92,7 +92,7 @@ case class S3Publisher(s3: AmazonS3, settings: S3PublisherSettings)
     val toDir = normalizeDir(toDirectory)
     new RoutingRule()
       .withCondition(new RoutingRuleCondition().withKeyPrefixEquals(fromDir))
-      .withRedirect(new RedirectRule().withReplaceKeyPrefixWith(toDir))
+      .withRedirect(new RedirectRule().withReplaceKeyPrefixWith(toDir).withHttpRedirectCode("302"))
   }
 
   private def normalizeDir(dirName: String): String = {

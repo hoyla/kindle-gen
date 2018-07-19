@@ -1,11 +1,11 @@
-CityName,LocationKey
+CityName,LocationKey,aliases
 Beijing,101924
 Belfast,326934
 Berlin,10178
 Birmingham,326966
 Brighton,2520245
 Bristol,327328
-Buenos Aires,7894
+Buenos Aires,7894,B Aires
 Cairo,127164
 Cardiff,327202
 Delhi,202396
@@ -13,19 +13,19 @@ Dublin,207931
 Edinburgh,327336
 Glasgow,328226
 Inverness,532
-Johannesburg,305448
+Johannesburg,305448,Jo'burg
 Leeds,712327
 Liverpool,330510
 London,328328
-Los Angeles,90012
+Los Angeles,90012,L Angeles
 Manchester,329260
-Mexico City,242560
+Mexico City,242560,Mexico C
 Moscow,294021
 New York,10007
 Newcastle,327706
 Paris,623
 Penzance,322310
-Rio de Janeiro,45449
+Rio de Janeiro,45449,Rio de J
 Rome,213490
 Sheffield,326914
 Sydney,22889

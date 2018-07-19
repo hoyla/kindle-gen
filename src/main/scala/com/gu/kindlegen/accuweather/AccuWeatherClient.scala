@@ -26,8 +26,16 @@ object AccuWeatherClient {
   def apply(apiKey: String,
             apiBaseUri: URI,
             downloader: SttpDownloader)(implicit ec: ExecutionContext): AccuWeatherClient = {
-    new AccuWeatherClient(apiKey, apiBaseUri, knownLocations, downloader)
+    new AccuWeatherClient(apiKey, apiBaseUri, location, downloader)
   }
+
+  def location(cityName: String): Option[Location] =
+    knownLocationsMap.get(cityName.toLowerCase)
+
+  lazy val knownLocationsMap: Map[String, Location] =
+    knownLocations.flatMap { location =>
+      (location.aliases + location.name).map(_.toLowerCase -> location)
+    }.toMap
 
   lazy val knownLocations: Set[Location] = {
     Source.fromResource("accuweather-cities.csv")
@@ -35,8 +43,8 @@ object AccuWeatherClient {
       .drop(1)  // header
       .map(_.split(','))
       .collect {
-        case Array(cityName, locationKey, _*) =>
-          Location(cityName, locationKey)
+        case Array(cityName, locationKey, aliases @ _*) =>
+          Location(cityName, locationKey, aliases.toSet)
       }.toSet
   }
 
@@ -70,7 +78,7 @@ object AccuWeatherClient {
   */
 class AccuWeatherClient(apiKey: String,
                         apiBaseUri: URI,
-                        knownLocations: Set[Location],
+                        knownLocations: String => Option[Location],
                         downloader: SttpDownloader)(implicit ec: ExecutionContext)
     extends WeatherClient with Logging {
 
@@ -78,7 +86,7 @@ class AccuWeatherClient(apiKey: String,
 
   def locationKey(cityName: String): Future[Location] = {
     logger.debug(s"Looking up location key for $cityName")
-    knownLocations.find(_.name.equalsIgnoreCase(cityName)) match {
+    knownLocations(cityName) match {
       case Some(location) => Future.successful(location)
       case None => Future.failed(new NoSuchElementException(s"Location key for $cityName could not be found!"))
     }

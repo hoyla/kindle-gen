@@ -83,9 +83,14 @@ class DailyWeatherForecastProvider(client: WeatherClient,
 
       .flatMap {
         client.forecastFor(_)
-          .map(CityForecast(cityName, _))
+          .map(forecast => CityForecast(cityName, normalise(forecast)))
           .andThen { case Failure(t) => logger.warn(s"Failed to get forecast for $cityName!", t) }
       }
+  }
+
+  protected def normalise(forecast: Forecast): Forecast = {
+    val customHeadline = forecast.headline.flatMap(settings.customHeadlines.get)
+    customHeadline.map(x => forecast.copy(headline = Some(x))).getOrElse(forecast)
   }
 
   protected def forecastTable(cityForecasts: Seq[CityForecast]) = {
