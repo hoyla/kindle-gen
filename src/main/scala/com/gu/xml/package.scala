@@ -176,7 +176,7 @@ object `package` {
       toXmlString(encoding)(prettifier).getBytes(encoding)
 
     def toXmlString(encoding: String = "UTF-8")(implicit prettifier: scala.xml.PrettyPrinter): String =
-      s"""<?xml version="1.1" encoding="UTF-8"?>\n""" +  // s"" required to evaluate "\n" as a newline
+      s"""<?xml version="1.0" encoding="UTF-8"?>\n""" +  // s"" required to evaluate "\n" as a newline
         elem.prettyPrint(prettifier)
   }
 
