@@ -37,13 +37,13 @@ trait Publisher extends AutoCloseable with Logging {
   def publications: Iterable[PublishedLink] = savedLinks.asScala
 
   /** Records content that is to be published */
-  protected def persist(content: Array[Byte], fileName: String): Future[PublishedLink]
+  protected[this] def persist(content: Array[Byte], fileName: String): Future[PublishedLink]
 
   /** Called before content is persisted */
-  protected def saving(key: String): Unit = { logger.trace(s"Saving $key...") }
+  protected[this] def saving(key: String): Unit = { logger.trace(s"Saving $key...") }
 
   /** Called after content is persisted */
-  protected def saved(fileName: String, link: PublishedLink): Unit = {
+  protected[this] def saved(fileName: String, link: PublishedLink): Unit = {
     logger.trace(s"Saved $fileName as $link")
     savedLinks.add(link)
   }

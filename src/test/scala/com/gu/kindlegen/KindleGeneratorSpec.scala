@@ -48,7 +48,9 @@ class KindleGeneratorSpec extends FunSpec with TempFiles {
     val binder = MainSectionsBookBinder(settings.books.mainSections)
     val generator = new KindleGenerator(provider, binder, publisher, downloader, settings.articles.downloadTimeout, settings.publishing)
 
-    def publish() = generator.publish().andThen { case _ => publisher.close() }
+    def publish() = generator.publish()
+      .flatMap(_ => publisher.zipPublications())
+      .andThen { case _ => publisher.close() }
     lazy val links = Await.result(publish().map(_ => publisher.publications), settings.articles.downloadTimeout)
     lazy val files = links.collect { case x: PathLink => File(x.toPath) }.toSeq
     lazy val fileNames = files.map(_.name)

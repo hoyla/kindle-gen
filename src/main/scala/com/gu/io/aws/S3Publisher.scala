@@ -40,7 +40,7 @@ case class S3Publisher(s3: AmazonS3, settings: S3PublisherSettings)
 
   override def persist(content: Array[Byte], fileName: String): Future[PublishedLink] = {
     // write the file to disk temporarily; the S3 client API infers the metadata from files automatically
-    tmpPublisher.persist(content, fileName).map(upload(fileName, _))
+    tmpPublisher.save(content, fileName).map(upload(fileName, _))
   }
 
   private def upload(fileName: String, relativePath: RelativePath): PublishedLink = {
