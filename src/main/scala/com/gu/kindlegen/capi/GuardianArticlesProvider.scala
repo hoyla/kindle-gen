@@ -50,12 +50,7 @@ class GuardianArticlesProvider(capiClient: ContentApiClient,
   }
 
   def articles(results: Seq[Content]): Seq[Article] = {
-    val (_, articles) = results.foldLeft[(Set[String], Seq[Article])]((Set.empty, Nil)) { case ((ids, articles), article) =>
-      if (!ids(article.id))
-        ids -> (articles ++ toArticle(article))
-      else
-        (ids + article.id) -> articles
-    }
+    val articles = results.groupBy(_.id).flatMap(_._2.headOption).toSeq.flatMap(toArticle)
     logger.info(s"Processed ${articles.length} articles.")
     articles
   }
