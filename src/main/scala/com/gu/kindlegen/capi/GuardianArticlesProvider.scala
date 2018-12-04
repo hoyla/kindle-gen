@@ -50,7 +50,7 @@ class GuardianArticlesProvider(capiClient: ContentApiClient,
   }
 
   def articles(results: Seq[Content]): Seq[Article] = {
-    val articles = results.flatMap(toArticle)
+    val articles = results.groupBy(_.id).flatMap(_._2.headOption).toSeq.flatMap(toArticle)
     logger.info(s"Processed ${articles.length} articles.")
     articles
   }
